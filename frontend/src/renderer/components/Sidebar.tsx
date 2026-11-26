@@ -1,0 +1,3831 @@
+import { useTelemetrySurface } from "../lib/ui-usage-telemetry";
+import { useQueryClient } from "@tanstack/react-query";
+import { useProjectAvatars } from "../hooks/useProjectAvatars";
+import { paidPlanBadge, useCloudBilling } from "../hooks/useCloudBilling";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams, useRouterState } from "@tanstack/react-router";
+import {
+	DndContext,
+	KeyboardSensor,
+	PointerSensor,
+	closestCenter,
+	useSensor,
+	useSensors,
+	type Modifier,
+	type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+	Archive,
+	CalendarClock,
+	ChevronRight,
+	CircleAlert,
+	Copy,
+	GitMerge,
+	GitPullRequest,
+	LoaderCircle,
+	LayoutGrid,
+	Package,
+	Gauge,
+	LogIn,
+	LogOut,
+	MoreVertical,
+	PanelLeft,
+	Pin,
+	PinOff,
+	Plus,
+	QuestionMark,
+	Search,
+	Settings,
+	Smartphone,
+	Trash2,
+	TriangleAlert,
+	User,
+	ArrowLeft,
+} from "@/components/app-icons";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	memo,
+	useMemo,
+	useRef,
+	useState,
+	type CSSProperties,
+	type DragEvent as ReactDragEvent,
+	type MouseEvent,
+	type ReactNode,
+	type RefObject,
+} from "react";
+import { flushSync } from "react-dom";
+import { artifactCount, groupArtifactsByProject, withKeptArtifacts } from "../lib/artifacts";
+import { useKeptArtifacts } from "../hooks/useKeptArtifacts";
+import {
+	newestActiveOrchestrator,
+	openPRs,
+	type WorkspaceSession,
+	type WorkspaceSummary,
+	sortedWorkerSessions,
+	isOrchestratorSession,
+	resolveNextNavigationAfterSessionKill,
+	workerSessions,
+	CLOUD_PROJECT_KIND,
+	ownScratchpadWorkspaces,
+	STANDALONE_PROJECT_KIND,
+	STANDALONE_WORKSPACE_ID,
+} from "../types/workspace";
+import {
+	getSessionRowIndicator,
+	sessionNeedsInput,
+	type SessionRowMarker,
+} from "../lib/session-presentation";
+import { SessionContextMenuItems, useCopyToClipboard } from "./SessionContextMenuItems";
+import { dropdownMenuKit, MenuEntries, MenuKitContext, type MenuEntry } from "./menu-model";
+import { isArchivedSession } from "../lib/standalone-archive";
+import { apiErrorCode, hasTrustedApiBaseUrl } from "../lib/api-client";
+import { useCommandPaletteEnabled } from "../hooks/useCommandPaletteEnabled";
+import { useEdgeFade } from "../hooks/useEdgeFade";
+import { canResumeAgent, resumeAgentOnOpen, useCanResumeAgent } from "../hooks/useCanResumeAgent";
+import { cloudSessionsQueryKey, workspaceQueryKey, workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
+import { useCloudOffering } from "../hooks/useCloudOffering";
+import { conversationQueryKey, conversationQueryOptions } from "../hooks/useConversation";
+import { usePinSession, useUnpinSession } from "../hooks/usePinSession";
+import { spawnCloudOrchestrator } from "../lib/cloud-orchestrator";
+import { resumeOrchestrator, spawnOrchestrator } from "../lib/spawn-orchestrator";
+import { formatTimeCompact, formatTimeTerse } from "../lib/format-time";
+import { useTerminateSession } from "../hooks/useTerminateSession";
+import { useResizable } from "../hooks/useResizable";
+import { useLatestCallback, useStableArray } from "../hooks/useStable";
+import { useCloudLocalAuth } from "../hooks/useCloudLocalAuth";
+import { useLocalSignInDialogStore } from "../stores/local-signin-dialog-store";
+import { useShellMaybe } from "../lib/shell-context";
+import { useUpdateStatus } from "../hooks/useUpdateStatus";
+import { MAX_SESSION_DISPLAY_NAME_LEN, useSessionRename } from "../hooks/useSessionRename";
+import { useSessionPreviewHover } from "../hooks/useSessionPreviewHover";
+import { effectiveShortcutBindings, shortcutBindingKeys } from "../../shared/shortcuts";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+} from "./ui/context-menu";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { SessionPreviewCardAdapter } from "./SessionsBoardAdapters";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import {
+	Sidebar as SidebarRoot,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarRail,
+	SidebarMenuSub,
+	SidebarMenuSubItem,
+	useSidebar,
+} from "./ui/sidebar";
+import { BuildInfoTooltip } from "./BuildInfoTooltip";
+import { Button } from "./ui/button";
+import { Pressable } from "./ui/pressable";
+import { menuFocusReturnTarget } from "./ui/menu-focus";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { SharedProjectMark } from "./teams/SharedProjectMark";
+import { CloudMark } from "./CloudMark";
+import { ProjectIcon } from "./ProjectIcon";
+import { OrchestratorIcon } from "./icons";
+import { OrchestratorReplyIcon, orchestratorReplyLabel, ReplyBadge } from "./OrchestratorReplyIcon";
+import { Badge } from "./ui/badge";
+import { cn } from "../lib/utils";
+import { recordManualWorkerOpen } from "../lib/session-management-telemetry";
+import { captureRendererException } from "../lib/telemetry";
+import { AwakeMenuItem, awakeNeedsAttention, useFooterStayAwake } from "./AwakeControl";
+import { FOOTER_RAIL_BUTTON_CLASS, SidebarUpdateRail, SidebarUpdateRow } from "./SidebarUpdate";
+import { SettingsSaveStatus, useSettingsPage } from "./SettingsDialog";
+import { useUiStore } from "../stores/ui-store";
+import { useSidebarOrderStore } from "../stores/sidebar-order-store";
+import { useSessionImportStore } from "../stores/session-import-store";
+import { isSessionUnread, sessionReadKey, useSessionReadStore, useSessionUnread } from "../stores/session-read-store";
+import { useOrchestratorReplyState } from "../stores/orchestrator-reply-store";
+import { applyOrder, EMPTY_GROUP_ORDER, type GroupOrder, isPinnedWorker, orderGroupSessions, pinnedFirst, pruneGroupOrder, splitGroupOrder } from "../lib/sidebar-order";
+import { useKeybindingsStore } from "../stores/keybindings-store";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { SessionArchiveDialog, type SessionArchiveChoice } from "./SessionArchiveDialog";
+import { CreateProjectFlow, type CloneProjectInput, type CreateProjectInput } from "./CreateProjectFlow";
+import { ResizeHandle } from "./ResizeHandle";
+import { NAV_ROW_HIGHLIGHT_HOST_CLASS, NavRowHighlight } from "./NavRowHighlight";
+import { isLinuxPlatform, isMacPlatform } from "../lib/platform";
+import { useCloudSession } from "../lib/cloud-session";
+import type { RemoteHost } from "../hooks/useRemoteHosts";
+import { sessionNavigateTarget } from "../lib/navigate-to-session";
+import { sessionUiKey } from "../lib/hosts";
+import { RemoteHostsSection } from "./RemoteHostsSection";
+
+// macOS paints framed chrome: the fixed TitlebarNav cluster carries the
+// sidebar toggle + history arrows above this surface. Windows hangs the sidebar
+// under its custom titlebar.
+const isMac = isMacPlatform();
+const brandInTitlebar = isMac || isLinuxPlatform();
+const noDragStyle = isMac ? ({ WebkitAppRegion: "no-drag" } as React.CSSProperties) : undefined;
+
+// One row-action layout shared by project rows, session rows, and the section
+// header "+": 24px quiet icon buttons (Button size="icon-xs"), 14px icons, a 6px
+// gap, and a 4px right inset, vertically centered in the row, so every action's
+// right edge lines up. `.sidebar-icon-action` opts out of the sidebar focus fill
+// in styles.css; the Button's hover pill owns the fill.
+const ROW_ACTIONS_CLASS = "absolute inset-y-0 right-1 flex items-center gap-0.5";
+/** Long enough that sweeping the pointer across the list starts no agents. */
+const AGENT_WARM_UP_HOVER_MS = 300;
+/** How long the pointer rests on a chat row before its history is read. */
+const CHAT_PREFETCH_REST_MS = 100;
+const ROW_ACTION_BUTTON_CLASS = "sidebar-icon-action [&_svg]:size-icon-md";
+const HOVER_ACTION_CLASS = ROW_ACTION_BUTTON_CLASS;
+const SESSION_ACTION_CLASS = ROW_ACTION_BUTTON_CLASS;
+
+// Shared nav-row chrome (Codex-style): inset pill, 14px type, no accent bar.
+// Plain fill stays for non-interactive status rows; interactive rows use
+// {@link NavRowHighlight} via {@link NAV_ROW_HIGHLIGHT_HOST_CLASS}.
+const NAV_ROW_CLASS =
+	"h-9 gap-2.5 rounded-lg px-2.5 text-sm font-medium text-muted-foreground hover:bg-interactive-hover hover:text-foreground active:bg-interactive-hover active:text-foreground data-[active=true]:bg-interactive-active data-[active=true]:font-medium data-[active=true]:text-foreground";
+
+/** Expanded footer action row: growing highlight behind icon + label. */
+const FOOTER_NAV_BUTTON_CLASS = cn(
+	NAV_ROW_CLASS,
+	NAV_ROW_HIGHLIGHT_HOST_CLASS,
+	"flex h-9 w-full items-center text-left transition-none",
+);
+
+/** Update rows above the account row; collapses away when nothing is pending. */
+const FOOTER_UPDATES_CLASS = "flex flex-col gap-0.5 pt-2 empty:hidden";
+
+/** The footer's bottom row, under any update rows. */
+const FOOTER_BOTTOM_ROW_CLASS = "flex w-full items-center gap-0.5 pt-2";
+
+/** Expanded footer icon action: a 36px square with the growing highlight. */
+const FOOTER_ICON_BUTTON_CLASS = cn(
+	NAV_ROW_HIGHLIGHT_HOST_CLASS,
+	"inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground [&_svg]:size-icon-md",
+);
+
+// Top-of-sidebar rows (Search, Automations) and project rows: one 32px row with
+// a 10px inset, 8px icon gap, and 14px icons so edges match the section headers
+// and session rows.
+const SIDEBAR_ROW_CLASS = "h-8 gap-2 [&_svg]:size-icon-md";
+
+// Search + Sessions/Projects section chrome: same type, icon, and row size.
+const SECTION_ROW_CLASS =
+	"flex h-8 w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-muted-foreground [&_svg]:size-icon-md [&_svg]:shrink-0";
+
+// Mirrors the daemon's display-name cap (maxDisplayNameLen) and the spawn
+// `--name` flag, so inline edits never round-trip a value the API would reject.
+
+// Reorder drags start from the row's primary click surface. The 4px activation
+// distance keeps a plain navigation/disclosure click from starting a drag;
+// nested action buttons remain outside that activator surface.
+const REORDER_ACTIVATION_DISTANCE = 8;
+// A transparent 1x1 image replaces the browser's default drag ghost, so the
+// dragged row stays put at reduced opacity instead of trailing under the cursor.
+const EMPTY_DRAG_IMAGE = typeof Image === "undefined" ? null : new Image();
+if (EMPTY_DRAG_IMAGE) EMPTY_DRAG_IMAGE.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+/** Stable drag-context id per project's session list. */
+export const sessionDndId = (projectId: string) => `sidebar-sessions-${projectId}`;
+
+// Module constants: useSensor memoizes on the options object, and new sensors
+// change dnd-kit's context, which re-renders every sortable row in the list.
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: REORDER_ACTIVATION_DISTANCE } };
+// Space-only start so Enter keeps opening the row.
+const KEYBOARD_SENSOR_OPTIONS = {
+	coordinateGetter: sortableKeyboardCoordinates,
+	keyboardCodes: { start: ["Space"], cancel: ["Escape"], end: ["Space"] },
+};
+
+function useReorderSensors() {
+	return useSensors(
+		useSensor(PointerSensor, POINTER_SENSOR_OPTIONS),
+		useSensor(KeyboardSensor, KEYBOARD_SENSOR_OPTIONS),
+	);
+}
+
+// Browsers dispatch a click after pointerup even when dnd-kit has just completed
+// a drag. Suppress only that same-turn synthetic click; if no click follows,
+// clear the guard before the next user interaction.
+function usePostDragClickGuard() {
+	const guardedIdRef = useRef<string | null>(null);
+	const clearTimerRef = useRef<number | null>(null);
+
+	const markDragEnded = useCallback((id: string) => {
+		guardedIdRef.current = id;
+		if (clearTimerRef.current !== null) window.clearTimeout(clearTimerRef.current);
+		clearTimerRef.current = window.setTimeout(() => {
+			guardedIdRef.current = null;
+			clearTimerRef.current = null;
+		}, 0);
+	}, []);
+
+	const consumeClick = useCallback((id: string) => {
+		if (guardedIdRef.current !== id) return false;
+		guardedIdRef.current = null;
+		if (clearTimerRef.current !== null) {
+			window.clearTimeout(clearTimerRef.current);
+			clearTimerRef.current = null;
+		}
+		return true;
+	}, []);
+
+	useEffect(() => () => {
+		if (clearTimerRef.current !== null) window.clearTimeout(clearTimerRef.current);
+	}, []);
+
+	return useMemo(() => ({ consumeClick, markDragEnded }), [consumeClick, markDragEnded]);
+}
+
+type SortableRow = ReturnType<typeof useSortable>;
+
+/** Session sorting stays vertical and never inherits dnd-kit's scale correction. */
+function sortableRowStyle({ transform, transition, isDragging, dropTransitionDisabled }: Pick<SortableRow, "transform" | "transition" | "isDragging"> & { dropTransitionDisabled?: boolean }): CSSProperties {
+	return {
+		transform: transform ? CSS.Transform.toString({ ...transform, x: 0, scaleX: 1, scaleY: 1 }) : undefined,
+		// The active row must clear its drag transform immediately on drop; its
+		// siblings retain dnd-kit's smooth displacement while the pointer moves.
+		transition: isDragging || dropTransitionDisabled ? "none" : (transition ?? "transform 180ms cubic-bezier(0.22, 1, 0.36, 1)"),
+	};
+}
+
+// Session drags use their owning list as the visual boundary.
+const restrictToListBounds: Modifier = ({ activeNodeRect, containerNodeRect, transform }) => {
+	if (!activeNodeRect || !containerNodeRect) return transform;
+	const minY = containerNodeRect.top - activeNodeRect.top;
+	const maxY = containerNodeRect.bottom - activeNodeRect.bottom;
+	return {
+		...transform,
+		x: 0,
+		y: Math.min(maxY, Math.max(minY, transform.y)),
+	};
+};
+
+type ProjectDropPlacement = "before" | "after";
+
+function reorderAtProjectBoundary(
+	ids: string[],
+	activeId: string,
+	targetId: string,
+	placement: ProjectDropPlacement,
+): string[] | null {
+	if (activeId === targetId || !ids.includes(activeId) || !ids.includes(targetId)) return null;
+	const next = ids.filter((id) => id !== activeId);
+	const targetIndex = next.indexOf(targetId);
+	next.splice(targetIndex + (placement === "after" ? 1 : 0), 0, activeId);
+	return next.every((id, index) => id === ids[index]) ? null : next;
+}
+
+function reorderById(ids: string[], activeId: string, overId: string): string[] | null {
+	if (activeId === overId) return null;
+	const from = ids.indexOf(activeId);
+	const to = ids.indexOf(overId);
+	if (from < 0 || to < 0) return null;
+	const next = [...ids];
+	const [moved] = next.splice(from, 1);
+	next.splice(to, 0, moved);
+	return next;
+}
+
+function useGrabbingCursor(active: boolean) {
+	useEffect(() => {
+		if (!active) return;
+		document.documentElement.classList.add("sidebar-reordering");
+		return () => document.documentElement.classList.remove("sidebar-reordering");
+	}, [active]);
+}
+
+/** How the sidebar collapses. Only the "icon" mode shows a rail where every list
+ *  must be fully open; "offcanvas" slides the whole sidebar away, and its lists
+ *  must keep their open/closed and Show more state while it is hidden. */
+// Asserted rather than annotated: an annotation narrows to "offcanvas" inside
+// the memoized Sidebar, and the "icon" branches would no longer typecheck.
+const SIDEBAR_COLLAPSIBLE = "offcanvas" as "offcanvas" | "icon";
+export const SIDEBAR_DEFAULT_WIDTH = 240;
+/** Floor/ceiling for sidebar resize — pass the same values to useResizable. */
+export const SIDEBAR_MIN_WIDTH = 200;
+export const SIDEBAR_MAX_WIDTH = 420;
+const SIDEBAR_BRAND_TRAILING_GAP = 12;
+/** Narrowest the sidebar may get: SIDEBAR_MIN_WIDTH, widened to show the whole
+ *  brand label. Measured, because the label's left edge moves with window zoom
+ *  (the traffic-light reserve is divided by the zoom factor) and native
+ *  fullscreen (no reserve). The label alone fits in less than the footer's
+ *  Settings row needs, so never go below SIDEBAR_MIN_WIDTH. */
+function sidebarMinWidth(): number {
+	const brand = Array.from(document.querySelectorAll<HTMLElement>("[data-sidebar-brand]")).find(
+		(el) => el.getBoundingClientRect().width > 0,
+	);
+	if (!brand) return SIDEBAR_MIN_WIDTH;
+	// Measure the label's natural width (its scrollWidth), not its painted width:
+	// the titlebar clips the label to the sidebar, so the painted width would
+	// shrink the floor to whatever the sidebar already is. Without a separate
+	// label (the Windows header), the whole brand element is the label.
+	const label = brand.querySelector<HTMLElement>("[data-brand-label]");
+	// +1px of slack: scrollWidth is rounded, and a fractional label width would
+	// otherwise clip the last letter at exactly the floor.
+	const fit = label
+		? Math.ceil(label.getBoundingClientRect().left + label.scrollWidth + SIDEBAR_BRAND_TRAILING_GAP + 1)
+		: Math.ceil(brand.getBoundingClientRect().left + brand.scrollWidth + SIDEBAR_BRAND_TRAILING_GAP);
+	return Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, fit));
+}
+/** Initial item count shown in expanded sections; Show more/less toggles the remainder.
+ *  Collapsed icon rail always shows the full list so projects stay reachable. */
+const SIDEBAR_INITIAL_SECTION_LIMIT = 10;
+/** Initial agent count listed under each expanded project before its own Show more. */
+const SIDEBAR_PROJECT_SESSION_LIMIT = 6;
+/** Initial agent count listed in the Sessions section, which sits above Projects, before its Show more. */
+const SIDEBAR_SESSIONS_LIMIT = 5;
+/** Section scrollers fill the height their flex parent leaves them and scroll inside it. */
+const SECTION_SCROLLER_CLASS =
+	"scrollbar-none overflow-y-auto overflow-x-hidden overscroll-contain group-data-[collapsible=icon]:overflow-visible";
+
+/** How many of a group's ordered sessions are pinned: they lead the list. */
+function leadingPinnedCount(sessions: readonly WorkspaceSession[]): number {
+	const index = sessions.findIndex((session) => !isPinnedWorker(session));
+	return index === -1 ? sessions.length : index;
+}
+
+/** A group's saved drag order. When a listed session gains or loses its pin,
+ *  it leaves the saved part it was in, so a repin sorts by pin time again. */
+function useGroupOrder(visibleSessions: readonly WorkspaceSession[]) {
+	const [order, setOrder] = useState<GroupOrder>(EMPTY_GROUP_ORDER);
+	useEffect(() => setOrder((current) => pruneGroupOrder(current, visibleSessions)), [visibleSessions]);
+	return [order, setOrder] as const;
+}
+
+/** Caps a sidebar list at `limit` behind Show more/less. The cap lifts on its
+ *  own when the active item sits past it, until the user collapses it again. */
+function useShowMoreCap<T extends { id: string }>(
+	items: T[],
+	limit: number,
+	activeId: string | undefined,
+	isCollapsed = false,
+) {
+	const [showAll, setShowAll] = useState(false);
+	const [showAllDismissed, setShowAllDismissed] = useState(false);
+	const activeBeyondLimit = useMemo(() => {
+		if (showAll || items.length <= limit || !activeId) return false;
+		return items.findIndex((item) => item.id === activeId) >= limit;
+	}, [activeId, items, limit, showAll]);
+	useEffect(() => setShowAllDismissed(false), [activeId]);
+	useEffect(() => {
+		if (activeBeyondLimit && !showAllDismissed) setShowAll(true);
+	}, [activeBeyondLimit, showAllDismissed]);
+	const listed = useMemo(
+		() => (isCollapsed || showAll || items.length <= limit ? items : items.slice(0, limit)),
+		[isCollapsed, items, limit, showAll],
+	);
+	const toggleShowAll = () => {
+		const next = !showAll;
+		setShowAll(next);
+		setShowAllDismissed(!next);
+	};
+	return { listed, hiddenCount: Math.max(0, items.length - limit), showAll, toggleShowAll };
+}
+
+function SidebarSectionScroller({
+	children,
+	className,
+	style,
+	testId,
+	wrapperClassName,
+}: {
+	children: ReactNode;
+	className: string;
+	style?: CSSProperties;
+	testId: string;
+	wrapperClassName?: string;
+}) {
+	const scrollerRef = useRef<HTMLDivElement>(null);
+	useEdgeFade(scrollerRef);
+
+	return (
+		<div className={`relative min-h-0 ${wrapperClassName ?? ""}`}>
+			<div ref={scrollerRef} className={`edge-fade [--edge-fade-size:var(--space-4)] ${className}`} data-sidebar-section-scroller="" data-testid={testId} style={style}>
+				{children}
+			</div>
+		</div>
+	);
+}
+
+// Sidebar sections open, close and fill at their final size in one frame: no
+// height animation, so a section gaining its first row never pushes the rows
+// below it down over several frames. The single 1fr row bounds the content to
+// the section's height so its scroller scrolls.
+function SectionBody({ open, children, className }: { open: boolean; children: ReactNode; className?: string }) {
+	if (!open) return null;
+	return (
+		<div className={cn("grid grid-rows-[1fr]", className)}>
+			<div className="flex min-h-0 flex-col overflow-hidden">{children}</div>
+		</div>
+	);
+}
+const expandedProjectsStorageKey = "ao.sidebar.expanded-projects";
+
+function readExpandedProjectIds(): ReadonlySet<string> {
+	if (typeof window === "undefined" || !window.localStorage) return new Set();
+	try {
+		const value: unknown = JSON.parse(window.localStorage.getItem(expandedProjectsStorageKey) ?? "null");
+		return new Set(Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : []);
+	} catch {
+		return new Set();
+	}
+}
+
+const sectionsStorageKey = "ao.sidebar.sections";
+type SidebarSection = "projects" | "scratchpad";
+
+/** Saved open state per section. A missing entry means open. */
+function readSectionsOpen(): Record<SidebarSection, boolean> {
+	const open = { projects: true, scratchpad: true };
+	if (typeof window === "undefined" || !window.localStorage) return open;
+	try {
+		const saved: unknown = JSON.parse(window.localStorage.getItem(sectionsStorageKey) ?? "null");
+		if (saved && typeof saved === "object") {
+			for (const key of Object.keys(open) as SidebarSection[]) {
+				if ((saved as Record<string, unknown>)[key] === false) open[key] = false;
+			}
+		}
+	} catch {}
+	return open;
+}
+
+function saveSectionOpen(section: SidebarSection, open: boolean) {
+	try {
+		window.localStorage?.setItem(sectionsStorageKey, JSON.stringify({ ...readSectionsOpen(), [section]: open }));
+	} catch {}
+}
+
+type SidebarProps = {
+	underTopbar?: boolean;
+	/** Chrome height to clear when underTopbar is set. Defaults to --size-toolbar. */
+	topbarOffset?: "toolbar" | "titlebar" | "trafficLights" | "session";
+	workspaceError?: string;
+	workspaces: WorkspaceSummary[];
+	remoteHosts?: RemoteHost[];
+	onCreateRemoteProject: (hostId: string, input: CreateProjectInput) => Promise<void>;
+	onInitializeRemoteProject: (hostId: string, path: string) => Promise<void>;
+	onOpenRemoteProject?: (hostId: string, projectId: string) => void;
+	onOpenRemoteOrchestrator?: (hostId: string, projectId: string) => void;
+	onConfigureRemoteProject?: (hostId: string, projectId: string) => void;
+	/** Removes the project optimistically; the shell owns feedback and rollback. */
+	onRemoveRemoteProject?: (hostId: string, projectId: string) => void;
+	onRetryRemoteHosts?: () => void;
+	remoteWorkspaces?: WorkspaceSummary[];
+	remoteFailedHostIds?: string[];
+	onCloneProject: (input: CloneProjectInput) => Promise<void>;
+	onCreateProject: (input: CreateProjectInput) => Promise<void>;
+	onInitializeProject: (path: string) => Promise<void>;
+	/**
+	 * Removes the project optimistically; the shell owns feedback and rollback.
+	 * `cloud` tells a local project from a cloud project with the same id.
+	 */
+	onRemoveProject: (projectId: string, cloud: boolean) => void;
+	/** Fixed shell chrome that also consumes the live sidebar width. */
+	resizeAuxiliaryTargetRef?: RefObject<HTMLElement | null>;
+};
+
+// Selection state comes from the URL: which project/session is active is the
+// route params, and clicks navigate rather than mutate a store.
+function useSelection() {
+	const navigate = useNavigate();
+	const openGlobalSettings = useUiStore((state) => state.openGlobalSettings);
+	const openProjectSettings = useUiStore((state) => state.openProjectSettings);
+	const params = useParams({ strict: false }) as {
+		hostId?: string;
+		projectId?: string;
+		sessionId?: string;
+	};
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
+	const goHome = useCallback(() => void navigate({ to: "/" }), [navigate]);
+	const goAutomations = useCallback(() => void navigate({ to: "/automations" }), [navigate]);
+	const goArtifacts = useCallback(() => void navigate({ to: "/artifacts" }), [navigate]);
+	const goUsage = useCallback(() => void navigate({ to: "/usage" }), [navigate]);
+	const goStandaloneBoard = useCallback(() => void navigate({ to: "/sessions" }), [navigate]);
+	const goGlobalSettings = useCallback(() => openGlobalSettings(), [openGlobalSettings]);
+	// Asking to connect a phone is the consent to turn Connect Mobile on, so the code starts preparing at once.
+	const goConnectMobile = useCallback(() => openGlobalSettings("mobile", { startPairing: true }), [openGlobalSettings]);
+	const goSettings = useCallback((projectId: string, cloudOrgId?: string) => openProjectSettings(projectId, { cloudOrgId }), [openProjectSettings]);
+	const goProject = useCallback(
+		(projectId: string) => void navigate({ to: "/projects/$projectId", params: { projectId } }),
+		[navigate],
+	);
+	const goSession = useCallback(
+		(projectId: string, sessionId: string) => {
+			if (projectId === STANDALONE_WORKSPACE_ID) {
+				void navigate({ to: "/sessions/$sessionId", params: { sessionId } });
+				return;
+			}
+			void navigate({
+				to: "/projects/$projectId/sessions/$sessionId",
+				params: { projectId, sessionId },
+			});
+		},
+		[navigate],
+	);
+	return useMemo(() => ({
+		isHome: pathname === "/",
+		isAutomations: pathname === "/automations",
+		isArtifacts: pathname === "/artifacts",
+		isUsage: pathname === "/usage",
+		activeRemoteHostId: params.hostId,
+		activeRemoteProjectId: params.hostId ? params.projectId : undefined,
+		activeRemoteSessionId: params.hostId ? params.sessionId : undefined,
+		activeProjectId: params.hostId ? undefined : params.projectId,
+		activeSessionId: params.hostId ? undefined : params.sessionId,
+		goHome,
+		goAutomations,
+		goArtifacts,
+		goUsage,
+		goStandaloneBoard,
+		// Settings is a modal — open it in place so the current page (session
+		// terminal, board, etc.) stays underneath.
+		goGlobalSettings,
+		goConnectMobile,
+		goSettings,
+		goProject,
+		goSession,
+	}), [goArtifacts, goAutomations, goUsage, goConnectMobile, goGlobalSettings, goHome, goProject, goSession, goSettings, goStandaloneBoard, params.hostId, params.projectId, params.sessionId, pathname]);
+}
+
+// A marker that asks the user to act now: the agent's question, or the red alert.
+function isUrgentMarker(marker: ReturnType<typeof getSessionRowIndicator>): boolean {
+	return marker === "input" || marker === "attention";
+}
+
+// Rows with a question or the red alert sit above the rest, but only in the
+// default order: once the user has dragged rows into their own order, it wins.
+// Stable, so the order still holds within each group.
+function floatAttention(sessions: WorkspaceSession[], hasManualOrder: boolean): WorkspaceSession[] {
+	if (hasManualOrder) return sessions;
+	const flagged = sessions.filter((session) => isUrgentMarker(getSessionRowIndicator(session)));
+	if (flagged.length === 0 || flagged.length === sessions.length) return sessions;
+	return [...flagged, ...sessions.filter((session) => !flagged.includes(session))];
+}
+
+// The icons a row or a collapsed project can show, plus the working
+// spinner. 12px with a -2px side margin, so the slot is the 8px the old dot used.
+// Each state has its own glyph, so colour is never the only difference: an
+// amber question mark is the agent asking you something, a red alert is
+// something to fix (CI, conflicts, changes requested), an amber alert (the
+// same amber, a different shape) is a person's review next, a green pull
+// request is ready to merge. A question is not an error, so it never takes the
+// red. A row's blue spinner (working) and its dot are drawn by
+// SessionActivityGlyph.
+const SESSION_MARKER_ICONS = {
+	input: { Icon: QuestionMark, tone: "text-status-in-review" },
+	attention: { Icon: CircleAlert, tone: "text-destructive" },
+	ready: { Icon: GitPullRequest, tone: "text-status-ready" },
+	review: { Icon: CircleAlert, tone: "text-status-in-review" },
+	// Done, so it sits a step below the colours that ask something of you.
+	merged: { Icon: GitMerge, tone: "text-status-merged opacity-70" },
+} as const satisfies Record<SessionRowMarker, { Icon: unknown; tone: string }>;
+
+function SessionMarkerIcon({ marker, popped, onPopEnd, ...rest }: {
+	marker: SessionRowMarker;
+	popped?: boolean;
+	onPopEnd?: () => void;
+} & Record<`data-${string}`, string | undefined>) {
+	const { Icon, tone } = SESSION_MARKER_ICONS[marker];
+	return (
+		<Icon
+			className={cn("-mx-0.5 size-3", tone, popped && "session-marker-pop")}
+			data-session-marker={marker}
+			onAnimationEnd={onPopEnd}
+			{...rest}
+		/>
+	);
+}
+
+// The spinner and the dot: a blue spinner while the agent works, a filled grey
+// dot for a session that changed since the user last opened it, a hollow grey
+// ring otherwise.
+function SessionActivityGlyph({ state, ...rest }: {
+	state: "working" | "unread" | "read";
+} & Record<`data-${string}`, string | undefined>) {
+	if (state === "working") {
+		return (
+			<LoaderCircle
+				className="-mx-0.5 size-3 animate-spin text-status-working motion-reduce:animate-none"
+				{...rest}
+			/>
+		);
+	}
+	return (
+		<span className="-mx-0.5 inline-flex size-3 items-center justify-center" {...rest}>
+			<span
+				className={cn(
+					"size-2 rounded-full",
+					state === "unread" ? "bg-muted-foreground/60" : "border border-muted-foreground/60",
+				)}
+				data-session-unread={state === "unread" ? "" : undefined}
+			/>
+		</span>
+	);
+}
+
+// A row flags only what the user has something to do about, a spinner while
+// its agent works (ahead of any marker), and otherwise a quiet dot. A marker that appears after the row is on screen pops in once; one already
+// there on mount does not.
+export function SessionStatusDot({ session, indicator }: {
+	session: WorkspaceSession;
+	indicator: ReturnType<typeof getSessionRowIndicator>;
+}) {
+	// A working agent shows the spinner even when its PR has a state to flag:
+	// the agent may be on another PR, and the hover card has the PR detail.
+	// The marker returns once the agent stops.
+	const working = indicator === "working";
+	const marker = working ? null : indicator;
+	// Filled until the user has opened the session since it last changed.
+	const unread = useSessionUnread(session);
+	const previous = useRef(marker);
+	const [popped, setPopped] = useState(false);
+	useEffect(() => {
+		if (previous.current !== marker && marker) setPopped(true);
+		previous.current = marker;
+	}, [marker]);
+	// Rows with nothing to flag still get a quiet dot, so every title starts on
+	// the same column: filled while unread, hollow once the user has read it.
+	const stopped =
+		session.activity?.state === "exited" || session.status === "exited" || session.status === "no_signal";
+	return (
+		<span
+			aria-hidden="true"
+			className="relative z-[1] inline-flex shrink-0 items-center justify-center px-1.5"
+		>
+			{marker ? (
+				<SessionMarkerIcon
+					data-session-status={session.status}
+					marker={marker}
+					onPopEnd={() => setPopped(false)}
+					popped={popped}
+				/>
+			) : working ? (
+				<SessionActivityGlyph data-session-spinner="" data-session-status={session.status} state="working" />
+			) : (
+				<SessionActivityGlyph
+					data-session-idle={stopped ? "stopped" : "idle"}
+					data-session-status={session.status}
+					state={unread ? "unread" : "read"}
+				/>
+			)}
+		</span>
+	);
+}
+
+export {
+	resolveNextNavigationAfterSessionKill,
+	type NextSessionNavigation,
+} from "../types/workspace";
+
+// Built on shadcn's sidebar primitives (components/ui/sidebar): the provider in
+// _shell owns the persistent open state. Collapsed sidebars move fully off-canvas.
+// Memoized: the shell re-renders several times per route change, and each
+// sidebar render reaches every project row's presence wrapper and footer.
+export const Sidebar = memo(function Sidebar({
+	underTopbar = true,
+	topbarOffset = "toolbar",
+	workspaceError,
+	workspaces,
+	remoteHosts = [],
+	onCreateRemoteProject,
+	onInitializeRemoteProject,
+	onOpenRemoteProject = () => undefined,
+	onOpenRemoteOrchestrator = () => undefined,
+	onConfigureRemoteProject = () => undefined,
+	onRemoveRemoteProject = () => undefined,
+	onRetryRemoteHosts = () => undefined,
+	remoteWorkspaces = [],
+	remoteFailedHostIds = [],
+	onCloneProject,
+	onCreateProject,
+	onInitializeProject,
+	onRemoveProject,
+	resizeAuxiliaryTargetRef,
+}: SidebarProps) {
+	const { t } = useTranslation();
+	const remoteNavigate = useNavigate();
+	const selection = useSelection();
+	const { state, setOpen, toggleSidebar } = useSidebar();
+	const isCollapsed = state === "collapsed";
+	// List behavior (force-open sections, lifted Show more caps) belongs to the
+	// icon rail only; toggling an offcanvas sidebar must not change any list.
+	const isIconRail = isCollapsed && SIDEBAR_COLLAPSIBLE === "icon";
+	useTelemetrySurface("sidebar", !isCollapsed || isIconRail);
+	const [expandedChromeVisible, setExpandedChromeVisible] = useState(!isCollapsed);
+	// One IPC subscription for both footer variants of the restart-to-update prompt.
+	const updateStatus = useUpdateStatus();
+	const openUpdateInstallPrompt = useUiStore((state) => state.openUpdateInstallPrompt);
+	// Daemon status for the smoke suite's sr-only mirror in the footer. Null when
+	// rendered outside the shell (unit tests) — the mirror simply doesn't render.
+	const daemonStatus = useShellMaybe()?.daemonStatus ?? null;
+	const commandPaletteEnabled = useCommandPaletteEnabled();
+	const settingsPage = useSettingsPage();
+	const setCommandPaletteOpen = useUiStore((s) => s.setCommandPaletteOpen);
+	// Cloud projects count only while the control plane keeps artifacts, as on the Artifacts page.
+	const cloudArtifacts = useCloudOffering().artifacts;
+	// Kept artifacts are listed there too.
+	const kept = useKeptArtifacts().data;
+	const artifactTotal = useMemo(
+		() => artifactCount(withKeptArtifacts(groupArtifactsByProject(cloudArtifacts ? workspaces : workspaces.filter((workspace) => workspace.kind !== "cloud")), kept, workspaces, "")),
+		[cloudArtifacts, workspaces, kept],
+	);
+	const existingProjectPaths = useMemo(
+		() => workspaces
+			.filter((workspace) => workspace.kind !== STANDALONE_PROJECT_KIND)
+			.map((workspace) => workspace.path)
+			.filter((path): path is string => Boolean(path)),
+		[workspaces],
+	);
+	const openExistingProject = useLatestCallback((path: string) => {
+		const workspace = workspaces.find(
+			(candidate) => candidate.kind !== STANDALONE_PROJECT_KIND && candidate.path === path,
+		);
+		if (workspace) selection.goProject(workspace.id);
+	});
+	const initialActiveSessionProjectId = useRef(
+		selection.activeSessionId ? selection.activeProjectId : undefined,
+	).current;
+	useLayoutEffect(() => {
+		// Offcanvas: the panel slides off-screen on collapse — no need to hide content.
+		// Reveal immediately on expand so there's no fade-in delay.
+		if (!isCollapsed) {
+			setExpandedChromeVisible(true);
+		}
+	}, [isCollapsed]);
+
+	// Disclosure state is persisted as the IDs of projects that were expanded.
+	// An empty/missing store intentionally means all projects start collapsed.
+	const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => readExpandedProjectIds());
+	const [collapsedRemoteProjects, setCollapsedRemoteProjects] = useState<ReadonlySet<string>>(() => new Set());
+	const [dismissedInitialActiveProjectIds, setDismissedInitialActiveProjectIds] = useState<ReadonlySet<string>>(
+		() => new Set(),
+	);
+	// Every project row gets this handler: a new one per toggle would re-render
+	// all of them to open or close one.
+	const toggleProjectDisclosure = useLatestCallback((id: string) => {
+		const routeFallbackActive =
+			initialActiveSessionProjectId === id && !dismissedInitialActiveProjectIds.has(id);
+		const currentlyExpanded = expandedIds.has(id) || routeFallbackActive;
+		setExpandedIds((prev) => {
+			const next = new Set(prev);
+			currentlyExpanded ? next.delete(id) : next.add(id);
+			if (typeof window !== "undefined") {
+				window.localStorage?.setItem(expandedProjectsStorageKey, JSON.stringify([...next]));
+			}
+			return next;
+		});
+		setDismissedInitialActiveProjectIds((prev) => {
+			if (initialActiveSessionProjectId !== id) return prev;
+			const next = new Set(prev);
+			currentlyExpanded ? next.add(id) : next.delete(id);
+			return next;
+		});
+	});
+	const importedProjects = useSessionImportStore((state) => state.importedCounts);
+	const revealedImports = useRef(new Set<string>());
+	useEffect(() => {
+		const fresh = Object.keys(importedProjects).filter((id) => !revealedImports.current.has(id));
+		if (!fresh.length) return;
+		for (const id of fresh) revealedImports.current.add(id);
+		setExpandedIds((prev) => {
+			const next = new Set([...prev, ...fresh]);
+			window.localStorage?.setItem(expandedProjectsStorageKey, JSON.stringify([...next]));
+			return next;
+		});
+	}, [importedProjects]);
+	// Section disclosure: every section header collapses its own body.
+	// Header clicks are saved. Opening a section to reveal the active session is not.
+	const [projectsOpen, setProjectsOpen] = useState(() => readSectionsOpen().projects);
+	const [scratchpadOpen, setScratchpadOpen] = useState(() => readSectionsOpen().scratchpad);
+	const toggleSection = (section: SidebarSection, open: boolean, setOpen: (open: boolean) => void) => {
+		setOpen(!open);
+		saveSectionOpen(section, !open);
+	};
+
+	// Keyboard navigation (⌘⇧[ / ⌘⇧], ⌘1-9, attention jumps) can land on a row
+	// that is scrolled out, in a collapsed project or inside a closed section.
+	// Open whatever hides the active session, then scroll its row into view.
+	// Only a change of session triggers this, so a project the user collapses
+	// while staying on a session is left alone.
+	const activeSessionKey = selection.activeSessionId ?? selection.activeRemoteSessionId;
+	const activeProjectKey = selection.activeProjectId;
+	// A project row's Orchestrator button opens its chat without touching the
+	// project's disclosure, so the reveal below must not expand the project for
+	// the chat that button opened. Cleared by the next session change either way.
+	const orchestratorButtonSessionId = useRef<string | null>(null);
+	const noteOrchestratorButtonOpen = useLatestCallback((sessionId: string) => {
+		orchestratorButtonSessionId.current = sessionId;
+	});
+	useEffect(() => {
+		const openedFromOrchestratorButton = orchestratorButtonSessionId.current === activeSessionKey;
+		orchestratorButtonSessionId.current = null;
+		if (!activeSessionKey || isCollapsed) return;
+		if (activeProjectKey && !openedFromOrchestratorButton) {
+			setExpandedIds((prev) => {
+				if (prev.has(activeProjectKey)) return prev;
+				const next = new Set(prev);
+				next.add(activeProjectKey);
+				window.localStorage?.setItem(expandedProjectsStorageKey, JSON.stringify([...next]));
+				return next;
+			});
+		}
+		// A remote project keeps its own collapse state. Open it for a worker row;
+		// an orchestrator has no row, so its project stays as the user left it.
+		const remoteHostId = selection.activeRemoteHostId;
+		const remoteProjectId = selection.activeRemoteProjectId;
+		const remoteSession = remoteHostId && remoteProjectId
+			? remoteWorkspaces
+				.find((workspace) => workspace.hostId === remoteHostId && workspace.id === remoteProjectId)
+				?.sessions.find((session) => session.id === selection.activeRemoteSessionId)
+			: undefined;
+		if (remoteHostId && remoteProjectId && remoteSession && !isOrchestratorSession(remoteSession)) {
+			const remoteKey = sessionUiKey(remoteProjectId, remoteHostId);
+			setCollapsedRemoteProjects((prev) => {
+				if (!prev.has(remoteKey)) return prev;
+				const next = new Set(prev);
+				next.delete(remoteKey);
+				return next;
+			});
+		}
+		let frame = 0;
+		let attempts = 0;
+		const reveal = () => {
+			const row = document.querySelector<HTMLElement>(
+				"[data-slot='sidebar-container'] [data-session-row] button[aria-current='page']",
+			);
+			if (row) {
+				row.scrollIntoView?.({ block: "nearest" });
+				return;
+			}
+			// Not rendered yet: its section may be closed. Open only the sections
+			// that hold it, once, then retry. An orchestrator has no row (its
+			// button sits on the project row), so it must not open Scratchpad.
+			if (attempts === 0) {
+				if (standaloneWorkspace.sessions.some((session) => session.id === activeSessionKey)) {
+					setScratchpadOpen(true);
+				} else {
+					setProjectsOpen(true);
+				}
+			}
+			if (attempts++ < 3) frame = requestAnimationFrame(reveal);
+		};
+		frame = requestAnimationFrame(() => requestAnimationFrame(reveal));
+		return () => cancelAnimationFrame(frame);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [activeSessionKey]);
+
+	// agent-orchestrator's sidebar resize: drag the right edge (200-420px,
+	// persisted), double-click to reset to 240px. Drives --ao-sidebar-w on :root,
+	// only to the two layout consumers and fixed titlebar strip, rather than
+	// :root. Dragging clamps
+	// at SIDEBAR_MIN_WIDTH — collapsing stays on the explicit toggle (⌘B /
+	// titlebar button), never on a drag.
+	const resizeScopeRef = useRef<HTMLDivElement>(null);
+	const getResizeTargets = useCallback(() => {
+		const scope = resizeScopeRef.current;
+		return [
+			scope?.querySelector<HTMLElement>('[data-slot="sidebar-gap"]') ?? null,
+			scope?.querySelector<HTMLElement>('[data-slot="sidebar-container"]') ?? null,
+			resizeAuxiliaryTargetRef?.current ?? null,
+		];
+	}, [resizeAuxiliaryTargetRef]);
+	const {
+		onPointerDown: onResizePointerDown,
+		onCollapsedPointerDown: onCollapsedResizePointerDown,
+		onDoubleClick: onResizeDoubleClick,
+	} = useResizable({
+		cssVar: "--ao-sidebar-w",
+		getCssTargets: getResizeTargets,
+		storageKey: "ao-sidebar-w",
+		defaultWidth: SIDEBAR_DEFAULT_WIDTH,
+		min: sidebarMinWidth,
+		max: SIDEBAR_MAX_WIDTH,
+		edge: "right",
+		reclampOnWindowResize: true,
+		onExpand: () => setOpen(true),
+	});
+
+	const projectOrder = useSidebarOrderStore((state) => state.projectOrder);
+	const pendingCreatedProjectIds = useSidebarOrderStore((state) => state.pendingCreatedProjectIds);
+	const setProjectOrder = useSidebarOrderStore((state) => state.setProjectOrder);
+	const pinnedProjectIds = useSidebarOrderStore((state) => state.pinnedProjectIds);
+	useLayoutEffect(() => {
+		// Preserve absent IDs in place: creation can publish its order before the
+		// query snapshot arrives. Reconcile before paint so a late snapshot cannot
+		// briefly show older, newly discovered projects above that creation.
+		useSidebarOrderStore.getState().reconcileProjectOrder(workspaces.map((workspace) => workspace.id));
+	}, [workspaces, pendingCreatedProjectIds]);
+	const orderedWorkspaces = useMemo(
+		() => pinnedFirst(applyOrder(workspaces, (workspace) => workspace.id, projectOrder, "start"), (workspace) => workspace.id, pinnedProjectIds),
+		[pinnedProjectIds, projectOrder, workspaces],
+	);
+
+	// The ad hoc group is a bucket for projectless sessions, not a project: it
+	// gets its own Sessions section above the project list rather than a
+	// project row appended to the end of it. The person's own Cloud standalone
+	// agents join it there; each keeps its project, which routes it.
+	const projectWorkspaces = useMemo(() => {
+		const scratchpads = new Set(ownScratchpadWorkspaces(orderedWorkspaces));
+		return orderedWorkspaces.filter((workspace) => !scratchpads.has(workspace));
+	}, [orderedWorkspaces]);
+	const standaloneWorkspace = useMemo((): WorkspaceSummary => {
+		const scratchpads = ownScratchpadWorkspaces(workspaces);
+		const local = scratchpads.find((workspace) => workspace.kind === STANDALONE_PROJECT_KIND);
+		// Sessions always shows, even with no standalone session yet, so its "+"
+		// is there to start the first one.
+		if (scratchpads.length === 1 && local) return local;
+		return {
+			...(local ?? scratchpadSummary(t("standalone.workspaceName"))),
+			sessions: scratchpads.flatMap((workspace) => workspace.sessions),
+		};
+	}, [t, workspaces]);
+	const projectAvatars = useProjectAvatars(projectWorkspaces);
+	// A pinned session lives under its project, so a project that holds one
+	// stays listed rather than hiding behind Show more.
+	const projectLimit = useMemo(() => Math.max(SIDEBAR_INITIAL_SECTION_LIMIT, projectWorkspaces.reduce(
+		(count, workspace, index) => workspace.sessions.some((session) => isPinnedWorker(session) && session.isTerminated !== true) ? index + 1 : count,
+		0,
+	)), [projectWorkspaces]);
+	const {
+		listed: visibleWorkspaces,
+		hiddenCount: hiddenProjectCount,
+		showAll: showAllProjects,
+		toggleShowAll: toggleShowAllProjects,
+	} = useShowMoreCap(projectWorkspaces, projectLimit, selection.activeProjectId, isIconRail);
+	const projectContentOpen = (projectWorkspaces.length > 0 || remoteHosts.length > 0) && (projectsOpen || isIconRail);
+	const projectIds = useMemo(
+		() => projectWorkspaces.map((workspace) => workspace.id),
+		[projectWorkspaces],
+	);
+	const projectDragClickGuard = usePostDragClickGuard();
+	const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null);
+	// Keep the active id and drop target in refs so dragover can decide without a
+	// full-list re-render while dragging: only the dragged row re-renders (via
+	// `isDragged`), and the drop line updates through dedicated React state.
+	const draggingProjectIdRef = useRef<string | null>(null);
+	const projectDropTargetRef = useRef<{ overId: string; placement: ProjectDropPlacement } | null>(null);
+	useGrabbingCursor(draggingProjectId !== null);
+	// The drop line is a single element placed at the boundary's gap centre, so
+	// "after A" and "before B" resolve to the same spot (no shift across the
+	// boundary). Its top animates so the line slides between projects.
+	const [dropLine, setDropLine] = useState<{ top: number; visible: boolean }>({ top: 0, visible: false });
+
+	const clearProjectDropIndicator = useCallback(() => {
+		projectDropTargetRef.current = null;
+		setDropLine((previous) => ({ ...previous, visible: false }));
+	}, []);
+
+	const handleProjectDragStart = useCallback((event: ReactDragEvent<HTMLElement>, projectId: string) => {
+		if (!projectIds.includes(projectId)) return;
+		event.dataTransfer.effectAllowed = "move";
+		// Some engines refuse to begin a drag unless the transfer carries data.
+		event.dataTransfer.setData("text/plain", projectId);
+		if (EMPTY_DRAG_IMAGE) event.dataTransfer.setDragImage(EMPTY_DRAG_IMAGE, 0, 0);
+		draggingProjectIdRef.current = projectId;
+		projectDropTargetRef.current = null;
+		setDraggingProjectId(projectId);
+	}, [projectIds]);
+
+	const handleProjectDragEnd = useCallback(() => {
+		const projectId = draggingProjectIdRef.current;
+		if (projectId) projectDragClickGuard.markDragEnded(projectId);
+		draggingProjectIdRef.current = null;
+		clearProjectDropIndicator();
+		setDraggingProjectId(null);
+	}, [clearProjectDropIndicator, projectDragClickGuard]);
+
+	const handleProjectDragOver = useCallback((event: ReactDragEvent<HTMLElement>, overId: string) => {
+		const activeId = draggingProjectIdRef.current;
+		if (!activeId || activeId === overId) {
+			clearProjectDropIndicator();
+			return;
+		}
+		const row = event.currentTarget;
+		const rect = row.getBoundingClientRect();
+		const placement: ProjectDropPlacement = event.clientY <= rect.top + rect.height / 2 ? "before" : "after";
+		// Pinned and unpinned projects reorder only within their own group.
+		const pinned = useSidebarOrderStore.getState().pinnedProjectIds;
+		if (pinned.includes(activeId) !== pinned.includes(overId) || reorderAtProjectBoundary(projectIds, activeId, overId, placement) === null) {
+			clearProjectDropIndicator();
+			return;
+		}
+		// Only invite the drop once this is a real reorder target.
+		event.preventDefault();
+		event.dataTransfer.dropEffect = "move";
+		const target = projectDropTargetRef.current;
+		if (target?.overId === overId && target.placement === placement) return;
+		projectDropTargetRef.current = { overId, placement };
+		const rows = row.parentElement
+			? Array.from(row.parentElement.querySelectorAll<HTMLElement>(":scope > [data-project-drop-target]"))
+			: [row];
+		const index = rows.indexOf(row);
+		const insertAt = placement === "before" ? index : index + 1;
+		const last = rows[rows.length - 1];
+		const top =
+			insertAt <= 0
+				? rows[0].offsetTop
+				: insertAt >= rows.length
+					? last.offsetTop + last.offsetHeight
+					: (rows[insertAt - 1].offsetTop + rows[insertAt - 1].offsetHeight + rows[insertAt].offsetTop) / 2;
+		setDropLine({ top, visible: true });
+	}, [clearProjectDropIndicator, projectIds]);
+
+	const handleProjectDrop = useCallback((event: ReactDragEvent<HTMLElement>) => {
+		const activeId = draggingProjectIdRef.current;
+		const target = projectDropTargetRef.current;
+		if (!activeId || !target) return;
+		event.preventDefault();
+		const next = reorderAtProjectBoundary(projectIds, activeId, target.overId, target.placement);
+		if (next) setProjectOrder(next);
+		handleProjectDragEnd();
+	}, [handleProjectDragEnd, projectIds, setProjectOrder]);
+
+	return (
+		// Pinned sidebars start below shell chrome.
+		<SidebarRoot
+			collapsible={SIDEBAR_COLLAPSIBLE}
+			resizeScopeRef={resizeScopeRef}
+			data-telemetry-surface="sidebar"
+			data-expanded-chrome={expandedChromeVisible ? "visible" : "hidden"}
+			data-topbar-offset={underTopbar ? topbarOffset : undefined}
+			className={cn(
+				"sidebar-focusless",
+				// Keep the transparent 1px border on every route so navigation
+				// cannot change the content width. Match it with the left gutter.
+				"pl-px border-transparent",
+				// Prefer top/bottom over h-svh/inset-y so titlebar offset (`top-(--sidebar-chrome-offset)`)
+				// clears chrome without fighting a second height constraint.
+				!underTopbar
+					? "top-0 bottom-0"
+					: "top-(--sidebar-chrome-offset) bottom-0 h-auto!",
+			)}
+		>
+			<SidebarHeader className="gap-0 p-0 px-3 pt-2 group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:pt-2">
+				{/*
+				 * Brand → home. Design contracts (do not regress):
+				 * - Click navigates home; do NOT add hover/focus *fill* (styles.css
+				 *   opts `[data-sidebar-brand]` out of `.sidebar-focusless` wash).
+				 * - Keyboard focus uses the dedicated outline rule in styles.css —
+				 *   never `focus-visible:outline-none` (global kill would leave it blind).
+				 * - No separate "home" affordance on the mark — the whole brand is the control.
+				 */}
+				<Pressable
+					data-telemetry-id="sidebar.home"
+					aria-label={t("shell.goHome")}
+					className={cn(
+						"group/brand flex w-full shrink-0 items-center gap-1.5 rounded-md px-0.5 text-left",
+						// macOS/Linux show the brand in TitlebarNav instead.
+						brandInTitlebar && "hidden",
+						"group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-2",
+						commandPaletteEnabled ? "pb-2" : "pb-3",
+					)}
+					data-sidebar-brand=""
+					onClick={() => selection.goHome()}
+					type="button"
+				>
+					<span
+						className="sidebar-expanded-chrome min-w-0 flex-1 truncate text-base font-semibold leading-tight tracking-tight-lg text-foreground group-data-[collapsible=icon]:hidden"
+					>
+						<BuildInfoTooltip>Orchestrator</BuildInfoTooltip>
+					</span>
+				</Pressable>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							data-telemetry-id="sidebar.collapse"
+							aria-label={isCollapsed ? t("shell.expandSidebar") : t("shell.collapseSidebar")}
+							className="hidden size-control-board rounded-lg group-data-[collapsible=icon]:inline-flex [&_svg]:size-icon-base"
+							onClick={toggleSidebar}
+							size="none"
+							type="button"
+							variant="quiet"
+						>
+							<PanelLeft aria-hidden="true" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent shortcut="toggle-sidebar" side="right">
+						{isCollapsed ? t("shell.expandSidebar") : t("shell.collapseSidebar")}
+					</TooltipContent>
+				</Tooltip>
+			</SidebarHeader>
+
+			{settingsPage ? (
+				<SettingsSidebarNav layer={settingsPage} />
+			) : (
+			<>
+			{/* Keep Search + section chrome fixed above the scrollable sidebar content. */}
+			<div className="flex shrink-0 flex-col gap-0 px-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1.5">
+				{commandPaletteEnabled ? (
+					<SidebarGroup className="p-0 pb-0.5 group-data-[collapsible=icon]:pb-1">
+						<SidebarGroupContent>
+							<SidebarMenu className="gap-0.5 group-data-[collapsible=icon]:gap-1">
+								<SidebarSearchButton onOpen={() => setCommandPaletteOpen(true)} />
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				) : null}
+				<SidebarMenu className="mb-3 gap-0.5 group-data-[collapsible=icon]:gap-1">
+					<SidebarMenuItem>
+						<SidebarTopNavRow
+							active={selection.isAutomations}
+							icon={<CalendarClock aria-hidden="true" />}
+							label={t("automations.title")}
+							onClick={selection.goAutomations}
+							tooltip={isCollapsed ? t("automations.title") : undefined}
+						/>
+					</SidebarMenuItem>
+					<SidebarMenuItem>
+						<SidebarTopNavRow
+							active={selection.isArtifacts}
+							icon={<Package aria-hidden="true" />}
+							label={t("artifacts.title")}
+							onClick={selection.goArtifacts}
+							tooltip={isCollapsed ? t("artifacts.title") : undefined}
+							trailing={artifactTotal > 0 ? String(artifactTotal) : undefined}
+						/>
+					</SidebarMenuItem>
+					<SidebarMenuItem>
+						<SidebarTopNavRow
+							active={selection.isUsage}
+							icon={<Gauge aria-hidden="true" />}
+							label={t("usage.title")}
+							onClick={selection.goUsage}
+							tooltip={isCollapsed ? t("usage.title") : undefined}
+						/>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</div>
+
+			<SidebarContent className="scrollbar-none gap-0 px-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1.5">
+				<SidebarGroup className="min-h-0 flex-1 p-0">
+					{/* Tree (project-sidebar__tree) */}
+					<SidebarGroupContent
+						className="sidebar-sections-container grid min-h-0 flex-1 auto-rows-[minmax(0,auto)] content-start group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col"
+					>
+						{/* Sessions (projectless agents) sit above Projects so standalone
+						    agents are easy to find and start. */}
+						{!workspaceError ? (
+							<ScratchpadSection
+								workspace={standaloneWorkspace}
+								selection={selection}
+								isCollapsed={isIconRail}
+								open={scratchpadOpen}
+								onToggle={() => toggleSection("scratchpad", scratchpadOpen, setScratchpadOpen)}
+							/>
+						) : null}
+						{/* Projects — collapsible; the "+" stays mounted through the empty
+						    state so it keeps owning the ⌘N create flow. */}
+						<div className="sidebar-expanded-chrome flex shrink-0 pb-0.5 group-data-[collapsible=icon]:hidden">
+							<SectionDisclosure
+								label={t("shell.projects")}
+								open={projectsOpen}
+								onToggle={() => toggleSection("projects", projectsOpen, setProjectsOpen)}
+								trailing={
+									<CreateProjectButton
+										existingProjectPaths={existingProjectPaths}
+										remoteHosts={remoteHosts}
+										onCreateRemoteProject={onCreateRemoteProject}
+										onInitializeRemoteProject={onInitializeRemoteProject}
+										onCloneProject={onCloneProject}
+										onCreateProject={onCreateProject}
+										onInitializeProject={onInitializeProject}
+										onOpenExistingProject={openExistingProject}
+									/>
+								}
+							/>
+						</div>
+						{workspaceError ? (
+							<div className="sidebar-expanded-chrome px-2.5 py-3 group-data-[collapsible=icon]:hidden">
+								<p className="text-sm text-foreground">{t("shell.couldNotLoadProjects")}</p>
+								<p className="mt-1 text-caption text-passive">{workspaceError}</p>
+							</div>
+						) : null}
+						{projectWorkspaces.length > 0 || remoteHosts.length > 0 ? (
+							<SectionBody open={projectContentOpen} className="min-h-0 flex-initial group-data-[collapsible=icon]:flex-none">
+								<SidebarSectionScroller
+									className={`${SECTION_SCROLLER_CLASS} min-h-0 flex-1`}
+									testId="sidebar-projects-scroller"
+									wrapperClassName="flex flex-col flex-1"
+								>
+									<SidebarMenu className="relative gap-0.5 rounded-lg group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:rounded-none">
+										{!workspaceError && visibleWorkspaces.map((workspace) => (
+											<ProjectItem
+												key={workspace.id}
+												workspace={workspace}
+												avatarUrl={projectAvatars.get(workspace.id)}
+												expanded={expandedIds.has(workspace.id) || (initialActiveSessionProjectId === workspace.id && !dismissedInitialActiveProjectIds.has(workspace.id))}
+												selection={selection}
+												isDragged={draggingProjectId === workspace.id}
+												projectDragInProgress={draggingProjectId !== null}
+												consumeDragClick={projectDragClickGuard.consumeClick}
+												onToggle={toggleProjectDisclosure}
+												onOrchestratorButtonOpen={noteOrchestratorButtonOpen}
+												onRemoveProject={onRemoveProject}
+												onProjectDragStart={handleProjectDragStart}
+												onProjectDragEnd={handleProjectDragEnd}
+												onProjectDragOver={handleProjectDragOver}
+												onProjectDrop={handleProjectDrop}
+											/>
+										))}
+										<RemoteHostsSection
+											hosts={remoteHosts}
+											workspaces={remoteWorkspaces}
+											failedHostIds={remoteFailedHostIds}
+											renderProject={(host, workspace) => {
+												const hostId = host.hostId;
+												const projectKey = sessionUiKey(workspace.id, hostId);
+												const scopedSelection: Selection = {
+													...selection,
+													activeProjectId: selection.activeRemoteHostId === hostId ? selection.activeRemoteProjectId : undefined,
+													activeSessionId: selection.activeRemoteHostId === hostId ? selection.activeRemoteSessionId : undefined,
+												goProject: (projectId) => { onOpenRemoteProject(hostId, projectId); return undefined; },
+													goSession: (projectId, sessionId) => { void remoteNavigate(sessionNavigateTarget(projectId, sessionId, hostId)); },
+													goSettings: (projectId) => onConfigureRemoteProject(hostId, projectId),
+												};
+												return <ProjectItem
+													key={projectKey}
+													workspace={workspace}
+													hostLabel={host.label}
+													expanded={!collapsedRemoteProjects.has(projectKey)}
+													selection={scopedSelection}
+													isDragged={false}
+													projectDragInProgress={false}
+													consumeDragClick={() => false}
+													onToggle={() => setCollapsedRemoteProjects((previous) => {
+														const next = new Set(previous);
+														next.has(projectKey) ? next.delete(projectKey) : next.add(projectKey);
+														return next;
+													})}
+													onRemoveProject={(projectId) => onRemoveRemoteProject(hostId, projectId)}
+													onOpenOrchestrator={() => onOpenRemoteOrchestrator(hostId, workspace.id)}
+													onProjectDragStart={() => undefined}
+													onProjectDragEnd={() => undefined}
+													onProjectDragOver={() => undefined}
+													onProjectDrop={() => undefined}
+												/>;
+											}}
+											onRetry={onRetryRemoteHosts}
+										/>
+										{isIconRail && <CreateProjectListItem />}
+										<div
+											aria-hidden="true"
+											data-project-drop-line=""
+											className="pointer-events-none absolute inset-x-0 z-[70] h-px rounded-full bg-foreground transition-opacity duration-100"
+											style={{ top: dropLine.top, opacity: dropLine.visible ? 1 : 0 }}
+										/>
+									</SidebarMenu>
+								</SidebarSectionScroller>
+								{!isIconRail && hiddenProjectCount > 0 ? (
+									<ShowMoreRow
+										expanded={showAllProjects}
+										label={
+											showAllProjects
+												? t("shell.showLessProjects")
+												: t("shell.showMoreProjects", { count: hiddenProjectCount })
+										}
+											onClick={toggleShowAllProjects}
+									/>
+								) : null}
+							</SectionBody>
+						) : null}
+					</SidebarGroupContent>
+				</SidebarGroup>
+			</SidebarContent>
+			</>
+			)}
+
+			{/* Footer: update rows on top, then one row with the account on the
+			    left and the Mobile menu (Connect mobile, Stay Awake) and Settings
+			    as icons. No divider. Bottom spacing stays inside the footer so
+			    there is no empty strip beneath it. */}
+			<SidebarFooter
+				className="relative mt-auto gap-0 overflow-hidden px-2 !pb-2 !pt-0 transition-[padding] duration-200 ease-linear group-data-[collapsible=icon]:min-h-20 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:overflow-visible group-data-[collapsible=icon]:px-1.5 group-data-[collapsible=icon]:!pb-2 group-data-[collapsible=icon]:!pt-1.5"
+			>
+				{/* Always-present daemon status mirror for the smoke suite: no visible
+				    daemon-state copy is guaranteed to be mounted elsewhere. */}
+				{daemonStatus && (
+					<span aria-hidden="true" className="sr-only" data-testid="daemon-status" data-state={daemonStatus.state}>
+						daemon {daemonStatus.state}
+					</span>
+				)}
+				<div
+					aria-hidden={isCollapsed || undefined}
+					// `hidden` (display: none) is for the real icon rail only. Hiding the footer
+					// this way while an offcanvas sidebar slides away drops its content at once,
+					// before the slide finishes. aria-hidden and tabIndex -1 already keep it
+					// out of reach while collapsed.
+					hidden={isIconRail}
+					className="sidebar-expanded-chrome relative flex w-full min-w-46.5 flex-col"
+				>
+					<div className={FOOTER_UPDATES_CLASS}>
+						<SidebarUpdateRow
+							onRequestInstall={openUpdateInstallPrompt}
+							status={updateStatus}
+							tabIndex={isCollapsed ? -1 : 0}
+						/>
+					</div>
+					{settingsPage ? (
+						<div className={FOOTER_BOTTOM_ROW_CLASS}>
+							<Pressable
+								className={FOOTER_NAV_BUTTON_CLASS}
+								disabled={settingsPage.cueBusy}
+								onClick={settingsPage.close}
+								tabIndex={isCollapsed ? -1 : 0}
+								type="button"
+							>
+								<NavRowHighlight />
+								<span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2 [&_svg]:size-icon-md [&_svg]:shrink-0">
+									<ArrowLeft aria-hidden="true" />
+									<span className="tracking-tight">{t("settings.back")}</span>
+								</span>
+							</Pressable>
+						</div>
+					) : (
+						<FooterAccountRow
+							onConnectMobile={() => selection.goConnectMobile()}
+							onOpenSettings={() => selection.goGlobalSettings()}
+							tabIndex={isCollapsed ? -1 : 0}
+						/>
+					)}
+				</div>
+				{/* Keep the collapsed icon rail in its own slot instead of pairing it
+				    with an opaque Settings footer row: reusing that DOM node on close
+				    triggers transition-opacity from 1 to 0 and flashes the centered
+				    Settings icon in the middle of the footer. */}
+				{!settingsPage ? (
+					<div
+						aria-hidden={!isCollapsed || undefined}
+						className="pointer-events-none absolute inset-x-1.5 bottom-0 top-auto flex min-h-row-md flex-col items-center justify-end gap-1 opacity-0 transition-opacity duration-150 ease-out group-data-[collapsible=icon]:pointer-events-auto group-data-[collapsible=icon]:!bottom-2 group-data-[collapsible=icon]:opacity-100"
+					>
+						<SidebarUpdateRail
+							onRequestInstall={openUpdateInstallPrompt}
+							status={updateStatus}
+							tabIndex={isCollapsed ? 0 : -1}
+						/>
+						<CloudSignInRailButton tabIndex={isCollapsed ? 0 : -1} />
+						<CloudAccountRailButton tabIndex={isCollapsed ? 0 : -1} />
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Pressable
+									data-telemetry-id="sidebar.connect_mobile"
+									aria-label={t("settings.connectMobile")}
+									className={FOOTER_RAIL_BUTTON_CLASS}
+									onClick={() => selection.goConnectMobile()}
+									tabIndex={isCollapsed ? 0 : -1}
+									type="button"
+								>
+									<NavRowHighlight />
+									<span className="relative z-[1] grid place-items-center [&_svg]:size-icon-base">
+										<Smartphone aria-hidden="true" />
+									</span>
+								</Pressable>
+							</TooltipTrigger>
+							<TooltipContent side="right">{t("settings.connectMobile")}</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Pressable
+									data-telemetry-id="sidebar.settings"
+									aria-label={t("shell.settings")}
+									className={FOOTER_RAIL_BUTTON_CLASS}
+									onClick={() => selection.goGlobalSettings()}
+									tabIndex={isCollapsed ? 0 : -1}
+									type="button"
+								>
+									<NavRowHighlight />
+									<span className="relative z-[1] grid place-items-center [&_svg]:size-icon-base">
+										<Settings aria-hidden="true" />
+									</span>
+								</Pressable>
+							</TooltipTrigger>
+							<TooltipContent shortcut="open-settings" side="right">{t("shell.settings")}</TooltipContent>
+						</Tooltip>
+					</div>
+				) : null}
+			</SidebarFooter>
+
+			{/* useResizable owns clamp. */}
+			<ResizeHandle
+				className="group-data-[state=collapsed]:hidden"
+				onDoubleClick={onResizeDoubleClick}
+				onPointerDown={onResizePointerDown}
+				side="right"
+				style={noDragStyle}
+			/>
+			<SidebarRail
+				data-telemetry-id="sidebar.collapse"
+				aria-label={t("shell.expandSidebar")}
+				className="group-data-[state=expanded]:hidden hover:after:bg-transparent"
+				onClick={() => setOpen(true)}
+				onPointerDown={onCollapsedResizePointerDown}
+			/>
+		</SidebarRoot>
+	);
+});
+
+type Selection = ReturnType<typeof useSelection>;
+
+type ProjectItemProps = {
+	workspace: WorkspaceSummary;
+	/** The repository owner's avatar, shown in place of the folder icon. */
+	avatarUrl?: string;
+	hostLabel?: string;
+	onOpenOrchestrator?: () => void;
+	/** Called with the orchestrator chat the row's Orchestrator button is about to open. */
+	onOrchestratorButtonOpen?: (sessionId: string) => void;
+	expanded: boolean;
+	selection: Selection;
+	isDragged: boolean;
+	projectDragInProgress: boolean;
+	consumeDragClick: (id: string) => boolean;
+	onToggle: (projectId: string) => void;
+	onRemoveProject: (projectId: string, cloud: boolean) => void;
+	onProjectDragStart: (event: ReactDragEvent<HTMLElement>, projectId: string) => void;
+	onProjectDragEnd: () => void;
+	onProjectDragOver: (event: ReactDragEvent<HTMLElement>, overId: string) => void;
+	onProjectDrop: (event: ReactDragEvent<HTMLElement>) => void;
+};
+
+// The part of the route selection one project row renders from. A switch
+// between two other projects' sessions leaves it unchanged. The active project
+// keys on the raw session id: a just-opened session may not be listed yet.
+function projectSelectionKey(workspace: WorkspaceSummary, selection: Selection): string {
+	const sessionId = selection.activeSessionId ?? "";
+	if (selection.activeProjectId === workspace.id) return `active\u0000${sessionId}`;
+	return workspace.sessions.some((session) => session.id === sessionId) ? sessionId : "";
+}
+
+// Session switches replace the shared selection object. Re-render a project
+// only when its own slice of the selection (or any other prop) changed, so a
+// switch does not re-render every project's rows, menus, and dialogs.
+function projectItemPropsEqual(previous: ProjectItemProps, next: ProjectItemProps): boolean {
+	const keys = Object.keys(next) as (keyof ProjectItemProps)[];
+	if (keys.length !== Object.keys(previous).length) return false;
+	for (const key of keys) {
+		if (key !== "selection" && !Object.is(previous[key], next[key])) return false;
+	}
+	const a = previous.selection;
+	const b = next.selection;
+	return a.goSession === b.goSession && a.goProject === b.goProject && a.goHome === b.goHome &&
+		a.goSettings === b.goSettings && projectSelectionKey(previous.workspace, a) === projectSelectionKey(next.workspace, b);
+}
+
+/** Builds a menu's rows when the open menu mounts them. */
+function LazyMenuEntries({ build }: { build: () => MenuEntry[] }) {
+	return <MenuEntries entries={build()} />;
+}
+
+const ProjectItem = memo(function ProjectItem({
+	workspace,
+	avatarUrl,
+	hostLabel,
+	onOpenOrchestrator,
+	onOrchestratorButtonOpen,
+	expanded,
+	selection,
+	isDragged,
+	projectDragInProgress,
+	consumeDragClick,
+	onToggle,
+	onRemoveProject,
+	onProjectDragStart,
+	onProjectDragEnd,
+	onProjectDragOver,
+	onProjectDrop,
+}: ProjectItemProps) {
+	const { t } = useTranslation();
+	const nameWithHost = hostLabel ? `${workspace.name} · ${hostLabel}` : workspace.name;
+	const isStandalone = workspace.id === STANDALONE_WORKSPACE_ID;
+	// A Cloud standalone agent (here, one shared with the person) is one
+	// session: it has no board, orchestrator or project settings to offer.
+	const isAgent = workspace.standaloneAgent === true;
+	const activeProjectMatches = selection.activeProjectId === workspace.id;
+	const projectHeaderRef = useRef<HTMLDivElement>(null);
+	const projectSessionsRef = useRef<HTMLDivElement>(null);
+	const dashboardActive = activeProjectMatches && !selection.activeSessionId;
+	const orchestratorActive =
+		activeProjectMatches &&
+		workspace.sessions.some(
+			(session) => session.id === selection.activeSessionId && session.kind === "orchestrator",
+		);
+
+	const queryClient = useQueryClient();
+	const [confirmOpen, setConfirmOpen] = useState(false);
+	const [isSpawning, setIsSpawning] = useState(false);
+	const projectKey = sessionUiKey(workspace.id, workspace.hostId);
+	const isProjectProvisioning = useUiStore((state) => state.provisioningProjectIds.has(projectKey));
+	const projectActive = dashboardActive || orchestratorActive || (activeProjectMatches && isProjectProvisioning);
+	const isProjectRestarting = useUiStore((state) => state.restartingProjectIds.has(projectKey));
+	const requestNewTask = useUiStore((state) => state.requestNewTask);
+	const showGlobalToast = useUiStore((state) => state.showGlobalToast);
+	const projectIsDragging = isDragged;
+	// Keep completed PR sessions reachable while their runtime still exists.
+	// Only termination removes a worker from the sidebar; archived sessions stay
+	// reachable through SessionsBoard.
+	// A project shared from another organization lists every session shared
+	// with this person, its orchestrator included: a guest has no orchestrator
+	// of their own to reach it through.
+	const visibleSessions = useMemo(
+		() => (workspace.shared
+			? [...workspace.sessions].sort((a, b) => Number(isOrchestratorSession(b)) - Number(isOrchestratorSession(a)))
+			: sortedWorkerSessions(workspace.sessions)
+		).filter((session) => session.isTerminated !== true),
+		[workspace.sessions, workspace.shared],
+	);
+	const projectNeedsInput = useMemo(() => visibleSessions.some(sessionNeedsInput), [visibleSessions]);
+	// What a collapsed project signals, strongest first: a session waiting on the
+	// user (the question mark replaces the icon), then one whose agent is working, then a
+	// finished turn the user has not opened (both a corner dot on the icon, like
+	// the orchestrator button's).
+	const readAt = useSessionReadStore((state) => state.readAt);
+	const readBaseline = useSessionReadStore((state) => state.baseline);
+	const markRead = useSessionReadStore((state) => state.markRead);
+	const openSessionId = selection.activeSessionId;
+	const viewedSession = visibleSessions.find((session) => session.id === openSessionId);
+	// The open session's row marks it read, but a collapsed project has no rows,
+	// so the project keeps it read too: nothing the user is looking at is unread.
+	useEffect(() => {
+		if (!viewedSession) return;
+		const updated = Date.parse(viewedSession.updatedAt);
+		if (Number.isFinite(updated)) markRead(sessionReadKey(viewedSession), updated);
+	}, [markRead, viewedSession]);
+	const projectActivity = useMemo(() => {
+		if (projectNeedsInput) return "input" as const;
+		const indicators = visibleSessions.map((session) => getSessionRowIndicator(session));
+		if (indicators.includes("working")) return "working" as const;
+		const read = { readAt, baseline: readBaseline };
+		return visibleSessions.some(
+			(session, index) => session.id !== openSessionId && indicators[index] === null && isSessionUnread(session, read),
+		)
+			? ("unread" as const)
+			: null;
+	}, [openSessionId, projectNeedsInput, readAt, readBaseline, visibleSessions]);
+	const [sessionOrder, setSessionOrder] = useGroupOrder(visibleSessions);
+	// Pinned sessions lead the project's own list; the rest float attention
+	// until the user drags an order of their own.
+	const sessions = useMemo(
+		() => orderGroupSessions(visibleSessions, sessionOrder, (rest) => floatAttention(rest, sessionOrder.pinned.length + sessionOrder.rest.length > 0)),
+		[sessionOrder, visibleSessions],
+	);
+	const pinnedCount = leadingPinnedCount(sessions);
+	// Publish the order shown here so keyboard navigation follows it.
+	useEffect(() => {
+		const sessionIds = sessions.map((session) => session.id);
+		useSidebarOrderStore.getState().setSessionOrder(projectKey, sessionIds);
+		return () => useSidebarOrderStore.getState().clearSessionOrder(projectKey);
+	}, [projectKey, sessions]);
+	// Pins are never behind Show more: the cap lists at least all of them.
+	const {
+		listed: listedSessions,
+		hiddenCount: hiddenSessionCount,
+		showAll: showAllSessions,
+		toggleShowAll: toggleShowAllSessions,
+	} = useShowMoreCap(sessions, Math.max(SIDEBAR_PROJECT_SESSION_LIMIT, pinnedCount), selection.activeSessionId);
+	useLayoutEffect(() => {
+		const header = projectHeaderRef.current;
+		const content = projectSessionsRef.current;
+		const scroller = header?.closest<HTMLElement>("[data-sidebar-section-scroller]");
+		if (!activeProjectMatches || !expanded || !header || !content || !scroller) return;
+		// Keep the sticky header clear while preventing session rows from painting
+		// through it. Scroll/resize only changes the clip, not the list's layout.
+		const updateClip = () => {
+			const covered = Math.max(0, header.getBoundingClientRect().bottom - content.getBoundingClientRect().top);
+			content.style.clipPath = `inset(${covered}px 0 0 0)`;
+		};
+		updateClip();
+		scroller.addEventListener("scroll", updateClip, { passive: true });
+		const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(updateClip);
+		observer?.observe(header);
+		observer?.observe(content);
+		return () => {
+			scroller.removeEventListener("scroll", updateClip);
+			observer?.disconnect();
+			content.style.removeProperty("clip-path");
+		};
+	}, [activeProjectMatches, expanded, showAllSessions]);
+	// Stable while the ids are: a rebuilt array would invalidate every sortable row.
+	const listedSessionIds = useStableArray(useMemo(() => listedSessions.map((session) => session.id), [listedSessions]));
+	const commitSessionOrder = useCallback(
+		(next: string[] | null) => {
+			if (!next) return;
+			// Only the listed slice is draggable, so keep the still-hidden tail
+			// behind it rather than letting applyOrder float it to the front.
+			const listed = new Set(next);
+			setSessionOrder(splitGroupOrder([...next, ...sessions.filter((session) => !listed.has(session.id)).map((session) => session.id)], sessions));
+		},
+		[sessions],
+	);
+	// Stable row handlers: selection changes on every session switch, and a new
+	// handler would re-render every row (with its menus, tooltips, and dialogs).
+	const openSession = useLatestCallback((sessionId: string) => {
+		recordManualWorkerOpen(sessionId);
+		selection.goSession(workspace.id, sessionId);
+	});
+	const handleSessionKilled = useLatestCallback((killedSession: WorkspaceSession) => {
+		if (selection.activeSessionId !== killedSession.id) return;
+		const nextRoute = resolveNextNavigationAfterSessionKill(workspace, killedSession.id, sessions);
+		if (nextRoute.target === "session") {
+			selection.goSession(workspace.id, nextRoute.sessionId);
+		} else if (workspace.id === STANDALONE_WORKSPACE_ID || isAgent) {
+			selection.goHome();
+		} else {
+			selection.goProject(workspace.id);
+		}
+	});
+	// The project's live orchestrator (if any) backs the hover Orchestrator
+	// button: navigate to it when present, otherwise spawn one first.
+	const orchestrator = newestActiveOrchestrator(workspace.sessions);
+	const canResumeOrchestrator = useCanResumeAgent(orchestrator, workspace.hostId);
+	const orchestratorReply = useOrchestratorReplyState({
+		projectId: workspace.id,
+		hostId: workspace.hostId,
+		orchestrator,
+		viewing: orchestratorActive,
+	});
+	const toggleDisclosure = () => onToggle(workspace.id);
+
+	// Mirrors the session topbar's launcher: attach to the running orchestrator, or
+	// spawn one via the daemon and follow it once the workspace refetches.
+	// Opening the orchestrator leaves the project's session list as it was:
+	// only the row and folder toggle change disclosure.
+	const goOrchestrator = (sessionId: string) => {
+		onOrchestratorButtonOpen?.(sessionId);
+		selection.goSession(workspace.id, sessionId);
+	};
+	const openOrchestrator = async () => {
+		if (isSpawning || isProjectProvisioning || isProjectRestarting) return;
+		if (onOpenOrchestrator) {
+			onOpenOrchestrator();
+			return;
+		}
+		if (orchestrator) {
+			// Mirrors useProjectOrchestratorAction; both launchers must stay in step.
+			if (canResumeOrchestrator && workspace.kind !== "cloud") {
+				setIsSpawning(true);
+				try {
+					// Start the resume, then open the chat while it runs; its
+					// composer shows the startup shimmer in the meantime.
+					const resume = resumeOrchestrator(orchestrator.id);
+					goOrchestrator(orchestrator.id);
+					await resume;
+					await queryClient.invalidateQueries({ queryKey: workspaceQueryKey });
+					return;
+				} catch (err) {
+					console.error("Failed to resume orchestrator:", err);
+					showGlobalToast(
+						t("inspector.resumeAgent"),
+						err instanceof Error ? err.message : t("shell.couldNotSpawn"),
+						"error",
+					);
+					return;
+				} finally {
+					setIsSpawning(false);
+				}
+			}
+			goOrchestrator(orchestrator.id);
+			return;
+		}
+		// A guest cannot start an orchestrator in someone else's project.
+		if (workspace.shared) return;
+		// A cloud project has no local orchestrator-agent config. Spawn the
+		// orchestrator as a cloud session in its own sandbox instead.
+		if (workspace.kind === "cloud") {
+			setIsSpawning(true);
+			try {
+				const sessionId = await spawnCloudOrchestrator(queryClient, workspace.id);
+				await queryClient.invalidateQueries({ queryKey: cloudSessionsQueryKey });
+				goOrchestrator(sessionId);
+			} catch (err) {
+				console.error("Failed to spawn cloud orchestrator:", err);
+				void captureRendererException(err, { source: "orchestrator-open", operation: "open_orchestrator", surface: "sidebar" });
+			} finally {
+				setIsSpawning(false);
+			}
+			return;
+		}
+		setIsSpawning(true);
+		try {
+			// A project that lost its orchestrator agent starts on the ranked
+			// default: the daemon fills the empty role as it starts.
+			const sessionId = await spawnOrchestrator(workspace.id, "sidebar");
+			await queryClient.invalidateQueries({ queryKey: workspaceQueryKey });
+			goOrchestrator(sessionId);
+		} catch (err) {
+			if (apiErrorCode(err) === "AGENT_REQUIRED") {
+				useUiStore.getState().openProjectSettings(workspace.id, { section: "agents" });
+				return;
+			}
+			console.error("Failed to spawn orchestrator:", err);
+			void captureRendererException(err, { source: "orchestrator-open", operation: "open_orchestrator", surface: "sidebar" });
+		} finally {
+			setIsSpawning(false);
+		}
+	};
+
+	// Expanded + already on the project board → collapse. Expanded + on a
+	// session (orchestrator or worker) → board. Collapsed → expand + board.
+	// Do not treat orchestratorActive like the board: the project row is the
+	// one-click path back from the orchestrator button.
+	const onProjectClick = () => {
+		if (consumeDragClick(workspace.id)) return;
+		if (isStandalone) {
+			toggleDisclosure();
+			return;
+		}
+		// A Cloud standalone agent listed here (one shared with the person) has
+		// no board: its row opens its one session.
+		if (workspace.standaloneAgent) {
+			if (!expanded) toggleDisclosure();
+			const agentSession = workerSessions(workspace.sessions)[0];
+			if (agentSession) selection.goSession(workspace.id, agentSession.id);
+			return;
+		}
+		if (!expanded) {
+			toggleDisclosure();
+			selection.goProject(workspace.id);
+		} else if (dashboardActive) {
+			toggleDisclosure();
+		} else {
+			selection.goProject(workspace.id);
+		}
+	};
+
+	// Folder icon always toggles disclosure, even when another project is
+	// selected — without this, collapsing a non-active project required a
+	// select click then a second click (felt like a double-click).
+	const onFolderClick = (event: MouseEvent) => {
+		event.stopPropagation();
+		if (consumeDragClick(workspace.id)) return;
+		toggleDisclosure();
+	};
+
+
+	const removeProject = () => setConfirmOpen(true);
+	const isCloudProject = !workspace.hostId && workspace.kind === CLOUD_PROJECT_KIND;
+	const copyToClipboard = useCopyToClipboard();
+	// Pins are a local list preference; remote host rows and the Scratchpad
+	// have their own sections and are not pinnable.
+	const canPin = !isStandalone && !workspace.hostId;
+	const isPinned = useSidebarOrderStore((state) => canPin && state.pinnedProjectIds.includes(workspace.id));
+	const setProjectPinned = useSidebarOrderStore((state) => state.setProjectPinned);
+	const openPullRequestCount = new Set(
+		workspace.sessions.flatMap((session) => openPRs(session).map((pr) => pr.url)),
+	).size;
+	// The shell's archive modal opens over the current page, scoped to this
+	// project; nothing navigates. A store action, so the row takes no new prop.
+	// Closing it returns focus to the ⋮ trigger or the right-clicked row.
+	const openArchive = () => useUiStore.getState().openArchive({
+		projectId: workspace.id,
+		hostId: workspace.hostId,
+		returnFocus: menuFocusReturnTarget(),
+	});
+	// The ⋮ button and right-click show these same rows. Built only while a menu
+	// is open, so the archive count costs a closed row nothing.
+	const buildMenuEntries = (): MenuEntry[] => {
+		// The project's archived sessions: every project row has the entry, the
+		// Scratchpad's is its own section's row. A noun, not "Archive", so it never
+		// reads as archiving the project. Hidden while empty, as the board's button
+		// and the Cmd+K command are.
+		const archivedCount = isStandalone ? 0 : workerSessions(workspace.sessions).filter(isArchivedSession).length;
+		return [
+			// A new task in someone else's agent is a dead end: it takes no session but its own.
+			...(!isAgent
+				? [{
+					kind: "item" as const,
+					id: "new-task",
+					icon: <Plus aria-hidden="true" />,
+					label: t("shell.newTask"),
+					disabled: isProjectRestarting,
+					onSelect: () => requestNewTask(workspace.id, workspace.hostId),
+				}]
+				: []),
+			...(!isStandalone && !isAgent && (!workspace.shared || orchestrator)
+				? [{
+					kind: "item" as const,
+					id: "orchestrator",
+					icon: <OrchestratorIcon aria-hidden="true" />,
+					label: orchestrator ? t("shell.openOrchestrator") : t("shell.spawnOrchestratorLower"),
+					disabled: isSpawning || isProjectProvisioning || isProjectRestarting,
+					onSelect: () => void openOrchestrator(),
+				}]
+				: []),
+			...(!isStandalone && !isAgent
+				? [{
+					kind: "item" as const,
+					id: "board",
+					icon: <LayoutGrid aria-hidden="true" />,
+					label: t("shell.openDashboard"),
+					onSelect: () => selection.goProject(workspace.id),
+				}]
+				: []),
+			...(archivedCount > 0
+				? [{
+					kind: "item" as const,
+					id: "archive",
+					icon: <Archive aria-hidden="true" />,
+					label: t("shell.archivedSessions"),
+					count: archivedCount,
+					ariaLabel: t("shell.archivedSessionsAria", { count: archivedCount }),
+					onSelect: openArchive,
+				}]
+				: []),
+			{ kind: "separator", id: "path-sep" },
+			// A remote host's path names a folder on that machine, not this one.
+			...(workspace.path && !workspace.hostId
+				? [{
+					kind: "item" as const,
+					id: "copy-path",
+					icon: <Copy aria-hidden="true" />,
+					label: t("editor.copyPath"),
+					onSelect: () => copyToClipboard(workspace.path),
+				}]
+				: []),
+			{ kind: "separator", id: "project-sep" },
+			...(canPin
+				? [{
+					kind: "item" as const,
+					id: "pin",
+					icon: isPinned ? <PinOff aria-hidden="true" /> : <Pin aria-hidden="true" />,
+					label: isPinned ? t("shell.unpinProject") : t("shell.pinProject"),
+					onSelect: () => setProjectPinned(workspace.id, !isPinned),
+				}]
+				: []),
+			...(!isStandalone && !isAgent
+				? [
+					{
+						kind: "item" as const,
+						id: "settings",
+						icon: <Settings aria-hidden="true" />,
+						label: t("shell.projectSettings"),
+						onSelect: () => selection.goSettings(workspace.id, workspace.cloudOrgId),
+					},
+					// A project shared from another organization is its organization's to delete.
+					...(workspace.shared ? [] : [{
+						kind: "item" as const,
+						id: "remove",
+						icon: <Trash2 aria-hidden="true" />,
+						// A Cloud project is deleted for good; a local one only leaves the sidebar.
+						label: isCloudProject ? t("shell.deleteCloudProjectTitle") : t("shell.removeProjectTitle"),
+						destructive: true,
+						onSelect: removeProject,
+					}]),
+				]
+				: []),
+		];
+	};
+
+	// Removal is optimistic: the row, its sessions and its pin leave at once,
+	// and the shell reports the outcome with a toast.
+	const handleConfirmRemove = () => {
+		setConfirmOpen(false);
+		onRemoveProject(workspace.id, workspace.kind === CLOUD_PROJECT_KIND);
+	};
+
+	return (
+		<ContextMenu>
+			<ContextMenuTrigger asChild>
+				<li
+					className={cn(
+						"group/menu-item relative group-data-[collapsible=icon]:mb-0",
+						projectIsDragging && "opacity-50",
+					)}
+					data-dragging={projectIsDragging ? "true" : undefined}
+					data-project-drop-target=""
+					data-project-id={workspace.id}
+					data-remote-project-row={workspace.hostId ? "" : undefined}
+					data-host-id={workspace.hostId}
+					data-sidebar="menu-item"
+					data-slot="sidebar-menu-item"
+					onDragOver={(event) => onProjectDragOver(event, workspace.id)}
+					onDrop={onProjectDrop}
+				>
+					<div
+						ref={projectHeaderRef}
+						className={cn(
+							"relative",
+							activeProjectMatches && "sticky top-0 z-20 bg-sidebar group-data-[collapsible=icon]:static",
+						)}
+						data-project-drag-row=""
+						data-project-id={workspace.id}
+						draggable={!workspace.hostId}
+						onDragStart={(event) => onProjectDragStart(event, workspace.id)}
+						onDragEnd={onProjectDragEnd}
+					>
+						<div className={cn("relative", projectIsDragging && "cursor-grabbing")}>
+							<div>
+								{/* project-sidebar__proj-row */}
+								<SidebarMenuButton
+									data-telemetry-id="sidebar.project_row"
+									aria-label={hostLabel ? t(isStandalone ? "shell.toggleProject" : "shell.openProjectDashboard", { name: nameWithHost }) : undefined}
+									aria-current={dashboardActive ? "page" : undefined}
+									aria-expanded={expanded}
+									isActive={projectActive}
+									tooltip={nameWithHost}
+									onClick={onProjectClick}
+									className={cn(
+										NAV_ROW_CLASS,
+										NAV_ROW_HIGHLIGHT_HOST_CLASS,
+										// Same 32px row, gap, and icon size as Search/Automations and the
+										// Projects header so icons and labels share one left edge.
+										SIDEBAR_ROW_CLASS,
+										!workspace.hostId && "cursor-grab active:cursor-grabbing",
+										isPinned ? "pr-sidebar-project-actions-pinned" : "pr-sidebar-project-actions",
+										"transition-none",
+										projectIsDragging && "!cursor-grabbing",
+										projectDragInProgress && "hover:text-muted-foreground active:text-muted-foreground",
+										"group-data-[collapsible=icon]:size-control-board! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:font-semibold",
+									)}
+								>
+									<NavRowHighlight active={projectActive} disabled={projectIsDragging} />
+									{/* Expanded sidebar: visual folder/chevron icon (decorative — toggle button is a sibling).
+		    size-icon-md matches the Projects section row; an 18px centered box was
+		    optically indenting these icons relative to the header. */}
+									<span
+										aria-hidden="true"
+										className="relative z-[1] inline-flex size-icon-md shrink-0 translate-y-px items-center justify-center group-data-[collapsible=icon]:hidden"
+										data-expanded={expanded ? "" : undefined}
+										data-project-folder-visual=""
+									>
+										{/* 1.2 — contextual icon swap on hover, instant (scale and opacity snap).
+										    Hover paint lives in styles.css (fine pointer only). */}
+										<span
+											className="relative inline-flex size-icon-md items-center justify-center"
+											data-project-folder-icon=""
+										>
+											{!expanded && projectActivity === "input" ? (
+												<SessionMarkerIcon data-project-marker="input" marker="input" />
+											) : <ProjectIcon avatarUrl={avatarUrl} expanded={expanded} name={workspace.name} seed={workspace.path || workspace.id} />}
+											{!expanded && (projectActivity === "working" || projectActivity === "unread") ? (
+												<ReplyBadge data-project-marker={projectActivity} reply={projectActivity} surface="sidebar" />
+											) : null}
+										</span>
+										<span
+											className={cn(
+												"absolute inline-flex size-icon-md scale-[0.8] items-center justify-center opacity-0",
+												// Only expanding or collapsing turns it; the hover swap is instant.
+												"transition-[rotate] duration-normal ease-[var(--ease-out)]",
+												"motion-reduce:transition-none",
+												expanded && "rotate-90",
+											)}
+											data-project-chevron-icon=""
+										>
+											<ChevronRight />
+										</span>
+									</span>
+									{/* Collapsed icon rail: the project icon, with an amber badge when a
+									    session waits on the user. The session list is hidden here, so the badge
+									    shows whether or not the project is expanded. */}
+									<span
+										aria-hidden="true"
+										className="relative z-[1] hidden size-8 items-center justify-center group-data-[collapsible=icon]:inline-flex"
+									>
+										<ProjectIcon avatarUrl={avatarUrl} className="size-5" expanded={expanded} name={workspace.name} seed={workspace.path || workspace.id} />
+										{projectNeedsInput ? (
+											<span
+												className="absolute right-0.5 top-0.5 size-2 rounded-full bg-status-in-review ring-2 ring-sidebar"
+												data-project-marker="input"
+											/>
+										) : null}
+									</span>
+									<span
+										className="sidebar-expanded-chrome relative z-[1] min-w-0 flex-1 translate-y-px truncate group-data-[collapsible=icon]:hidden"
+										data-project-label=""
+									>
+										{workspace.name}
+									</span>
+									{workspace.shared ? <SharedProjectMark share={workspace.shared} /> : null}
+									{/* The host badge shrinks and truncates in narrow sidebars so it never
+									    runs under the row actions; half the row stays for the name. */}
+									{hostLabel && (
+										<Badge
+											variant="outline"
+											className="sidebar-expanded-chrome relative z-[1] h-4 min-w-0 max-w-1/2 shrink justify-start px-1.5 text-2xs group-data-[collapsible=icon]:hidden"
+										>
+											<span className="truncate">{hostLabel}</span>
+										</Badge>
+									)}
+									{workspace.kind === "cloud" && (
+										<CloudMark className="sidebar-expanded-chrome relative z-[1] translate-y-px group-data-[collapsible=icon]:hidden" />
+									)}
+								</SidebarMenuButton>
+								{/* Folder disclosure toggle: sibling of the nav button, absolutely positioned over
+	    the icon area so it intercepts clicks there without nesting buttons. */}
+								<Pressable
+									data-telemetry-id="sidebar.project_toggle"
+									aria-label={t("shell.toggleProject", {
+										name: nameWithHost,
+									})}
+									aria-expanded={expanded}
+									className="absolute inset-y-0 left-0 z-10 w-9 cursor-pointer bg-transparent group-data-[collapsible=icon]:hidden"
+									data-project-folder=""
+									tabIndex={-1}
+									onClick={onFolderClick}
+									type="button"
+								/>
+							</div>
+							{/* Per-project actions: orchestrator and kebab menu. Outside the row's
+		navigation surface so their own presses stay independent. */}
+						<div
+								className={cn(
+									"sidebar-expanded-chrome z-chrome",
+									ROW_ACTIONS_CLASS,
+									"group-data-[collapsible=icon]:hidden",
+									projectDragInProgress && "pointer-events-none",
+								)}
+								data-project-actions=""
+								draggable={false}
+								onClick={(event) => event.stopPropagation()}
+								onPointerDown={(event) => event.stopPropagation()}
+							>
+								{isPinned ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Button
+												size="icon-xs"
+												variant="quiet"
+												data-telemetry-id="sidebar.project_unpin"
+												aria-label={t("shell.unpinProject")}
+												className={HOVER_ACTION_CLASS}
+												data-project-pinned=""
+												onClick={() => setProjectPinned(workspace.id, false)}
+												type="button"
+											>
+												<Pin aria-hidden="true" />
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent>{t("shell.unpinProject")}</TooltipContent>
+									</Tooltip>
+								) : null}
+								{isStandalone ? (
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex">
+												<Button
+													size="icon-xs"
+													variant="quiet"
+													data-telemetry-id="sidebar.project_new_session"
+													aria-label={t("shell.openNewAgent")}
+													className={ROW_ACTION_BUTTON_CLASS}
+													disabled={isProjectRestarting}
+													onClick={() => requestNewTask(workspace.id, workspace.hostId)}
+													type="button"
+												>
+													<Plus aria-hidden="true" />
+												</Button>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent>{t("shell.openNewAgent")}</TooltipContent>
+									</Tooltip>
+								) : null}
+								{/* A guest may open a shared orchestrator but never start one, and the
+								    project's own actions belong to its organization. */}
+								{!isStandalone && (!workspace.shared || orchestrator) ? (
+									<>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className="inline-flex">
+													<Button
+														size="icon-xs"
+														variant="quiet"
+														data-telemetry-id="sidebar.project_orchestrator"
+														aria-current={orchestratorActive ? "page" : undefined}
+														aria-label={orchestratorReplyLabel(
+															orchestrator
+																? t("shell.openProjectOrchestrator", {
+																name: nameWithHost,
+																	})
+																: t("shell.spawnProjectOrchestrator", {
+																name: nameWithHost,
+																	}),
+															orchestratorReply,
+															t,
+														)}
+															className={cn(HOVER_ACTION_CLASS, orchestratorActive && "text-foreground")}
+															disabled={isSpawning || isProjectProvisioning || isProjectRestarting}
+														onClick={() => void openOrchestrator()}
+														type="button"
+													>
+														<OrchestratorReplyIcon
+															reply={orchestratorReply}
+															strokeWidth={orchestratorActive ? 2.5 : 2}
+															surface="sidebar"
+														/>
+													</Button>
+												</span>
+											</TooltipTrigger>
+												<TooltipContent>
+													{isProjectProvisioning || isProjectRestarting
+														? t("shell.restarting")
+														: isSpawning
+														? t("shell.spawning")
+														: orchestrator
+															? orchestratorReplyLabel(t("shell.orchestrator"), orchestratorReply, t)
+															: t("shell.spawnOrchestratorLower")}
+											</TooltipContent>
+										</Tooltip>
+									</>
+								) : null}
+								{workspace.shared || isStandalone ? null : (
+									<>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													size="icon-xs"
+													variant="quiet"
+													data-telemetry-id="sidebar.project_menu"
+													aria-label={t("shell.projectActions", {
+																name: nameWithHost,
+													})}
+													className={HOVER_ACTION_CLASS}
+													type="button"
+												>
+													<MoreVertical aria-hidden="true" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent side="right" align="start" className="min-w-44">
+												<MenuKitContext.Provider value={dropdownMenuKit}>
+													<LazyMenuEntries build={buildMenuEntries} />
+												</MenuKitContext.Provider>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</>
+								)}
+							</div>
+						</div>
+						{/* end outer relative */}
+					</div>
+					{/* project-sidebar__sessions: indented under the project parent so worker
+					    sessions read as children without adding a persistent guide rail. The
+					    list opens, closes and gains its first session at full height in one
+					    frame, so the projects below never slide. */}
+					{expanded && sessions.length > 0 && (
+						<div ref={projectSessionsRef} className="sidebar-expanded-chrome overflow-hidden">
+							<SessionReorderList
+								dndId={sessionDndId(projectKey)}
+								testId={`session-list-${projectKey}`}
+								className={cn(
+									"mx-0 ml-3.5 translate-x-0 gap-px border-l-0 px-0 pt-1",
+									hiddenSessionCount > 0 ? "pb-px" : "pb-1",
+								)}
+								sessions={listedSessions}
+								sessionIds={listedSessionIds}
+								activeSessionId={selection.activeSessionId}
+								plain={projectDragInProgress}
+								onReorder={commitSessionOrder}
+								onKilled={handleSessionKilled}
+								onOpen={openSession}
+							/>
+							{hiddenSessionCount > 0 ? (
+								// Indented to the session list so its label starts on the status-dot column.
+								<div className="pl-4">
+									<ShowMoreRow
+										className="px-3"
+										expanded={showAllSessions}
+										label={
+											showAllSessions
+												? t("shell.showLessAgents")
+												: t("shell.showMoreAgents", { count: hiddenSessionCount })
+										}
+										onClick={toggleShowAllSessions}
+									/>
+								</div>
+							) : null}
+						</div>
+					)}
+					<ConfirmDialog
+						open={confirmOpen}
+						onOpenChange={setConfirmOpen}
+						title={isCloudProject ? t("shell.deleteCloudProjectTitle") : t("shell.removeProjectTitle")}
+						description={
+							<>
+								<p className="text-sm font-medium text-foreground">
+									{isCloudProject
+										? t("shell.deleteCloudProjectLead", { name: workspace.name })
+										: t("shell.removeProjectLead", { name: workspace.name })}
+								</p>
+								{/* The lead already says a Cloud project is deleted for good. */}
+								{isCloudProject ? null : <p className="mt-1 text-xs text-muted-foreground">{t("shell.removeProjectBody")}</p>}
+								{openPullRequestCount > 0 ? (
+									<p className="mt-2 text-xs font-medium text-error">
+										{t("shell.removeProjectOpenPrWarning", { count: openPullRequestCount })}
+									</p>
+								) : null}
+							</>
+						}
+						confirmLabel={isCloudProject ? t("shell.deleteCloudProjectConfirm") : t("shell.remove")}
+						destructive
+						onConfirm={handleConfirmRemove}
+					/>
+				</li>
+			</ContextMenuTrigger>
+			<ContextMenuContent className="min-w-44">
+				<LazyMenuEntries build={buildMenuEntries} />
+			</ContextMenuContent>
+		</ContextMenu>
+	);
+}, projectItemPropsEqual);
+
+/** Whether the Scratchpad section lists the session: a worker that is not archived. */
+function scratchpadListsSession(session: WorkspaceSession): boolean {
+	return !isOrchestratorSession(session) && session.isTerminated !== true;
+}
+
+/** Whether the session is in the Scratchpad's archive (the /sessions page). */
+function scratchpadArchivesSession(session: WorkspaceSession): boolean {
+	return !isOrchestratorSession(session) && isArchivedSession(session);
+}
+
+/** The Scratchpad section's own fields, for when it holds Cloud standalone agents alone. */
+function scratchpadSummary(name: string): Pick<WorkspaceSummary, "id" | "name" | "kind" | "path"> {
+	return { id: STANDALONE_WORKSPACE_ID, name, kind: STANDALONE_PROJECT_KIND, path: "" };
+}
+
+/** Projectless ("ad hoc") agents, shown as "Sessions". Their own section above
+ *  Projects — same header chrome, own capped scroller, own Show more — instead
+ *  of a project row appended to the project list. */
+function ScratchpadSection({
+	workspace,
+	selection,
+	isCollapsed,
+	open,
+	onToggle,
+}: {
+	workspace: WorkspaceSummary;
+	selection: Selection;
+	isCollapsed: boolean;
+	open: boolean;
+	onToggle: () => void;
+}) {
+	const { t } = useTranslation();
+	const requestNewTask = useUiStore((state) => state.requestNewTask);
+	const visibleSessions = useMemo(
+		() => sortedWorkerSessions(workspace.sessions).filter(scratchpadListsSession),
+		[workspace.sessions],
+	);
+	const [sessionOrder, setSessionOrder] = useGroupOrder(visibleSessions);
+	// Projectless pinned sessions lead this list, as a project's lead its own.
+	const sessions = useMemo(() => orderGroupSessions(visibleSessions, sessionOrder), [sessionOrder, visibleSessions]);
+	const pinnedCount = leadingPinnedCount(sessions);
+	// Publish the order shown here so keyboard navigation follows it.
+	const scratchpadKey = sessionUiKey(workspace.id, workspace.hostId);
+	useEffect(() => {
+		const sessionIds = sessions.map((session) => session.id);
+		useSidebarOrderStore.getState().setSessionOrder(scratchpadKey, sessionIds);
+		return () => useSidebarOrderStore.getState().clearSessionOrder(scratchpadKey);
+	}, [scratchpadKey, sessions]);
+	// Pins are never behind Show more: the cap lists at least all of them.
+	const {
+		listed: listedSessions,
+		hiddenCount: hiddenSessionCount,
+		showAll,
+		toggleShowAll,
+	} = useShowMoreCap(sessions, Math.max(SIDEBAR_SESSIONS_LIMIT, pinnedCount), selection.activeSessionId, isCollapsed);
+	// Stable while the ids are: a rebuilt array would invalidate every sortable row.
+	const listedSessionIds = useStableArray(useMemo(() => listedSessions.map((session) => session.id), [listedSessions]));
+	// With every session archived, the section keeps one row: the way to them,
+	// rather than a header with nothing under it.
+	const archivedCount = useMemo(() => workspace.sessions.filter(scratchpadArchivesSession).length, [workspace.sessions]);
+	const showArchivedRow = listedSessions.length === 0 && archivedCount > 0;
+	const commitSessionOrder = useCallback(
+		(next: string[] | null) => {
+			if (!next) return;
+			// Only the listed slice is draggable, so keep the still-hidden tail
+			// behind it rather than letting applyOrder float it to the front.
+			const listed = new Set(next);
+			setSessionOrder(splitGroupOrder([...next, ...sessions.filter((session) => !listed.has(session.id)).map((session) => session.id)], sessions));
+		},
+		[sessions],
+	);
+	// A Cloud standalone agent opens on its own project's route, a local one on
+	// the scratchpad's.
+	const scratchpadRouteOf = (sessionId: string) => {
+		const session = workspace.sessions.find((candidate) => candidate.id === sessionId);
+		return session?.cloud ? session.workspaceId : STANDALONE_WORKSPACE_ID;
+	};
+	const openSession = useLatestCallback((sessionId: string) => {
+		recordManualWorkerOpen(sessionId);
+		selection.goSession(scratchpadRouteOf(sessionId), sessionId);
+	});
+	const handleSessionKilled = useLatestCallback((killedSession: WorkspaceSession) => {
+		if (selection.activeSessionId !== killedSession.id) return;
+		const nextRoute = resolveNextNavigationAfterSessionKill(workspace, killedSession.id, sessions);
+		// An ad hoc agent has no project board to fall back to.
+		if (nextRoute.target === "session") {
+			selection.goSession(scratchpadRouteOf(nextRoute.sessionId), nextRoute.sessionId);
+		} else {
+			selection.goHome();
+		}
+	});
+
+	return (
+		<div
+			className="sidebar-expanded-chrome mb-2 flex min-h-0 flex-col overflow-hidden group-data-[collapsible=icon]:hidden"
+			data-scratchpad-section=""
+		>
+			<ContextMenu>
+				<ContextMenuTrigger asChild>
+					<div className="shrink-0">
+						<SectionDisclosure
+							label={workspace.name}
+							open={open}
+							onToggle={onToggle}
+							className="group/scratchpad"
+							trailing={
+								<div className="relative inline-flex items-center">
+									<span
+										className={cn(
+											"pointer-events-none absolute right-full top-0 flex h-full origin-center pr-1.5 scale-[0.8] items-center opacity-0",
+											"focus-visible-in-scratchpad:pointer-events-auto focus-visible-in-scratchpad:scale-100 focus-visible-in-scratchpad:opacity-100",
+										)}
+										data-scratchpad-archive-action=""
+									>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className="inline-flex">
+													<Button
+														size="icon-xs"
+														variant="quiet"
+														data-telemetry-id="sidebar.archived_sessions"
+														aria-label={t("shell.archivedSessions")}
+														className={ROW_ACTION_BUTTON_CLASS}
+														onClick={(event) => {
+															event.stopPropagation();
+															selection.goStandaloneBoard();
+														}}
+														type="button"
+													>
+														<Archive aria-hidden="true" />
+													</Button>
+												</span>
+											</TooltipTrigger>
+											<TooltipContent>{t("shell.archivedSessions")}</TooltipContent>
+										</Tooltip>
+									</span>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span className="inline-flex">
+												<Button
+													size="icon-xs"
+													variant="quiet"
+													data-telemetry-id="sidebar.project_new_session"
+													aria-label={t("shell.openNewAgent")}
+													className={ROW_ACTION_BUTTON_CLASS}
+													onClick={() => requestNewTask(STANDALONE_WORKSPACE_ID)}
+													type="button"
+												>
+													<Plus aria-hidden="true" />
+												</Button>
+											</span>
+										</TooltipTrigger>
+										<TooltipContent>{t("shell.openNewAgent")}</TooltipContent>
+									</Tooltip>
+								</div>
+							}
+						/>
+					</div>
+				</ContextMenuTrigger>
+				<ContextMenuContent className="min-w-44">
+					<ContextMenuItem onSelect={() => requestNewTask(STANDALONE_WORKSPACE_ID)}>
+						<Plus aria-hidden="true" />
+						{t("shell.openNewAgent")}
+					</ContextMenuItem>
+					<ContextMenuItem onSelect={selection.goStandaloneBoard}>
+						<Archive aria-hidden="true" />
+						{t("shell.archivedSessions")}
+					</ContextMenuItem>
+				</ContextMenuContent>
+			</ContextMenu>
+			<SectionBody open={open && (listedSessions.length > 0 || showArchivedRow)} className="min-h-0 flex-1">
+				<SidebarSectionScroller
+					className={`${SECTION_SCROLLER_CLASS} min-h-0 flex-1`}
+					testId="sidebar-scratchpad-scroller"
+					wrapperClassName="flex flex-col flex-1"
+				>
+					<SessionReorderList
+						dndId={sessionDndId(STANDALONE_WORKSPACE_ID)}
+						testId={`session-list-${STANDALONE_WORKSPACE_ID}`}
+						className="mx-0 ml-0 translate-x-0 gap-0.5 border-l-0 px-0 py-0.5"
+						sessions={listedSessions}
+						sessionIds={listedSessionIds}
+						activeSessionId={selection.activeSessionId}
+						indented={false}
+						cloudBadge
+						onReorder={commitSessionOrder}
+						onKilled={handleSessionKilled}
+						onOpen={openSession}
+					/>
+				</SidebarSectionScroller>
+				{!isCollapsed && hiddenSessionCount > 0 ? (
+					<ShowMoreRow
+						expanded={showAll}
+						label={showAll ? t("shell.showLessAgents") : t("shell.showMoreAgents", { count: hiddenSessionCount })}
+						onClick={toggleShowAll}
+					/>
+				) : null}
+				{showArchivedRow ? (
+					<button
+						type="button"
+						data-telemetry-id="sidebar.archived_sessions"
+						aria-label={t("shell.archivedSessionsAria", { count: archivedCount })}
+						className={cn(SECTION_ROW_CLASS, NAV_ROW_HIGHLIGHT_HOST_CLASS, "mb-1 shrink-0 rounded-lg text-left text-muted-foreground")}
+						data-scratchpad-archived-row=""
+						onClick={selection.goStandaloneBoard}
+					>
+						<Archive aria-hidden="true" className="size-icon-sm shrink-0" />
+						<span className="min-w-0 flex-1 truncate">{t("shell.archivedSessions")}</span>
+						<span className="tabular-nums">{archivedCount}</span>
+					</button>
+				) : null}
+			</SectionBody>
+		</div>
+	);
+}
+
+// A session row inside its group's drag context.
+const SortableSessionRow = memo(function SortableSessionRow({
+	session,
+	active,
+	consumeDragClick,
+	indented = true,
+	listIsDragging,
+	dropTransitionDisabled,
+	cloud,
+	onKilled,
+	onOpen,
+}: {
+	session: WorkspaceSession;
+	active: boolean;
+	consumeDragClick: (id: string) => boolean;
+	cloud?: boolean;
+	indented?: boolean;
+	listIsDragging: boolean;
+	dropTransitionDisabled: boolean;
+	onKilled?: (session: WorkspaceSession) => void;
+	onOpen: (sessionId: string) => void;
+}) {
+	const { isDragging, listeners, setActivatorNodeRef, setNodeRef, transform, transition } = useSortable({
+		id: session.id,
+	});
+	// dnd-kit's context changes on unrelated list renders and re-renders this
+	// wrapper. Keep the row's props stable so the heavy SessionRow skips it.
+	const open = useCallback(() => {
+		if (!consumeDragClick(session.id)) onOpen(session.id);
+	}, [consumeDragClick, onOpen, session.id]);
+	const reorder = useMemo(
+		() => ({ isDragging, listeners, setActivatorNodeRef, setNodeRef, transform, transition, dropTransitionDisabled }),
+		[isDragging, listeners, setActivatorNodeRef, setNodeRef, transform, transition, dropTransitionDisabled],
+	);
+	return (
+		<SessionRow
+			session={session}
+			active={active}
+			cloud={cloud}
+			indented={indented}
+			onKilled={onKilled}
+			onOpen={open}
+			listIsDragging={listIsDragging}
+			reorder={reorder}
+		/>
+	);
+});
+
+/** The reorderable session list shared by a project's tree and the Scratchpad
+ *  section. It owns the drag context; the committed order stays with the caller
+ *  so each list keeps its own persistence and slicing rules. */
+function SessionReorderList({
+	dndId,
+	testId,
+	className,
+	sessions,
+	sessionIds,
+	activeSessionId,
+	indented = true,
+	plain = false,
+	cloudBadge = false,
+	onReorder,
+	onKilled,
+	onOpen,
+}: {
+	dndId: string;
+	testId: string;
+	className: string;
+	sessions: WorkspaceSession[];
+	sessionIds: string[];
+	activeSessionId?: string;
+	indented?: boolean;
+	/** Badge Cloud sessions, in a list (the Scratchpad) that mixes them with local ones. */
+	cloudBadge?: boolean;
+	/** While a project is being dragged, leave the session lists as plain rows:
+	 *  otherwise every expanded project's DnD context measures its sortable
+	 *  descendants on drop. */
+	plain?: boolean;
+	onReorder: (next: string[] | null) => void;
+	onKilled?: (session: WorkspaceSession) => void;
+	onOpen: (sessionId: string) => void;
+}) {
+	const sensors = useReorderSensors();
+	const dragClickGuard = usePostDragClickGuard();
+	const [listDragging, setListDragging] = useState(false);
+	const [dropTransitionDisabledId, setDropTransitionDisabledId] = useState<string | null>(null);
+
+	const onDragEnd = useCallback(({ active, over }: DragEndEvent) => {
+		const sessionId = String(active.id);
+		dragClickGuard.markDragEnded(sessionId);
+		const pinnedById = (id: string) => {
+			const session = sessions.find((candidate) => candidate.id === id);
+			return session ? isPinnedWorker(session) : false;
+		};
+		// Pins lead their group, so a drop across the pin boundary would land and
+		// then jump back. Treat it as a cancel and let the row glide home.
+		if (!over || pinnedById(sessionId) !== pinnedById(String(over.id))) {
+			setListDragging(false);
+			setDropTransitionDisabledId(null);
+			return;
+		}
+		// reorderById rejects any id that is not in THIS list, so a stray
+		// cross-list drop leaves both lists' orders untouched.
+		const next = reorderById(sessionIds, sessionId, String(over.id));
+		// Commit the destination DOM order before dnd-kit removes its live transform.
+		// Otherwise the row briefly snaps back to its derived (usually top) position
+		// for a frame before the persisted order moves it to the destination.
+		flushSync(() => {
+			onReorder(next);
+			setListDragging(false);
+			setDropTransitionDisabledId(sessionId);
+		});
+		requestAnimationFrame(() => setDropTransitionDisabledId(null));
+	}, [dragClickGuard, onReorder, sessionIds, sessions]);
+
+	const onDragCancel = useCallback(() => {
+		setListDragging(false);
+		setDropTransitionDisabledId(null);
+	}, []);
+
+	if (plain) {
+		return (
+			<SidebarMenuSub className={className} data-testid={testId}>
+				{sessions.map((session) => (
+					<SessionRow
+						key={session.id}
+						session={session}
+						active={activeSessionId === session.id}
+						cloud={cloudBadge && Boolean(session.cloud)}
+						indented={indented}
+						onKilled={onKilled}
+						onOpen={() => onOpen(session.id)}
+					/>
+				))}
+			</SidebarMenuSub>
+		);
+	}
+
+	return (
+		<DndContext
+			collisionDetection={closestCenter}
+			modifiers={[restrictToListBounds]}
+			id={dndId}
+			onDragStart={() => setListDragging(true)}
+			onDragCancel={onDragCancel}
+			onDragEnd={onDragEnd}
+			sensors={sensors}
+		>
+			<SortableContext items={sessionIds} strategy={verticalListSortingStrategy}>
+				<SidebarMenuSub className={className} data-testid={testId}>
+					{sessions.map((session) => (
+						<SortableSessionRow
+							key={session.id}
+							session={session}
+							active={activeSessionId === session.id}
+							consumeDragClick={dragClickGuard.consumeClick}
+							cloud={cloudBadge && Boolean(session.cloud)}
+							indented={indented}
+							listIsDragging={listDragging}
+							dropTransitionDisabled={dropTransitionDisabledId === session.id}
+							onKilled={onKilled}
+							onOpen={onOpen}
+						/>
+					))}
+				</SidebarMenuSub>
+			</SortableContext>
+		</DndContext>
+	);
+}
+
+type SessionReorder = Pick<SortableRow, "isDragging" | "listeners" | "setActivatorNodeRef" | "setNodeRef" | "transform" | "transition"> & {
+	dropTransitionDisabled: boolean;
+};
+
+// One worker-session row. Reads as a link by default; double-click/double-tap
+// on the name or F2 flips the label into an inline input (Enter/blur saves,
+// Escape cancels) that persists through the daemon rename endpoint.
+const SessionRow = memo(function SessionRow({
+	session,
+	active,
+	hostLabel,
+	cloud = false,
+	indented = true,
+	listIsDragging = false,
+	onKilled,
+	onOpen,
+	reorder,
+}: {
+	session: WorkspaceSession;
+	active: boolean;
+	hostLabel?: string;
+	/** Mark the row as a Cloud session, in a list (the Scratchpad) that mixes them with local ones. */
+	cloud?: boolean;
+	indented?: boolean;
+	listIsDragging?: boolean;
+	/** Project drags pause nested session projection work. */
+	onKilled?: (session: WorkspaceSession) => void;
+	onOpen: () => void;
+	/** Present only for rows inside a reorderable project list. */
+	reorder?: SessionReorder;
+}) {
+	const { t } = useTranslation();
+	useGrabbingCursor(Boolean(reorder?.isDragging));
+	// The open row keeps a full-contrast title, so it gets the spinner without
+	// the shimmer.
+	const indicator = getSessionRowIndicator(session);
+	const working = indicator === "working";
+	// Having the session open reads it, including anything that lands while it is open.
+	const markRead = useSessionReadStore((state) => state.markRead);
+	useEffect(() => {
+		if (!active) return;
+		const updated = Date.parse(session.updatedAt);
+		if (Number.isFinite(updated)) markRead(sessionReadKey(session), updated);
+	}, [active, markRead, session]);
+	const shimmer = working && !active;
+	const marker = working ? null : indicator;
+	const queryClient = useQueryClient();
+	const refreshWorkspaces = useCallback(
+		() => queryClient.invalidateQueries({ queryKey: workspaceQueryKeyForHost(session.hostId) }),
+		[queryClient, session.hostId],
+	);
+	const rename = useSessionRename(session, refreshWorkspaces);
+	const [contextMenuOpen, setContextMenuOpen] = useState(false);
+	// No preview while renaming, dragging, or with the context menu open.
+	const preview = useSessionPreviewHover(
+		Boolean(reorder?.isDragging || listIsDragging || rename.isEditing || contextMenuOpen),
+	);
+	const setSortableNode = reorder?.setNodeRef;
+	const setPreviewRow = preview.rowRef;
+	const rowNodeRef = useCallback(
+		(node: HTMLElement | null) => {
+			setSortableNode?.(node);
+			setPreviewRow(node);
+		},
+		[setPreviewRow, setSortableNode],
+	);
+	const lastTouchAtRef = useRef(0);
+	const suppressTouchOpenRef = useRef(false);
+	const hoverTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+	// A remote chat prefetches its page too; only a local agent can be woken from here.
+	const canPrefetchChat = session.mode === "chat" && !session.cloud && !active && !listIsDragging && !reorder?.isDragging;
+	const canPrefetch = canPrefetchChat && !session.hostId;
+	useEffect(() => () => clearTimeout(hoverTimerRef.current), [canPrefetch]);
+	const resumeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+	useEffect(() => () => clearTimeout(resumeTimerRef.current), [canPrefetch]);
+	const prefetchConversation = () => {
+		if (!canPrefetchChat || (!session.hostId && !hasTrustedApiBaseUrl()) || queryClient.getQueryData(conversationQueryKey(session.id, session.hostId))) return;
+		void queryClient.prefetchInfiniteQuery(conversationQueryOptions(session.id, session.hostId));
+	};
+	// Reads the chat once the pointer rests on the row, not as it passes over: every
+	// move restarts the wait, so sweeping down the list, however slowly, reads nothing.
+	const prefetchWhenResting = () => {
+		clearTimeout(hoverTimerRef.current);
+		hoverTimerRef.current = setTimeout(prefetchConversation, CHAT_PREFETCH_REST_MS);
+	};
+	// A stopped agent takes seconds to come back. Start it while the pointer rests
+	// on the row so the chat is ready when it opens; opening joins this request.
+	const warmUpAgent = () => {
+		if (!canPrefetch || session.needsResume || !hasTrustedApiBaseUrl() || !canResumeAgent(session)) return;
+		void resumeAgentOnOpen(session.id)
+			.catch(() => {})
+			.finally(() => {
+				void refreshWorkspaces();
+				void queryClient.invalidateQueries({ queryKey: conversationQueryKey(session.id) });
+			});
+	};
+	// A session shared from another organization is the sharer's to name.
+	const renamable = !session.cloud?.shared;
+	const beginRename = useCallback(() => {
+		if (!renamable) return;
+		// The editor replaces the row, unmounting a context menu that is still
+		// open. Radix reports that close from an effect the unmount skips, so
+		// contextMenuOpen would stay true and keep the preview off for good.
+		setContextMenuOpen(false);
+		rename.begin();
+	}, [rename.begin, renamable]);
+	// Owned here so both the hover Archive button and the context menu open the same confirm.
+	const [archiveOpen, setArchiveOpen] = useState(false);
+
+	if (rename.isEditing) {
+		return (
+			<SidebarMenuSubItem className={cn(indented && "pl-0.5")}>
+				<div
+					className={cn(
+						"group/nav-row relative flex h-8 w-full items-center gap-1.5 rounded-lg py-0 pl-1.5 pr-1",
+						active && "text-foreground",
+					)}
+					data-session-row=""
+				>
+					<NavRowHighlight active={active} />
+					<SessionStatusDot indicator={indicator} session={session} />
+					<input
+						aria-label={t("shell.renameSession", { title: session.title })}
+						autoFocus
+						className={cn(
+							"relative z-[1] h-full min-w-0 flex-1 appearance-none border-0 bg-transparent! p-0 text-sm text-foreground outline-none ring-0 focus:outline-none focus:ring-0",
+							(session.lastInteractionAt ?? session.lastUserMessageAt) && "pr-[36px]",
+						)}
+						data-session-inline-editor=""
+						maxLength={MAX_SESSION_DISPLAY_NAME_LEN}
+						onBlur={() => void rename.commit()}
+						onChange={(e) => rename.setDraft(e.target.value)}
+						onFocus={(e) => e.currentTarget.select()}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								e.preventDefault();
+								e.currentTarget.blur();
+							} else if (e.key === "Escape") {
+								e.preventDefault();
+								rename.cancel();
+							}
+						}}
+						value={rename.draft}
+					/>
+					<SessionMessageAge session={session} />
+				</div>
+			</SidebarMenuSubItem>
+		);
+	}
+
+	return (
+		<ContextMenu onOpenChange={setContextMenuOpen}>
+			{/* Controlled by the hover hook; Radix still reports Escape and outside
+			    presses, which close it. */}
+			<HoverCard closeDelay={0} onOpenChange={(open) => !open && preview.hide()} open={preview.open} openDelay={0}>
+			<ContextMenuTrigger asChild>
+				<HoverCardTrigger asChild>
+				<SidebarMenuSubItem
+					className={cn(indented && "pl-0.5", reorder?.isDragging && "z-chrome cursor-grabbing opacity-60")}
+					data-dragging={reorder?.isDragging ? "true" : undefined}
+					ref={rowNodeRef}
+					style={reorder ? sortableRowStyle(reorder) : undefined}
+					{...preview.triggerProps}
+				>
+				{/* No layout animation: a new or resorted session takes its final slot in
+				    the same frame. Only an active drag displaces rows (dnd-kit). */}
+				<div
+					className={cn(
+						"group/session-row group/nav-row relative flex h-8 w-full items-center rounded-lg",
+						"hover:text-foreground",
+						active && "text-foreground",
+					)}
+					data-session-row=""
+					data-dragging={reorder?.isDragging ? "true" : undefined}
+					data-preview-open={preview.open ? "" : undefined}
+				>
+					<NavRowHighlight active={active} disabled={Boolean(reorder?.isDragging)} />
+					<div className={cn("relative z-[1] flex min-w-0 flex-1", reorder?.isDragging && "cursor-grabbing")}>
+						<Pressable
+							aria-current={active ? "page" : undefined}
+							data-testid={session.hostId ? "remote-session-row" : undefined}
+							aria-keyshortcuts="F2"
+							data-telemetry-id="sidebar.session_row"
+							aria-label={t("shell.openSession", { title: [session.title, hostLabel, cloud ? t("shell.cloudProjectBadge") : undefined].filter(Boolean).join(" · ") })}
+							className={cn(
+								"flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-lg py-0 pl-1.5 text-left text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+								(session.isPinned || (session.lastInteractionAt ?? session.lastUserMessageAt)) ? "pr-[36px]" : "pr-2.5",
+								!reorder?.isDragging &&
+									"group-hover/session-row:pr-sidebar-project-actions focus-visible-in-session-row:pr-sidebar-project-actions",
+								reorder && "cursor-grab active:cursor-grabbing",
+								reorder?.isDragging && "!cursor-grabbing",
+							)}
+							{...(reorder?.listeners ?? {})}
+							onMouseEnter={() => {
+								if (!canPrefetchChat) return;
+								prefetchWhenResting();
+								if (canPrefetch) resumeTimerRef.current = setTimeout(warmUpAgent, AGENT_WARM_UP_HOVER_MS);
+							}}
+							onMouseMove={canPrefetchChat ? prefetchWhenResting : undefined}
+							onMouseLeave={() => {
+								clearTimeout(hoverTimerRef.current);
+								clearTimeout(resumeTimerRef.current);
+							}}
+							onFocus={prefetchConversation}
+							onClick={(event) => {
+								if (event.detail > 1) return;
+								if (suppressTouchOpenRef.current) {
+									suppressTouchOpenRef.current = false;
+									return;
+								}
+								onOpen();
+							}}
+							onKeyDown={(event) => {
+								reorder?.listeners?.onKeyDown?.(event);
+								if (event.key !== "F2") return;
+								event.preventDefault();
+								beginRename();
+							}}
+							onDoubleClick={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								beginRename();
+							}}
+							ref={reorder?.setActivatorNodeRef}
+							type="button"
+						>
+							<SessionStatusDot indicator={indicator} session={session} />
+							<span className="flex min-w-0 flex-1 items-center gap-1.5">
+								<span
+									className={cn(
+										"min-w-0 flex-1 truncate",
+										// Only a session that needs you reads at full brightness; the
+										// rest sit back, so the list has a clear lead.
+										active || isUrgentMarker(marker)
+											? "text-foreground"
+											: "text-muted-foreground group-hover/session-row:text-foreground",
+										shimmer && "relative",
+									)}
+									data-session-name=""
+									onPointerUp={(event) => {
+										if (event.pointerType !== "touch") return;
+										const now = Date.now();
+										if (now - lastTouchAtRef.current <= 500) {
+											suppressTouchOpenRef.current = true;
+										beginRename();
+										}
+										lastTouchAtRef.current = now;
+									}}
+								>
+									{session.title}
+									{shimmer ? <span aria-hidden="true" className="sidebar-working-shimmer"><span><span>{session.title}</span></span></span> : null}
+								</span>
+								{hostLabel ? <Badge variant="outline" className="h-4 min-w-0 max-w-1/2 shrink justify-start px-1.5 text-2xs"><span className="truncate">{hostLabel}</span></Badge> : null}
+								{cloud ? <CloudMark /> : null}
+							</span>
+						</Pressable>
+					</div>
+					{/* The timestamp is stable at the right edge. Pin and kill use label
+					    space while idle, then reveal without changing the row footprint. */}
+					<SessionActions
+						archiveOpen={archiveOpen}
+						isDragging={Boolean(reorder?.isDragging)}
+						onArchiveOpenChange={setArchiveOpen}
+						onKilled={onKilled}
+						session={session}
+					/>
+				</div>
+				</SidebarMenuSubItem>
+				</HoverCardTrigger>
+			</ContextMenuTrigger>
+			{/* The board card, still: hovering a row previews the session without opening
+			    it, and the pointer can move onto the card to use its PR links. */}
+			<HoverCardContent
+				align="center"
+				animation={preview.animation}
+				className="w-[17rem] border-0 bg-transparent p-0"
+				collisionPadding={8}
+				side="right"
+				sideOffset={12}
+				{...preview.contentProps}
+			>
+				<SessionPreviewCardAdapter session={session} />
+			</HoverCardContent>
+			</HoverCard>
+			<ContextMenuContent className="min-w-44">
+				{/* Archiving is the owner workspace's; a guest's archive would always be refused. */}
+				<SessionContextMenuItems onArchive={session.cloud?.shared ? undefined : () => setArchiveOpen(true)} onRename={beginRename} session={session} />
+			</ContextMenuContent>
+		</ContextMenu>
+	);
+});
+
+const SessionMessageAge = memo(function SessionMessageAge({ session }: { session: WorkspaceSession }) {
+	const { t } = useTranslation();
+	const at = session.lastInteractionAt ?? session.lastUserMessageAt;
+	if (!at) return null;
+
+	return (
+		<time
+			className="absolute inset-y-0 right-2 z-[1] flex min-w-0 shrink-0 items-center whitespace-nowrap font-sans text-micro tabular-nums text-passive opacity-100 focus-visible-in-session-row:opacity-0"
+			data-session-message-age=""
+			dateTime={at}
+			title={t("shell.lastMessageAt", { time: formatTimeCompact(at) })}
+		>
+			{formatTimeTerse(at)}
+		</time>
+	);
+});
+
+const SessionActions = memo(function SessionActions({
+	session,
+	isDragging,
+	archiveOpen,
+	onArchiveOpenChange,
+	onKilled,
+}: {
+	session: WorkspaceSession;
+	isDragging: boolean;
+	archiveOpen: boolean;
+	onArchiveOpenChange: (open: boolean) => void;
+	onKilled?: (session: WorkspaceSession) => void;
+}) {
+	const { t } = useTranslation();
+	const { mutate: pinSession } = usePinSession();
+	const { mutate: unpinSession } = useUnpinSession();
+	// Optimistic: navigate + drop the row as soon as kill starts (onMutate),
+	// not after the daemon round-trip.
+	const onKilledRef = useRef(onKilled);
+	onKilledRef.current = onKilled;
+	const { mutate: terminateSession, isPending: isKilling } = useTerminateSession({
+		onOptimistic: (killed) => {
+			onKilledRef.current?.(killed);
+		},
+	});
+
+	// The row used to archive on the bare click while the session page asked
+	// first; both surfaces now open the same confirm before anything moves.
+	const handleArchive = (event: React.MouseEvent) => {
+		event.stopPropagation();
+		onArchiveOpenChange(true);
+	};
+
+	const confirmArchive = ({ deleteArtifacts }: SessionArchiveChoice) => {
+		onArchiveOpenChange(false);
+		terminateSession({ ...session, deleteArtifacts });
+	};
+
+	const pinned = session.isPinned === true;
+	const pinButton = session.cloud?.shared ? null : (
+		<Button
+			size="icon-xs"
+			variant="quiet"
+			data-telemetry-id="sidebar.session_pin"
+			aria-label={pinned ? t("shell.unpinSession") : t("shell.pinSession")}
+			className={SESSION_ACTION_CLASS}
+			onClick={(event) => {
+				event.stopPropagation();
+				pinned ? unpinSession(session) : pinSession(session);
+			}}
+			type="button"
+		>
+			{/* The same pin as a pinned project's unpin button. */}
+			<Pin aria-hidden="true" />
+		</Button>
+	);
+
+	return (
+		<div
+			className="pointer-events-none absolute inset-y-0 right-0 z-chrome"
+			data-session-actions=""
+			onPointerDown={(event) => event.stopPropagation()}
+		>
+			<div
+				className={cn(
+					/* 1.3 — pin/kill appear on hover at once: scale and opacity snap */
+					ROW_ACTIONS_CLASS,
+					"origin-center scale-[0.8] opacity-0",
+					!isDragging &&
+						"focus-visible-in-session-row:pointer-events-auto focus-visible-in-session-row:scale-100 focus-visible-in-session-row:opacity-100",
+				)}
+				data-session-action-buttons=""
+			>
+				{pinned ? null : pinButton}
+				{/* Archiving is the owner workspace's; a guest's archive would always be refused. */}
+				{session.cloud?.shared ? null : (
+					<SessionArchiveDialog
+						onConfirm={confirmArchive}
+						onOpenChange={onArchiveOpenChange}
+						open={archiveOpen}
+						session={session}
+						trigger={
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<span className="inline-flex">
+										<Button
+											size="icon-xs"
+											variant="quiet"
+											data-telemetry-id="sidebar.session_archive"
+											aria-label={t("shell.archiveSession")}
+											className={SESSION_ACTION_CLASS}
+											disabled={isKilling}
+											onClick={handleArchive}
+											type="button"
+										>
+											<Archive aria-hidden="true" />
+										</Button>
+									</span>
+								</TooltipTrigger>
+								<TooltipContent side="top">{t("shell.archiveSession")}</TooltipContent>
+							</Tooltip>
+						}
+					/>
+				)}
+				{/* A pinned row keeps its pin in the last slot, where its resting
+				    mark sits, so hovering adds archive beside it without moving it. */}
+				{pinned ? pinButton : null}
+			</div>
+			{pinned ? <SessionPinMark /> : <SessionMessageAge session={session} />}
+		</div>
+	);
+});
+
+/** A pinned row's resting mark, in the time's place: the same pin, at the same
+ *  spot, as the hover bar's unpin button that replaces it. */
+function SessionPinMark() {
+	return (
+		<span
+			aria-hidden="true"
+			className={cn(ROW_ACTIONS_CLASS, "z-[1] text-muted-foreground opacity-100 focus-visible-in-session-row:opacity-0")}
+			data-session-pin-mark=""
+		>
+			<span className={cn(SESSION_ACTION_CLASS, "inline-flex size-control-sm items-center justify-center")}>
+				<Pin />
+			</span>
+		</span>
+	);
+}
+
+// AO account sign-in is shared by Cloud execution and remote hosts.
+function CloudSignInRow({ tabIndex }: { tabIndex: number }) {
+	const { t } = useTranslation();
+	const { configured, status, signIn } = useCloudSession();
+	// Dev + loopback CP: open the local email/password dialog instead of WorkOS.
+	const { available: localAuthAvailable } = useCloudLocalAuth();
+	const openLocalSignIn = useLocalSignInDialogStore((s) => s.openDialog);
+	const onSignIn = () => (localAuthAvailable ? openLocalSignIn() : signIn());
+	if ((!configured && !localAuthAvailable) || status !== "unauthenticated") return null;
+
+	return (
+		<Pressable
+			aria-label={t("shell.signIn")}
+			className={FOOTER_NAV_BUTTON_CLASS}
+			onClick={onSignIn}
+			tabIndex={tabIndex}
+			type="button"
+		>
+			<NavRowHighlight />
+			<span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2 [&_svg]:size-icon-md [&_svg]:shrink-0">
+				<LogIn aria-hidden="true" />
+				<span className="truncate tracking-tight">{t("shell.signIn")}</span>
+			</span>
+		</Pressable>
+	);
+}
+
+// Icon-rail variant for the collapsed sidebar.
+function CloudSignInRailButton({ tabIndex }: { tabIndex: number }) {
+	const { t } = useTranslation();
+	const { configured, status, signIn } = useCloudSession();
+	// Dev + loopback CP: open the local email/password dialog instead of WorkOS.
+	const { available: localAuthAvailable } = useCloudLocalAuth();
+	const openLocalSignIn = useLocalSignInDialogStore((s) => s.openDialog);
+	const onSignIn = () => (localAuthAvailable ? openLocalSignIn() : signIn());
+	if ((!configured && !localAuthAvailable) || status !== "unauthenticated") return null;
+
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<Pressable
+					aria-label={t("shell.signIn")}
+					className={FOOTER_RAIL_BUTTON_CLASS}
+					onClick={onSignIn}
+					tabIndex={tabIndex}
+					type="button"
+				>
+					<NavRowHighlight />
+					<span className="relative z-[1] grid place-items-center [&_svg]:size-icon-base">
+						<LogIn aria-hidden="true" />
+					</span>
+				</Pressable>
+			</TooltipTrigger>
+			<TooltipContent side="right">{t("shell.signIn")}</TooltipContent>
+		</Tooltip>
+	);
+}
+
+/**
+ * The footer's bottom row: the account on the left, then the Mobile menu and
+ * Settings as icons. Without AO Cloud the left side is the labelled
+ * Settings row instead, so Settings never shows twice. While the cloud session
+ * is still loading the left side stays empty and the icons hold their place.
+ */
+function FooterAccountRow({
+	onConnectMobile,
+	onOpenSettings,
+	tabIndex,
+}: {
+	onConnectMobile: () => void;
+	onOpenSettings: () => void;
+	tabIndex: number;
+}) {
+	const { t } = useTranslation();
+	const { configured } = useCloudSession();
+
+	return (
+		<div className={FOOTER_BOTTOM_ROW_CLASS}>
+			<div className="flex min-w-0 flex-1">
+				{configured ? (
+					<>
+						<CloudSignInRow tabIndex={tabIndex} />
+						<CloudAccountRow tabIndex={tabIndex} />
+					</>
+				) : (
+					<Pressable
+						data-telemetry-id="sidebar.settings"
+						aria-label={t("shell.settings")}
+						className={FOOTER_NAV_BUTTON_CLASS}
+						onClick={onOpenSettings}
+						tabIndex={tabIndex}
+						type="button"
+					>
+						<NavRowHighlight />
+						<span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2 [&_svg]:size-icon-md [&_svg]:shrink-0">
+							<Settings aria-hidden="true" />
+							<span className="truncate tracking-tight">{t("shell.settings")}</span>
+						</span>
+					</Pressable>
+				)}
+			</div>
+			<FooterMobileMenu onConnectMobile={onConnectMobile} tabIndex={tabIndex} />
+			{configured ? (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Pressable
+							data-telemetry-id="sidebar.settings"
+							aria-label={t("shell.settings")}
+							className={FOOTER_ICON_BUTTON_CLASS}
+							onClick={onOpenSettings}
+							tabIndex={tabIndex}
+							type="button"
+						>
+							<NavRowHighlight />
+							<span className="relative z-[1] grid place-items-center">
+								<Settings aria-hidden="true" />
+							</span>
+						</Pressable>
+					</TooltipTrigger>
+					<TooltipContent shortcut="open-settings">{t("shell.settings")}</TooltipContent>
+				</Tooltip>
+			) : null}
+		</div>
+	);
+}
+
+/**
+ * The footer's Mobile menu: Connect mobile, plus the Stay Awake toggle on macOS
+ * (keeping the Mac awake is what lets the phone reach it). Off macOS there is
+ * nothing to group, so the icon opens Connect mobile directly. A paused or
+ * failed Stay Awake badges the icon so the warning is not hidden inside the menu.
+ */
+function FooterMobileMenu({ onConnectMobile, tabIndex }: { onConnectMobile: () => void; tabIndex: number }) {
+	const { t } = useTranslation();
+	// Held here, not in the menu row, so a failed toggle outlives the menu.
+	const stay = useFooterStayAwake();
+	const attention = awakeNeedsAttention(stay);
+	const label = isMac ? t("settings.mobile") : t("settings.connectMobile");
+	const icon = (
+		<span className="relative z-[1] grid place-items-center">
+			<Smartphone aria-hidden="true" />
+			{attention ? (
+				<TriangleAlert
+					aria-hidden="true"
+					className="absolute -right-1 -top-1 size-2.5! fill-background text-error"
+					data-testid="awake-inactive-indicator"
+					strokeWidth={2.5}
+				/>
+			) : null}
+		</span>
+	);
+
+	if (!isMac) {
+		return (
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Pressable
+						aria-label={label}
+						className={FOOTER_ICON_BUTTON_CLASS}
+						onClick={onConnectMobile}
+						tabIndex={tabIndex}
+						type="button"
+					>
+						<NavRowHighlight />
+						{icon}
+					</Pressable>
+				</TooltipTrigger>
+				<TooltipContent>{label}</TooltipContent>
+			</Tooltip>
+		);
+	}
+
+	return (
+		<DropdownMenu>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<DropdownMenuTrigger asChild>
+						<Pressable
+							aria-label={label}
+							className={FOOTER_ICON_BUTTON_CLASS}
+							data-testid="footer-mobile-menu"
+							tabIndex={tabIndex}
+							type="button"
+						>
+							<NavRowHighlight />
+							{icon}
+						</Pressable>
+					</DropdownMenuTrigger>
+				</TooltipTrigger>
+				<TooltipContent>{label}</TooltipContent>
+			</Tooltip>
+			<DropdownMenuContent side="top" align="end" sideOffset={8} collisionPadding={8} className="w-56">
+				<DropdownMenuItem onSelect={onConnectMobile}>
+					<Smartphone aria-hidden="true" />
+					{t("settings.connectMobile")}
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<AwakeMenuItem stay={stay} />
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
+}
+
+/**
+ * The signed-in account's menu; shared by the footer row and the icon rail.
+ * The header carries the full name, email and plan, which the one-line footer
+ * row leaves out so nothing there has to truncate.
+ */
+function CloudAccountMenuContent({ side, onSignOut }: { side: "top" | "right"; onSignOut: () => void }) {
+	const { t } = useTranslation();
+	const { session } = useCloudSession();
+	// The plan badge is self-serve billing only; a contract org has no plan to show.
+	const billing = useCloudBilling();
+	const plan = billing.offering.selfServeBilling ? paidPlanBadge(billing.data) : null;
+	const name = accountName(session?.user);
+	const email = session?.user.email;
+	return (
+		<DropdownMenuContent side={side} align={side === "top" ? "start" : "end"} sideOffset={8} collisionPadding={8} className="w-56">
+			<div className="flex items-center gap-2.5 px-2 py-1.5">
+				<AccountAvatar size="lg" user={session?.user} />
+				<div className="flex min-w-0 flex-1 flex-col leading-tight">
+					<span className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-foreground">
+						<span className="break-words">{name}</span>
+						{plan ? (
+							<span className="shrink-0 rounded-full bg-[var(--color-status-working)] px-1.5 text-[length:var(--font-size-xs)] font-medium leading-4 text-white">
+								{plan}
+							</span>
+						) : null}
+					</span>
+					{email && email !== name ? (
+						<span className="break-all text-[length:var(--font-size-xs)] text-muted-foreground">{email}</span>
+					) : null}
+				</div>
+			</div>
+			<DropdownMenuSeparator />
+			<DropdownMenuItem onSelect={onSignOut} variant="destructive">
+				<LogOut aria-hidden="true" />
+				{t("shell.signOut")}
+			</DropdownMenuItem>
+		</DropdownMenuContent>
+	);
+}
+
+/**
+ * Sign out of Orchestrator Cloud after a confirmation, as logging out of an
+ * agent asks first. The dialog sits in the account menu's root, not its
+ * content: the content unmounts as soon as the menu closes.
+ */
+function useConfirmedCloudSignOut() {
+	const { t } = useTranslation();
+	const { signOut } = useCloudSession();
+	const [open, setOpen] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const confirm = () => {
+		setBusy(true);
+		setError(null);
+		void signOut()
+			.then(() => setOpen(false), (failure: unknown) => setError(failure instanceof Error ? failure.message : String(failure)))
+			.finally(() => setBusy(false));
+	};
+	const dialog = (
+		<ConfirmDialog
+			open={open}
+			title={t("shell.signOutConfirmTitle")}
+			description={t("shell.signOutConfirmDescription")}
+			confirmLabel={t("shell.signOut")}
+			destructive
+			busy={busy}
+			error={error}
+			onConfirm={confirm}
+			onOpenChange={(next) => {
+				setOpen(next);
+				if (!next) setError(null);
+			}}
+		/>
+	);
+	return { requestSignOut: () => setOpen(true), signOutDialog: dialog };
+}
+
+// CloudAccountRow: avatar and name for an existing cloud session (the
+// signed-in state), opening the account menu. One line, no email: the email
+// and plan live in the menu header. At the narrowest sidebar the name truncates.
+// The sign-in entry point is CloudSignInRow.
+function CloudAccountRow({ tabIndex }: { tabIndex: number }) {
+	const { t } = useTranslation();
+	const { configured, session, status } = useCloudSession();
+	const { requestSignOut, signOutDialog } = useConfirmedCloudSignOut();
+	if (!configured || status !== "authenticated") return null;
+	const email = session?.user.email;
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Pressable
+					aria-label={t("shell.signedInAs", {
+						email: email ?? "Orchestrator Cloud",
+					})}
+					className={cn(NAV_ROW_HIGHLIGHT_HOST_CLASS, "flex h-9 w-full min-w-0 items-center rounded-lg px-1.5 text-left")}
+					tabIndex={tabIndex}
+					title={email}
+					type="button"
+				>
+					<NavRowHighlight />
+					<span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2">
+						<AccountAvatar size="lg" user={session?.user} />
+						<span className="min-w-0 truncate text-sm font-medium tracking-tight text-foreground">
+							{accountShortName(session?.user)}
+						</span>
+					</span>
+				</Pressable>
+			</DropdownMenuTrigger>
+			<CloudAccountMenuContent side="top" onSignOut={requestSignOut} />
+			{signOutDialog}
+		</DropdownMenu>
+	);
+}
+
+/** The name for the one-line footer row: the display name, else the email's local part. */
+function accountShortName(user: { displayName?: string; email?: string } | undefined): string {
+	const display = user?.displayName?.trim();
+	if (display && display !== user?.email) return display;
+	const local = user?.email?.split("@")[0];
+	return local || "Orchestrator Cloud";
+}
+
+/** The signed-in person's name, falling back to their email. */
+function accountName(user: { displayName?: string; email?: string } | undefined): string {
+	const display = user?.displayName?.trim();
+	if (display && display !== user?.email) return display;
+	return user?.email ?? "Orchestrator Cloud";
+}
+
+/** The profile picture from the sign-in provider, or the person's initials. */
+function AccountAvatar({
+	size = "md",
+	user,
+}: {
+	size?: "md" | "lg";
+	user: { displayName?: string; email?: string; avatarUrl?: string } | undefined;
+}) {
+	const [broken, setBroken] = useState(false);
+	const sizeClass = size === "lg" ? "size-6" : "size-icon-md";
+	if (user?.avatarUrl && !broken) {
+		return (
+			<img
+				src={user.avatarUrl}
+				alt=""
+				aria-hidden="true"
+				referrerPolicy="no-referrer"
+				className={cn(sizeClass, "shrink-0 rounded-full object-cover")}
+				onError={() => setBroken(true)}
+			/>
+		);
+	}
+	const source = accountName(user);
+	const initials = source.includes("@")
+		? source.charAt(0).toUpperCase()
+		: source.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
+	if (!initials) {
+		return size === "lg" ? (
+			<span aria-hidden="true" className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--color-bg-tertiary)] text-settings-label [&_svg]:size-icon-md">
+				<User />
+			</span>
+		) : <User aria-hidden="true" />;
+	}
+	return (
+		<span aria-hidden="true" className={cn(sizeClass, "grid shrink-0 place-items-center rounded-full bg-[var(--color-bg-tertiary)] text-[length:var(--font-size-xs)] font-medium leading-none text-settings-label")}>
+			{initials}
+		</span>
+	);
+}
+
+// Icon-rail variant for collapsed sidebar.
+function CloudAccountRailButton({ tabIndex }: { tabIndex: number }) {
+	const { t } = useTranslation();
+	const { configured, session, status } = useCloudSession();
+	const { requestSignOut, signOutDialog } = useConfirmedCloudSignOut();
+	if (!configured || status !== "authenticated") return null;
+	const label = t("shell.signedInAs", {
+		email: session?.user.email ?? "Orchestrator Cloud",
+	});
+
+	return (
+		<DropdownMenu>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<DropdownMenuTrigger asChild>
+						<Pressable
+							aria-label={label}
+							className={FOOTER_RAIL_BUTTON_CLASS}
+							tabIndex={tabIndex}
+							type="button"
+						>
+							<NavRowHighlight />
+							<span className="relative z-[1] grid place-items-center [&_svg]:size-icon-base">
+								<AccountAvatar user={session?.user} />
+							</span>
+						</Pressable>
+					</DropdownMenuTrigger>
+				</TooltipTrigger>
+				<TooltipContent side="right">{label}</TooltipContent>
+			</Tooltip>
+			<CloudAccountMenuContent side="right" onSignOut={requestSignOut} />
+			{signOutDialog}
+		</DropdownMenu>
+	);
+}
+
+/** Releases a section's initial cap. Sits below its section's scroller so the
+ *  cap can never hide the control that lifts it. */
+function ShowMoreRow({
+	label,
+	expanded,
+	onClick,
+	className,
+}: {
+	label: string;
+	expanded: boolean;
+	onClick: () => void;
+	className?: string;
+}) {
+	const { t } = useTranslation();
+	// One button that relabels in place: the label flips in the same frame as
+	// the rows it reveals or hides, and keyboard focus stays on it.
+	return (
+		<button
+			aria-label={label}
+			className={cn(
+				SECTION_ROW_CLASS,
+				NAV_ROW_HIGHLIGHT_HOST_CLASS,
+				"mb-1 shrink-0 rounded-lg text-left text-muted-foreground",
+				className,
+			)}
+			onClick={onClick}
+			type="button"
+		>
+			<NavRowHighlight />
+			<span className="relative z-[1] truncate">{t(expanded ? "shell.showLess" : "shell.showMore")}</span>
+		</button>
+	);
+}
+
+function SectionDisclosure({
+	icon,
+	label,
+	open = true,
+	onToggle,
+	className,
+	trailing,
+	collapsible = true,
+}: {
+	icon?: ReactNode;
+	label: string;
+	open?: boolean;
+	onToggle?: () => void;
+	className?: string;
+	/** Optional trailing control (e.g. Projects "+") — its own button, not the row. */
+	trailing?: ReactNode;
+	/** When false, render a static label row with no chevron, toggle, or hover fill. */
+	collapsible?: boolean;
+}) {
+	const labelRow = (
+		<>
+			{icon}
+			<span className="truncate">{label}</span>
+			{collapsible ? (
+				<ChevronRight
+					aria-hidden="true"
+					className={cn("size-3.5! shrink-0 transition-transform duration-150", open && "rotate-90")}
+				/>
+			) : null}
+		</>
+	);
+
+	if (!collapsible) {
+		return (
+			<div className={cn(SECTION_ROW_CLASS, trailing && "pr-1", className)}>
+				<div className="flex min-w-0 flex-1 items-center gap-2">
+					{labelRow}
+				</div>
+				{trailing}
+			</div>
+		);
+	}
+
+	if (trailing) {
+		return (
+			<div
+				className={cn(
+					SECTION_ROW_CLASS,
+					NAV_ROW_HIGHLIGHT_HOST_CLASS,
+					"rounded-lg pr-1",
+					className,
+				)}
+			>
+				<NavRowHighlight />
+				<Pressable
+					aria-expanded={open}
+					aria-label={label}
+					className="relative z-[1] flex min-w-0 flex-1 self-stretch items-center gap-2 text-left"
+					onClick={onToggle}
+					type="button"
+				>
+					{labelRow}
+				</Pressable>
+				<span className="relative z-[1] shrink-0">{trailing}</span>
+			</div>
+		);
+	}
+
+	return (
+		<Pressable
+			aria-expanded={open}
+			aria-label={label}
+			className={cn(
+				SECTION_ROW_CLASS,
+				NAV_ROW_HIGHLIGHT_HOST_CLASS,
+				"rounded-lg text-left",
+				className,
+			)}
+			onClick={onToggle}
+			type="button"
+		>
+			<NavRowHighlight />
+			<span className="relative z-[1] flex min-w-0 flex-1 items-center gap-2">
+				{labelRow}
+			</span>
+		</Pressable>
+	);
+}
+
+/** Search + Automations share this one row so their hover/focus/active treatment
+ * (NavRowHighlight pill, foreground text, instant) cannot drift apart. */
+function SidebarTopNavRow({
+	active = false,
+	disabled,
+	icon,
+	label,
+	onClick,
+	tooltip,
+	trailing,
+}: {
+	active?: boolean;
+	disabled?: boolean;
+	icon: ReactNode;
+	label: string;
+	onClick: () => void;
+	tooltip?: string;
+	trailing?: string;
+}) {
+	return (
+		<SidebarMenuButton
+			aria-label={label}
+			className={cn(
+				NAV_ROW_CLASS,
+				SIDEBAR_ROW_CLASS,
+				NAV_ROW_HIGHLIGHT_HOST_CLASS,
+				"transition-none",
+				"group-data-[collapsible=icon]:size-control-board! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:p-0!",
+			)}
+			aria-current={active ? "page" : undefined}
+			disabled={disabled}
+			isActive={active}
+			onClick={onClick}
+			tooltip={tooltip}
+		>
+			<NavRowHighlight active={active} />
+			<span className="relative z-[1] inline-flex shrink-0 items-center justify-center">{icon}</span>
+			<span className="sidebar-expanded-chrome relative z-[1] min-w-0 flex-1 truncate text-left group-data-[collapsible=icon]:hidden">
+				{label}
+			</span>
+			{trailing ? (
+				<span className="sidebar-expanded-chrome relative z-[1] ml-auto shrink-0 font-sans text-caption text-passive group-data-[collapsible=icon]:hidden">
+					{trailing}
+				</span>
+			) : null}
+		</SidebarMenuButton>
+	);
+}
+
+/** Settings sections in place of the project tree while the settings page is open. */
+export function SettingsSidebarNav({ layer }: { layer: NonNullable<ReturnType<typeof useSettingsPage>> }) {
+	const { t } = useTranslation();
+	return (
+		<SidebarContent className="scrollbar-none gap-0 px-2">
+			<SidebarGroup className="p-0">
+				<SidebarGroupContent>
+					<SidebarMenu aria-label={t("settings.navSectionsAria")} className="gap-0.5" role="navigation">
+						{layer.navItems.map(({ id, label, icon: Icon, active, disabled, onSelect }) => (
+							<SidebarMenuItem key={id}>
+								<SidebarTopNavRow active={active} disabled={disabled} icon={<Icon aria-hidden="true" />} label={label} onClick={onSelect} tooltip={label} />
+							</SidebarMenuItem>
+						))}
+					</SidebarMenu>
+				</SidebarGroupContent>
+				<SettingsSaveStatus />
+			</SidebarGroup>
+		</SidebarContent>
+	);
+}
+
+function SidebarSearchButton({ onOpen }: { onOpen: () => void }) {
+	const { t } = useTranslation();
+	const { state } = useSidebar();
+	const isCollapsed = state === "collapsed";
+	const overrides = useKeybindingsStore((store) => store.overrides);
+	const paletteBinding = effectiveShortcutBindings("command-palette", isMac, overrides)[0];
+	const commandPaletteShortcutLabel = paletteBinding
+		? shortcutBindingKeys(paletteBinding, isMac).join(isMac ? " " : "+")
+		: "Unassigned";
+	return (
+		<SidebarMenuItem className="group-data-[collapsible=icon]:mb-0">
+			<SidebarTopNavRow
+				icon={<Search aria-hidden="true" />}
+				label={t("shell.search")}
+				onClick={() => {
+					// Open on the microtask after this click rather than inside it: mounting
+					// the palette dialog while this button's tooltip layer is still tearing
+					// down from the same pointer sequence dismissed it immediately. The
+					// "defers opening" test pins the deferral so it is not dropped as noise.
+					queueMicrotask(onOpen);
+				}}
+				tooltip={isCollapsed ? t("shell.search") : undefined}
+				trailing={commandPaletteShortcutLabel}
+			/>
+		</SidebarMenuItem>
+	);
+}
+
+function CreateProjectButton({
+	existingProjectPaths,
+	remoteHosts,
+	onCreateRemoteProject,
+	onInitializeRemoteProject,
+	onCloneProject,
+	onCreateProject,
+	onInitializeProject,
+	onOpenExistingProject,
+}: Pick<SidebarProps, "onCloneProject" | "onCreateProject" | "onInitializeProject" | "onCreateRemoteProject" | "onInitializeRemoteProject" | "remoteHosts"> & {
+	existingProjectPaths: readonly string[];
+	onOpenExistingProject: (path: string) => void | Promise<void>;
+}) {
+	const { t } = useTranslation();
+	// Single CreateProjectFlow owner for the sidebar: the header "+" stays mounted
+	// (CSS-hidden when collapsed) so it can own
+	// openSignal for ⌘N on every shell route. The collapsed rail button below
+	// reuses this flow via requestCreateProject().
+	const createProjectNonce = useUiStore((state) => state.createProjectNonce);
+	const folderDropRequest = useUiStore((state) => state.folderDropRequest);
+	const requestNewTask = useUiStore((state) => state.requestNewTask);
+	const [hostId, setHostId] = useState<string>();
+	const host = remoteHosts?.find((candidate) => candidate.hostId === hostId);
+	return (
+		<CreateProjectFlow
+			droppedPath={folderDropRequest}
+			existingProjectPaths={existingProjectPaths}
+			remoteHosts={remoteHosts}
+			hostId={hostId}
+			hostLabel={host?.label ?? hostId}
+			connected={!hostId || host?.status === "connected"}
+			onSelectHost={setHostId}
+			onDismiss={() => setHostId(undefined)}
+			mode="choose"
+			onCloneProject={onCloneProject}
+			onCreateProject={async (input) => {
+				if (hostId) {
+					await onCreateRemoteProject(hostId, input);
+					setHostId(undefined);
+				} else await onCreateProject(input);
+			}}
+			onCreateStandaloneAgent={() => requestNewTask(STANDALONE_WORKSPACE_ID, hostId)}
+			onInitializeProject={(path) => hostId ? onInitializeRemoteProject(hostId, path) : onInitializeProject(path)}
+			onOpenExistingProject={onOpenExistingProject}
+			openSignal={createProjectNonce}
+		>
+			{({ disabled, choosePath, label }) => (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span className="inline-flex">
+							<Button
+								size="icon-xs"
+								variant="quiet"
+								data-telemetry-id="sidebar.new_project"
+								aria-label={t("shell.newProject")}
+								className={ROW_ACTION_BUTTON_CLASS}
+								disabled={disabled}
+								onClick={choosePath}
+								type="button"
+							>
+									<Plus aria-hidden="true" />
+							</Button>
+						</span>
+					</TooltipTrigger>
+					<TooltipContent>{label}</TooltipContent>
+				</Tooltip>
+			)}
+		</CreateProjectFlow>
+	);
+}
+
+function CreateProjectListItem() {
+	const { t } = useTranslation();
+	const requestCreateProject = useUiStore((state) => state.requestCreateProject);
+	return (
+		<SidebarMenuItem className="mb-px group-data-[collapsible=icon]:mb-0">
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						data-telemetry-id="sidebar.new_project"
+						aria-label={t("shell.newProject")}
+						className="h-control-board w-full rounded-lg"
+						onClick={() => requestCreateProject()}
+						size="none"
+						type="button"
+						variant="quiet"
+					>
+						<Plus className="size-icon-sm" aria-hidden="true" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent side="right">{t("shell.newProject")}</TooltipContent>
+			</Tooltip>
+		</SidebarMenuItem>
+	);
+}

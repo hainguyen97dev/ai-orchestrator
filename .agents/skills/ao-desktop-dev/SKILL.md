@@ -1,0 +1,176 @@
+---
+name: ao-desktop-dev
+description: Launch, restart, or troubleshoot the real AO Electron desktop app from this repository; run a checkout against isolated or real local AO data; combine PR branches for local UI review; and diagnose stale Electron processes, port conflicts, or preload bridge mismatches. Use whenever asked to run, open, show, or visually verify AO frontend changes in the actual desktop app rather than ao preview, dev:web, or mock data.
+---
+
+# AO Desktop Dev
+
+Run the Electron application from the current checkout and verify it in the native window. Keep the dev daemon, renderer, Electron preload, and selected data mode explicit so the user never reviews a mock or stale build by accident.
+
+## Choose the data mode
+
+Ask only when the request does not make the desired data source clear.
+
+- Use **isolated mode** by default for implementation and destructive testing. The default launch gives each checkout `~/.ao/dev/run-<checkout>/` (data, run file, Electron profile) and a free port from 3500-3599. The foreground fallback uses the shared port `3002`, `~/.ao/dev/running.json`, `~/.ao/dev/data`, and `~/.ao/dev/electron`.
+- Use **real-data mode** only when the user explicitly asks to see this machine's actual AO projects or sessions. Start the checkout's dev daemon on the isolated dev port/run file while pointing `AO_DATA_DIR` at the real AO data directory. This is a separate daemon process using real data; do not describe it as the installed app's daemon.
+- Never try to attach an unpackaged Electron app directly to a packaged daemon from another checkout. The supervisor intentionally rejects daemon identity mismatches.
+- Warn before actions in real-data mode that create, terminate, rename, or otherwise mutate sessions. Merely opening and inspecting the UI is expected.
+- Real-data mode reads the same database as the installed app, and only one daemon can own a data directory. Quit the packaged app first: while its daemon runs, the dev daemon waits for the data-dir lock (9 x `AO_SHUTDOWN_TIMEOUT` + 18s, 108s by default) and then exits with code 75. The dev window is marked with an `Agent Orchestrator (dev)` title, an orange-badged `DEV` dock icon, and an in-app `dev` badge — verify those markers before acting.
+
+## Preflight
+
+1. Work from the repository root and inspect `git status --short --branch`.
+2. Read `frontend/package.json`, `frontend/src/main.ts`, and `frontend/forge.config.ts` when the launch behavior may have changed. Treat source as authoritative over this skill.
+3. Confirm Node/npm and the Go version required by `backend/go.mod` are available. Before every launch, run `npm run dev:warm` in `frontend/`. It clones a cached real install for an identical lockfile (or runs `npm ci`) and restores cached predev outputs, so a fresh checkout is ready in seconds and an already-warm one is a no-op. It ends with `ready for npm run dev`. If it fails, report the error and fall back to `npm ci`.
+4. Check for an existing dev instance from this exact checkout before starting another. Do not kill by process name alone, and never terminate every Electron process.
+
+On macOS/Linux, inspect checkout-scoped processes and listeners with finite commands:
+
+```bash
+ps -axo pid=,ppid=,pgid=,lstart=,command= | rg 'frontend/(node_modules/.bin/electron-forge|node_modules/electron/dist/Electron)'
+lsof -nP -iTCP:3002 -sTCP:LISTEN
+```
+
+Use the full command paths and start times to distinguish this checkout from other AO worktrees. On Windows, use `Get-CimInstance Win32_Process` and `Get-NetTCPConnection`; preserve the same exact-target rule.
+
+## Launch the app
+
+Keep Electron Forge's output and restart input available: run it in a foreground interactive process, or, on macOS/Linux, in a tmux session on its own socket (the default below) so you can read its log and send `rs`. Do not append `&`, use a bare detached shell, or start a browser preview instead.
+
+### Isolated mode (default)
+
+Give each checkout its own data directory, run file, Electron profile and port, so it never collides with another worktree's dev app or with the installed app. On macOS/Linux, from the repository root after `npm run dev:warm`:
+
+```bash
+NAME=$(basename "$(git rev-parse --show-toplevel)" | tr ".:" "--")
+BASE=$HOME/.ao/dev/run-$NAME
+PORT=$(for p in $(seq 3500 3599); do lsof -nP -iTCP:$p -sTCP:LISTEN >/dev/null || { echo $p; break; }; done)
+mkdir -p "$BASE"
+cd frontend
+tmux -L ao-dev new-session -d -s "$NAME" \
+  "env -u AO_SESSION_ID AO_DATA_DIR=$BASE/data AO_RUN_FILE=$BASE/running.json AO_DEV_ELECTRON_DIR=$BASE/electron AO_PORT=$PORT npm run dev 2>&1 | tee $BASE.log"
+```
+
+Wait for `Launched Electron app` and `daemon listening` on `$PORT` in `$BASE.log` (about 25 s from a warm checkout). Restart the main process with `tmux -L ao-dev send-keys -t "$NAME" rs Enter`. Report the branch, port and data directory.
+
+Without tmux, or on Windows, run Forge in the foreground with the shared isolated dev paths instead:
+
+```bash
+cd frontend
+env -u AO_DATA_DIR -u AO_RUN_FILE -u AO_PORT npm run dev
+```
+
+On PowerShell:
+
+```powershell
+Set-Location frontend
+Remove-Item Env:AO_DATA_DIR, Env:AO_RUN_FILE, Env:AO_PORT -ErrorAction SilentlyContinue
+npm run dev
+```
+
+### Real-data mode
+
+First resolve and report the actual data directory. In an AO worker session, `AO_DATA_DIR` normally already identifies it. Otherwise the repository default is the absolute path corresponding to `~/.ao/data`.
+
+Keep the real data directory but remove inherited port/run-file overrides so the dev app retains its own daemon handshake and port:
+
+```bash
+cd frontend
+env -u AO_RUN_FILE -u AO_PORT AO_DATA_DIR="${AO_DATA_DIR:-$HOME/.ao/data}" npm run dev
+```
+
+PowerShell equivalent:
+
+```powershell
+Set-Location frontend
+$realAoData = if ($env:AO_DATA_DIR) { $env:AO_DATA_DIR } else { Join-Path $HOME ".ao/data" }
+Remove-Item Env:AO_RUN_FILE, Env:AO_PORT -ErrorAction SilentlyContinue
+$env:AO_DATA_DIR = $realAoData
+npm run dev
+```
+
+Do not print unrelated environment variables: Orchestrator-managed sessions may carry credentials. It is safe to report only `AO_DATA_DIR`, `AO_RUN_FILE`, and `AO_PORT`.
+
+## Confirm the correct app is ready
+
+Wait for all of these signals:
+
+- Electron Forge reports `Launched Electron app`.
+- The daemon reports `daemon listening` on the chosen port (`$PORT` for the default launch, `127.0.0.1:3002` for the shared paths) unless it explicitly reports another bound port.
+- The renderer makes successful requests such as `/api/v1/projects` and `/api/v1/sessions`.
+- The native Electron window shows the checkout's UI. A Vite URL opened in a normal browser is not equivalent because it lacks the Electron preload bridge.
+
+If several AO windows exist, identify the newest Electron main process belonging to this checkout. On macOS, foreground that exact PID only when needed:
+
+```bash
+osascript -e 'tell application "System Events" to set frontmost of first process whose unix id is <verified-pid> to true'
+```
+
+Do not claim real data from appearance alone. Verify the selected data directory and successful API responses. Do not claim visual success from compilation alone; interact with the requested flow in Electron or ask the user for a screenshot when screen capture is unavailable.
+
+## Reload changes correctly
+
+- Renderer-only React/CSS changes normally hot reload.
+- Changes to `frontend/src/main.ts`, preload files, Forge configuration, shared bridge types, or IPC registration require an Electron main-process restart. Type `rs` into the active Forge terminal or fully stop and relaunch the dev process.
+- A renderer error such as `aoBridge.<method> is not a function` almost always means the renderer hot-reloaded against a stale preload. Restart Electron before changing code to add guards around a bridge method that should exist.
+- Backend changes require restarting the managed dev daemon or the Electron process; renderer hot reload cannot apply Go changes.
+
+After a restart, confirm the new Electron PID/start time and re-check the logs for the original error.
+
+## Preview multiple PRs locally
+
+When the user wants to see multiple unmerged PRs together:
+
+1. Require a clean worktree and fetch each PR head.
+2. Create a clearly named local-only integration branch using the session/repository branch convention.
+3. Merge or cherry-pick the requested PR heads without rewriting or pushing either source branch.
+4. Resolve overlaps according to the requested combined behavior and run focused typechecks/tests.
+5. Let renderer changes hot reload; restart Electron if either PR changes main/preload/IPC code.
+6. State that the integration branch is local-only. Do not push it unless the user explicitly requests a combined PR.
+
+Once one PR merges, prefer rebasing the remaining PR onto current `main`; the normal PR branch then contains both views without a local integration merge.
+
+## Stop without collateral damage
+
+1. Send Ctrl+C to the dev process (`tmux -L ao-dev send-keys -t "$NAME" C-c` for the default launch) and wait briefly for Electron and its managed daemon to exit. Then kill the tmux session with `tmux -L ao-dev kill-session -t "$NAME"`.
+2. Re-run the checkout-scoped process query. If the exact process group remains, identify the group created by this launch before sending `TERM` to that group.
+3. On Windows, terminate the verified parent tree only. Never use a broad Electron, Node, Go, or port-based kill.
+4. Confirm the captured Electron PID and dev daemon listener are gone. Leave installed AO and other worktrees untouched.
+
+## Common mistakes
+
+- `ao preview` controls the Orchestrator Browser panel; it does not launch the desktop shell.
+- `npm run dev:web` is useful for browser-only renderer work but does not provide Electron APIs or native chrome.
+- Renderer URLs can move from `5173` when a port is occupied. Trust Forge's printed URL rather than assuming one.
+- Multiple dev instances share `~/.ao/dev/electron` by default, and Chromium's
+  singleton lock lives in the profile, so a second checkout's `npm run dev`
+  loses `requestSingleInstanceLock()` and exits immediately with code 0. To run
+  two worktrees at once, give each its own daemon port, profile, run file, and
+  data dir:
+
+  ```bash
+  AO_PORT=<free-port> \
+    AO_DEV_ELECTRON_DIR="$HOME/.ao/dev/<name>/electron" \
+    AO_RUN_FILE="$HOME/.ao/dev/<name>/running.json" \
+    AO_DATA_DIR="$HOME/.ao/dev/<name>/data" \
+    npm run dev
+  ```
+
+  Without all four the instances still collide, on the profile lock, the run
+  file, the daemon's SQLite data, or the daemon port: with `AO_PORT` unset
+  every dev instance uses 3002, and the one that starts second shuts down the
+  first one's daemon to take the port.
+- After merging `main`, `npm run dev` re-syncs `node_modules` with `package-lock.json` on its own before building. If the window still shows a Vite `Failed to resolve import` overlay for a package the merge added, stop the app, run `npm ci` in `frontend/`, and relaunch.
+- An inherited `AO_DATA_DIR` changes dev mode from isolated data to real data. Always choose and report the mode instead of inheriting it accidentally.
+- Repeated `/healthz/` 404 entries from external probes can be noisy; readiness is determined by Electron's daemon status and successful API traffic, not by log volume.
+
+## Completion report
+
+Report:
+
+- checkout and branch being displayed;
+- isolated or real-data mode and the non-sensitive data/run-file paths;
+- renderer and daemon addresses actually reported;
+- whether Electron was restarted for main/preload changes;
+- user flows exercised in the native window;
+- any remaining stale process, port, or visual-verification limitation.

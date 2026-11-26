@@ -1,0 +1,70 @@
+-- name: InsertShellTerminal :one
+INSERT INTO shell_terminals (
+    handle_id, project_id, session_id, working_dir, title, app_run_id, created_at, transient, preview_capability_verifier, command_owner, title_explicit
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING *;
+
+-- name: SelectShellTerminalByHandleID :one
+SELECT *
+FROM shell_terminals
+WHERE handle_id = ?;
+
+-- name: SelectShellTerminalsByAppRunID :many
+SELECT *
+FROM shell_terminals
+WHERE app_run_id = ?
+ORDER BY created_at;
+
+-- name: SelectShellTerminalsBySessionID :many
+SELECT *
+FROM shell_terminals
+WHERE session_id = ?
+ORDER BY created_at;
+
+-- name: SelectShellTerminalsFromPreviousAppRuns :many
+SELECT *
+FROM shell_terminals
+WHERE app_run_id <> ?
+ORDER BY created_at;
+
+-- name: UpdateShellTerminalTitle :one
+UPDATE shell_terminals
+SET title = ?, title_explicit = 1
+WHERE handle_id = ?
+RETURNING *;
+
+-- name: UpdateShellTerminalAppTitle :execrows
+UPDATE shell_terminals
+SET app_title = sqlc.arg(app_title)
+WHERE handle_id = sqlc.arg(handle_id) AND app_title <> sqlc.arg(app_title);
+
+-- name: DeleteShellTerminalByHandleID :execrows
+DELETE FROM shell_terminals
+WHERE handle_id = ?;
+
+-- name: DeleteShellTerminalsFromPreviousAppRuns :execrows
+DELETE FROM shell_terminals
+WHERE app_run_id <> ?;
+
+-- name: SelectRestorableShellTerminals :many
+SELECT * FROM shell_terminals
+WHERE transient = FALSE OR app_run_id = ?
+ORDER BY created_at;
+
+-- name: MarkShellTerminalEnded :execrows
+UPDATE shell_terminals
+SET ended_at = sqlc.arg(ended_at),
+    working_dir = sqlc.arg(working_dir),
+    last_agent_harness = sqlc.arg(last_agent_harness),
+    agent_conversation_id = sqlc.arg(agent_conversation_id)
+WHERE handle_id = sqlc.arg(handle_id) AND ended_at IS NULL;
+
+-- name: UpdateShellTerminalAgentHarness :execrows
+UPDATE shell_terminals
+SET last_agent_harness = sqlc.arg(last_agent_harness)
+WHERE handle_id = sqlc.arg(handle_id) AND ended_at IS NULL AND last_agent_harness <> sqlc.arg(last_agent_harness);
+
+-- name: AdoptShellTerminal :execrows
+UPDATE shell_terminals
+SET app_run_id = sqlc.arg(app_run_id)
+WHERE handle_id = sqlc.arg(handle_id) AND ended_at IS NULL;

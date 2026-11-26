@@ -1,0 +1,741 @@
+// Shell terminals: shells the user opens by hand from a session's tab strip or
+// ⌘T / Ctrl+T, beside that session's agent pane. They are deliberately kept out of
+// the workspaces query — they are not sessions, never appear on the board, and
+// must not invalidate session state when they come and go.
+
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
+import { appI18n } from "../i18n";
+import { resumeCloudSession } from "../lib/cloud-lifecycle";
+import { withQueryFields } from "../lib/query-result";
+import { useUiStore } from "../stores/ui-store";
+import {
+	beginOptimisticRename,
+	hasOptimisticRenames,
+	hasLiveOptimisticRename,
+	queueRenameWrite,
+	renamedTitle,
+	renameReadStarted,
+	settleOptimisticRename,
+	useOptimisticRenamesVersion,
+} from "./optimistic-renames";
+import { queueCloudShellInput } from "../lib/cloud-shell-input";
+import { markTerminalHandleFresh } from "../lib/fresh-terminal-handles";
+import { paneTerminalGridHint } from "../lib/terminal-grid-hint";
+import type { components } from "../../api/schema";
+import { apiErrorCode, hasTrustedApiBaseUrl } from "../lib/api-client";
+import { clientForSessionHost } from "../lib/host-clients";
+import { LOCAL_HOST, type HostId } from "../lib/hosts";
+import { mockShellTerminals } from "../lib/mock-data";
+import { useShellAgentStore } from "../stores/shell-agent-store";
+import { terminalShellRequestValue, useTerminalShellStore } from "../stores/terminal-shell-store";
+import { useCloudCp } from "./useCloudCp";
+
+export type ShellTerminal = {
+	/** Runtime handle the terminal mux attaches to, exactly like a session pane's. */
+	handleId: string;
+	projectId?: string;
+	/** Agent session this shell is scoped to; absent for standalone shells. */
+	sessionId?: string;
+	workingDir: string;
+	title: string;
+	/** The running program's title, sent only when it should label the tab. */
+	terminalTitle?: string;
+	createdAt: string;
+	endedAt?: string | null;
+	resumeHarness?: string;
+	/** Owning daemon; absent for local and cloud shells. */
+	hostId?: HostId;
+	/** Present when the shell lives in a control-plane sandbox, not the local daemon. */
+	cloud?: { orgId: string };
+	/**
+	 * Exists only in the renderer while the daemon is creating the PTY. It lets
+	 * the tab strip respond to the click immediately without ever attempting to
+	 * attach xterm to a handle that does not exist yet.
+	 */
+	optimistic?: true;
+};
+
+export const shellTerminalsQueryKey = ["shell-terminals"] as const;
+export const shellTerminalsQueryKeyForHost = (hostId?: HostId) =>
+	hostId && hostId !== LOCAL_HOST ? ["remote-shell-terminals", hostId] as const : shellTerminalsQueryKey;
+const usePreviewData = import.meta.env.VITE_NO_ELECTRON === "1";
+
+function isLegacyDirectoryTitle(title: string, workingDir: string): boolean {
+	const parts = workingDir.split(/[\\/]/).filter(Boolean);
+	return parts.at(-1) === title;
+}
+
+export function toShellTerminal(t: components["schemas"]["ShellTerminalResponse"], hostId?: HostId): ShellTerminal {
+	const title = isLegacyDirectoryTitle(t.title, t.workingDir) ? "Terminal" : t.title;
+	return {
+		handleId: t.handleId,
+		projectId: t.projectId,
+		sessionId: t.sessionId,
+		workingDir: t.workingDir,
+		// Shell tabs used to be named after their initial directory. Normalize
+		// those persisted legacy labels so existing tabs adopt the new idle state.
+		title: title === "Terminal" ? "Terminal 1" : title,
+		...(t.terminalTitle ? { terminalTitle: t.terminalTitle } : {}),
+		createdAt: t.createdAt,
+		...(t.endedAt ? { endedAt: t.endedAt } : {}),
+		...(t.resumeHarness ? { resumeHarness: t.resumeHarness } : {}),
+		...(hostId && hostId !== LOCAL_HOST ? { hostId } : {}),
+	};
+}
+
+// Preview-only shell list. The browser build has no daemon to spawn a PTY, so
+// open/close mutate this array instead — keeping the tab strip fully
+// interactive (open, select, close) without a backend, which is what the e2e
+// suite drives.
+let previewShellTerminals: ShellTerminal[] = [...mockShellTerminals];
+let previewShellSeq = 0;
+// Cloud workspace shells are connection-scoped rather than daemon-owned. The
+// terminal itself is created (or found again) when its ticketed control-plane
+// WebSocket connects, so only the tab metadata is this renderer's to keep. It
+// is kept in browser storage, which lives under ~/.ao/electron, so a session's
+// shell tabs come back after a restart as local ones do.
+const CLOUD_SHELLS_STORAGE_KEY = "ao.cloudShellTerminals";
+
+function isStoredCloudShell(value: unknown): value is ShellTerminal & { cloud: { orgId: string }; sessionId: string } {
+	if (!value || typeof value !== "object") return false;
+	const shell = value as Partial<ShellTerminal>;
+	return typeof shell.handleId === "string" && shell.handleId.startsWith("cloud-shell-") &&
+		typeof shell.sessionId === "string" && typeof shell.title === "string" &&
+		typeof shell.workingDir === "string" && typeof shell.createdAt === "string" &&
+		typeof shell.cloud?.orgId === "string";
+}
+
+function readStoredCloudShells(): ShellTerminal[] {
+	try {
+		const parsed: unknown = JSON.parse(window.localStorage.getItem(CLOUD_SHELLS_STORAGE_KEY) ?? "[]");
+		if (!Array.isArray(parsed)) return [];
+		return parsed.filter(isStoredCloudShell).map((shell) => ({
+			handleId: shell.handleId,
+			...(shell.projectId ? { projectId: shell.projectId } : {}),
+			sessionId: shell.sessionId,
+			workingDir: shell.workingDir,
+			title: shell.title,
+			createdAt: shell.createdAt,
+			cloud: { orgId: shell.cloud.orgId },
+		}));
+	} catch {
+		return [];
+	}
+}
+
+let cloudShellTerminals: ShellTerminal[] = readStoredCloudShells();
+
+function setCloudShellTerminals(next: ShellTerminal[]) {
+	cloudShellTerminals = next;
+	try {
+		window.localStorage.setItem(CLOUD_SHELLS_STORAGE_KEY, JSON.stringify(next));
+	} catch {
+		// Without storage the tabs still last for this renderer's lifetime.
+	}
+}
+
+/** Test-only: reload the Cloud shell tabs from storage, as a restart would. */
+export function reloadCloudShellTerminalsForTest() {
+	cloudShellTerminals = readStoredCloudShells();
+}
+// Shells whose close is still in flight, per host. Closing several tabs in a
+// row refetches the list as each close settles, and the daemon can answer one
+// refetch before it has processed the other pending deletes; without this, a
+// tab the user already closed would reappear until its own close settles.
+const closingShellHandles = new Map<string, Set<string>>();
+
+const PENDING_SHELL_PREFIX = "pending-shell:";
+// Tabs shown while their create request runs. A list refetch that lands in
+// that window (another tab opening or closing invalidates the list) must keep
+// them, or the tab vanishes and reappears.
+const pendingShells = new Map<string, ShellTerminal>();
+// Pending tabs the user closed before their create request returned. The shell
+// the request creates is destroyed instead of being shown.
+const cancelledPendingShells = new Set<string>();
+// Shells created for a cancelled tab, hidden from list refetches until the
+// daemon has destroyed them.
+const discardingShells = new Set<string>();
+
+// The shell each pending tab became, so UI that recorded a pending tab (its
+// selection, its place in a reordered strip) carries that over to the shell.
+// UI must follow this rather than a one-off callback: a selection can still be
+// made on the pending tab from a render that has not seen its shell arrive.
+const adoptedShellHandles = new Map<string, string>();
+
+/** The shell handle a pending tab's handle became, once its create returned. */
+export function adoptedShellHandle(handleId: string): string | undefined {
+	return adoptedShellHandles.get(handleId);
+}
+
+const isPendingShellHandle = (handleId: string) => handleId.startsWith(PENDING_SHELL_PREFIX);
+const hostKey = (hostId?: HostId) => (hostId && hostId !== LOCAL_HOST ? hostId : LOCAL_HOST);
+
+const reopeningShells = new Set<string>();
+const closedWhileReopening = new Set<string>();
+const reopenKey = (handleId: string, hostId?: HostId) => `${hostKey(hostId)}\u0000${handleId}`;
+
+function trackPendingShell(shell: ShellTerminal) {
+	if (!cancelledPendingShells.has(shell.handleId)) pendingShells.set(shell.handleId, shell);
+}
+
+function settlePendingShell(handleId: string) {
+	pendingShells.delete(handleId);
+	cancelledPendingShells.delete(handleId);
+}
+
+async function fetchShellTerminals(hostId?: HostId): Promise<ShellTerminal[]> {
+	// A rename confirmed while this read is out shows over what it returns.
+	const readStartedAt = renameReadStarted();
+	let listed = await fetchListedShellTerminals(hostId);
+	if (discardingShells.size) listed = listed.filter((shell) => !discardingShells.has(shell.handleId));
+	const pending = [...pendingShells.values()].filter((shell) => hostKey(shell.hostId) === hostKey(hostId));
+	return applyOptimisticShellTitles(pending.length ? [...listed, ...pending] : listed, hostId, readStartedAt);
+}
+
+const shellRenameKey = (handleId: string, hostId?: HostId) => `shell:${reopenKey(handleId, hostId)}`;
+
+/** A shell's tab with the title the user gave it. A given name hides the program's title, on the daemon too. */
+function withShellTitle(shell: ShellTerminal, title: string): ShellTerminal {
+	return shell.title === title && shell.terminalTitle === undefined ? shell : { ...shell, title, terminalTitle: undefined };
+}
+
+/** The shells with their confirmed renames (see optimistic-renames); the same array when none applies. */
+function applyOptimisticShellTitles(shells: ShellTerminal[], hostId?: HostId, readStartedAt?: number): ShellTerminal[] {
+	if (!hasOptimisticRenames()) return shells;
+	let changed = false;
+	const next = shells.map((shell) => {
+		const title = renamedTitle(shellRenameKey(shell.handleId, hostId), readStartedAt);
+		const renamed = title === undefined ? shell : withShellTitle(shell, title);
+		if (renamed !== shell) changed = true;
+		return renamed;
+	});
+	return changed ? next : shells;
+}
+
+async function fetchListedShellTerminals(hostId?: HostId): Promise<ShellTerminal[]> {
+	const remote = Boolean(hostId && hostId !== LOCAL_HOST);
+	if (usePreviewData && !remote) {
+		return previewShellTerminals;
+	}
+	if (!remote && !hasTrustedApiBaseUrl()) {
+		return [];
+	}
+	const { data, error } = await clientForSessionHost(hostId).GET("/api/v1/shell-terminals");
+	if (error) throw error;
+	const closing = closingShellHandles.get(hostKey(hostId));
+	return [
+		...(data?.shellTerminals ?? [])
+			.filter((terminal) => !closing?.has(terminal.handleId))
+			.map((terminal) => toShellTerminal(terminal, hostId)),
+		...(remote ? [] : cloudShellTerminals),
+	];
+}
+
+// No refetchInterval: opening or closing a shell invalidates the query, and a
+// program title change arrives as a session_updated event. Polling would spend a
+// liveness probe per shell per interval for no new information.
+export const shellTerminalsQueryOptions = {
+	queryKey: shellTerminalsQueryKey,
+	queryFn: () => fetchShellTerminals(),
+	retry: 1,
+};
+
+export function useShellTerminals(hostId?: HostId) {
+	const query = useQuery(hostId && hostId !== LOCAL_HOST ? {
+		...shellTerminalsQueryOptions,
+		queryKey: shellTerminalsQueryKeyForHost(hostId),
+		queryFn: () => fetchShellTerminals(hostId),
+	} : shellTerminalsQueryOptions);
+	// A rename in flight redraws the tabs in the commit that closes the editor;
+	// the cached list catches up a tick later (TanStack notifies on a timeout).
+	const renameVersion = useOptimisticRenamesVersion();
+	const listed = query.data;
+	// renameVersion is read outside React by applyOptimisticShellTitles.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const data = useMemo(() => listed && applyOptimisticShellTitles(listed, hostId), [listed, hostId, renameVersion]);
+	return withQueryFields(query, { data });
+}
+
+export type OpenShellTerminalInput = {
+	projectId?: string;
+	sessionId?: string;
+	shell?: string;
+	cloud?: { orgId: string };
+	/**
+	 * Typed into a Cloud shell once it is up (a command cue's command). It is
+	 * queued before the shell is listed, so the terminal that connects to it
+	 * always finds it.
+	 */
+	initialInput?: string;
+};
+
+function nextCloudShellTitle(terminals: ShellTerminal[], sessionId: string): string {
+	const count = terminals.filter((terminal) => terminal.cloud && terminal.sessionId === sessionId).length;
+	return `Terminal ${count + 1}`;
+}
+
+type OpenShellTerminalMutationInput = OpenShellTerminalInput & {
+	optimisticShell?: ShellTerminal;
+	/** The create request open() already started; the mutation adopts it. */
+	request?: Promise<ShellTerminal>;
+};
+
+/** Destroys a shell this renderer owns: daemon, cloud, or preview. */
+async function destroyShellTerminal(handleId: string, hostId?: HostId): Promise<void> {
+	const remote = Boolean(hostId && hostId !== LOCAL_HOST);
+	if (!remote && cloudShellTerminals.some((shell) => shell.handleId === handleId)) {
+		setCloudShellTerminals(cloudShellTerminals.filter((shell) => shell.handleId !== handleId));
+		return;
+	}
+	await closeShellTerminal(handleId, hostId);
+}
+
+function nextShellTerminalTitle(terminals: ShellTerminal[]): string {
+	let maxNumber = 0;
+	for (const terminal of terminals) {
+		if (terminal.title === "Terminal") {
+			maxNumber = Math.max(maxNumber, 1);
+			continue;
+		}
+		const match = /^Terminal (\d+)$/.exec(terminal.title);
+		if (match) maxNumber = Math.max(maxNumber, Number(match[1]));
+	}
+	return `Terminal ${maxNumber + 1}`;
+}
+
+function createOptimisticShellTerminal(
+	{ projectId, sessionId }: OpenShellTerminalInput,
+	terminals: ShellTerminal[],
+	hostId?: HostId,
+): ShellTerminal {
+	const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+	return {
+		handleId: `${PENDING_SHELL_PREFIX}${id}`,
+		projectId,
+		sessionId,
+		workingDir: "",
+		title: nextShellTerminalTitle(terminals),
+		createdAt: new Date().toISOString(),
+		...(hostId && hostId !== LOCAL_HOST ? { hostId } : {}),
+		optimistic: true,
+	};
+}
+
+function addOptimisticShell(queryClient: ReturnType<typeof useQueryClient>, queryKey: ReturnType<typeof shellTerminalsQueryKeyForHost>, shell: ShellTerminal) {
+	queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) =>
+		current?.some((candidate) => candidate.handleId === shell.handleId) ? current : [...(current ?? []), shell],
+	);
+}
+
+/**
+ * Opens a shell in the given project's root (or the daemon data dir when
+ * omitted). When sessionId is set the shell is scoped to that session and only
+ * appears in its tab strip.
+ */
+export function useOpenShellTerminal(hostId?: HostId) {
+	const queryClient = useQueryClient();
+	const queryKey = shellTerminalsQueryKeyForHost(hostId);
+	const remote = Boolean(hostId && hostId !== LOCAL_HOST);
+	const { client: cloudCpClient } = useCloudCp();
+	const createShell = async ({
+		projectId,
+		sessionId,
+		shell,
+		cloud,
+		initialInput,
+		optimisticShell,
+	}: OpenShellTerminalMutationInput): Promise<ShellTerminal> => {
+		if (usePreviewData && !remote) {
+			previewShellSeq += 1;
+			const shell: ShellTerminal = {
+				handleId: `shellterm-preview-${previewShellSeq}`,
+				projectId,
+				sessionId,
+				workingDir: `/Users/demo/Projects/${projectId ?? "ao"}`,
+				title: optimisticShell?.title ?? `Terminal ${previewShellSeq}`,
+				createdAt: new Date().toISOString(),
+			};
+			previewShellTerminals = [...previewShellTerminals, shell];
+			return shell;
+		}
+		if (cloud) {
+			if (!sessionId) throw new Error("A cloud shell terminal must belong to a session");
+			// Explicitly resume the cloud session before opening its shell, so a
+			// paused sandbox is woken rather than the shell attaching to nothing.
+			// Shared with any resume of the session already in flight.
+			await resumeCloudSession(cloudCpClient, cloud.orgId, sessionId);
+			const current = queryClient.getQueryData<ShellTerminal[]>(queryKey) ?? [];
+			const shell: ShellTerminal = {
+				handleId: `cloud-shell-${crypto.randomUUID()}`,
+				projectId,
+				sessionId,
+				workingDir: "/workspace/repository",
+				title: nextCloudShellTitle(current, sessionId),
+				createdAt: new Date().toISOString(),
+				cloud,
+			};
+			if (initialInput) queueCloudShellInput(shell.handleId, initialInput);
+			setCloudShellTerminals([...cloudShellTerminals, shell]);
+			return shell;
+		}
+		// The new tab opens in the pane the user is looking at, so send that
+		// pane's grid: the daemon starts the shell now, while this tab mounts
+		// xterm, at the width the tab will show. Without a known grid (or on a
+		// daemon that predates cols/rows) the shell waits for this renderer to
+		// attach with its measured grid, so the first prompt is still laid out
+		// for the right width.
+		const body: components["schemas"]["OpenShellTerminalRequest"] = { startOnAttach: true };
+		const grid = paneTerminalGridHint();
+		if (grid) {
+			body.cols = grid.cols;
+			body.rows = grid.rows;
+		}
+		// The tab already shows this name; the daemon numbering it again could
+		// disagree while tabs the user just closed are still being destroyed.
+		if (optimisticShell) body.title = optimisticShell.title;
+		if (projectId) body.projectId = projectId;
+		if (sessionId) body.sessionId = sessionId;
+		if (remote && shell) body.shell = shell;
+		if (!remote) {
+			await useTerminalShellStore.getState().load();
+			body.shell = shell ?? terminalShellRequestValue(useTerminalShellStore.getState().preference);
+		}
+		const { data, error } = await clientForSessionHost(hostId).POST("/api/v1/shell-terminals", { body });
+		if (error) throw error;
+		if (!data) throw new Error("Daemon returned no shell terminal");
+		if (!remote) markTerminalHandleFresh(data.shellTerminal.handleId);
+		return toShellTerminal(data.shellTerminal, hostId);
+	};
+
+	const mutation = useMutation({
+		mutationFn: async (input: OpenShellTerminalMutationInput = {}): Promise<ShellTerminal | null> => {
+			const shell = await (input.request ?? createShell(input));
+			// The user closed the tab while it was being created: the shell must not
+			// appear later, so destroy it rather than adopting it.
+			if (input.optimisticShell && cancelledPendingShells.has(input.optimisticShell.handleId)) {
+				discardingShells.add(shell.handleId);
+				queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) =>
+					current?.filter((candidate) => candidate.handleId !== shell.handleId),
+				);
+				try {
+					await destroyShellTerminal(shell.handleId, hostId);
+				} finally {
+					discardingShells.delete(shell.handleId);
+				}
+				return null;
+			}
+			return shell;
+		},
+		onMutate: (input) => {
+			const optimisticShell =
+				input.optimisticShell ??
+				createOptimisticShellTerminal(input, queryClient.getQueryData<ShellTerminal[]>(queryKey) ?? [], hostId);
+			trackPendingShell(optimisticShell);
+			addOptimisticShell(queryClient, queryKey, optimisticShell);
+			return { optimisticHandleId: optimisticShell.handleId };
+		},
+		onSuccess: (shell, _input, context) => {
+			const optimisticHandleId = context?.optimisticHandleId;
+			if (optimisticHandleId) settlePendingShell(optimisticHandleId);
+			if (!shell) return;
+			if (optimisticHandleId) adoptedShellHandles.set(optimisticHandleId, shell.handleId);
+			// Replace, rather than append to, the tab that was visible while the POST
+			// ran. This preserves selection and prevents a duplicate tab flash.
+			queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) => {
+				// A refetch that landed after the daemon created the shell but before
+				// this response already lists it next to its pending tab.
+				if (current?.some((candidate) => candidate.handleId === shell.handleId)) {
+					return current.filter((candidate) => candidate.handleId !== optimisticHandleId);
+				}
+				const index = current?.findIndex((candidate) => candidate.handleId === optimisticHandleId) ?? -1;
+				if (index < 0) return [...(current ?? []), shell];
+				return current?.map((candidate, candidateIndex) => (candidateIndex === index ? shell : candidate)) ?? [shell];
+			});
+			// onSettled refetches the list; a second invalidation here only
+			// cancelled and restarted that same request.
+		},
+		onError: (error, _input, context) => {
+			if (context?.optimisticHandleId) settlePendingShell(context.optimisticHandleId);
+			queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) =>
+				current?.filter((shell) => shell.handleId !== context?.optimisticHandleId),
+			);
+			console.error("Failed to open shell terminal:", error);
+			if (!remote && apiErrorCode(error) === "SHELL_TERMINAL_SHELL_UNAVAILABLE") {
+				void useTerminalShellStore.getState().setPreference({ kind: "auto" });
+			}
+		},
+		onSettled: (_data, _error, input) => {
+			if (!input?.cloud) void queryClient.invalidateQueries({ queryKey });
+		},
+	});
+
+	// Session topbars need the pending shell synchronously so they can select
+	// it in the same click event. Other callers can keep using mutation.mutate;
+	// onMutate supplies an optimistic entry for them too. A selection made on
+	// the pending tab follows it to its shell through adoptedShellHandle.
+	const open = (input: OpenShellTerminalInput = {}) => {
+		const optimisticShell = createOptimisticShellTerminal(
+			input,
+			queryClient.getQueryData<ShellTerminal[]>(queryKey) ?? [],
+			hostId,
+		);
+		// Send the create request before anything renders. The click's state
+		// updates render synchronously in a microtask, ahead of the mutation's own
+		// async steps, so a request started by mutationFn waited for a full
+		// session render. The mutation adopts this request and handles its result.
+		const request = createShell({ ...input, optimisticShell });
+		request.catch(() => undefined);
+		trackPendingShell(optimisticShell);
+		addOptimisticShell(queryClient, queryKey, optimisticShell);
+		mutation.mutate({ ...input, optimisticShell, request });
+		return optimisticShell;
+	};
+
+	return { ...mutation, open };
+}
+
+/** Closes a shell and destroys its PTY. */
+export async function closeShellTerminal(handleId: string, hostId?: HostId): Promise<void> {
+	if (usePreviewData && (!hostId || hostId === LOCAL_HOST)) {
+		previewShellTerminals = previewShellTerminals.filter((shell) => shell.handleId !== handleId);
+		return;
+	}
+	const { error } = await clientForSessionHost(hostId).DELETE("/api/v1/shell-terminals/{handleId}", {
+		params: { path: { handleId } },
+	});
+	// The desired postcondition is already true when the daemon no longer owns
+	// the record. Treat this as confirmed cleanup, not a failed cancellation.
+	if (error && apiErrorCode(error) !== "SHELL_TERMINAL_NOT_FOUND") throw error;
+}
+
+export function useCloseShellTerminal(hostId?: HostId) {
+	const queryClient = useQueryClient();
+	const queryKey = shellTerminalsQueryKeyForHost(hostId);
+	const remote = Boolean(hostId && hostId !== LOCAL_HOST);
+	return useMutation({
+		mutationFn: async (handleId: string): Promise<void> => {
+			if (usePreviewData && !remote) {
+				previewShellTerminals = previewShellTerminals.filter((s) => s.handleId !== handleId);
+				return;
+			}
+			// A tab still being created has no shell to close yet; its create
+			// request destroys the shell when it returns (see onMutate).
+			if (isPendingShellHandle(handleId)) return;
+			await destroyShellTerminal(handleId, hostId);
+		},
+		onMutate: async (handleId) => {
+			if (isPendingShellHandle(handleId) && pendingShells.delete(handleId)) {
+				cancelledPendingShells.add(handleId);
+			}
+			if (reopeningShells.has(reopenKey(handleId, hostId))) closedWhileReopening.add(reopenKey(handleId, hostId));
+			for (const [pending, adopted] of adoptedShellHandles) {
+				if (adopted === handleId) adoptedShellHandles.delete(pending);
+			}
+			const key = hostKey(hostId);
+			let closing = closingShellHandles.get(key);
+			if (!closing) closingShellHandles.set(key, (closing = new Set()));
+			closing.add(handleId);
+			const previous = queryClient.getQueryData<ShellTerminal[]>(queryKey);
+			const isCloud = Boolean(previous?.find((shell) => shell.handleId === handleId)?.cloud);
+			const removeClosedShell = () => {
+				queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) =>
+					current?.filter((shell) => shell.handleId !== handleId),
+				);
+			};
+			// Remove the pill synchronously. Waiting for cancellation first leaves the
+			// closed tab visible for the duration of an in-flight list request.
+			removeClosedShell();
+			await queryClient.cancelQueries({ queryKey });
+			// A request that resolved while cancellation was being scheduled may have
+			// restored its stale snapshot; make the optimistic state authoritative.
+			removeClosedShell();
+			return { previous, isCloud };
+		},
+		onError: (error, _handleId, context) => {
+			// A 404 means the daemon has already removed the shell, so restoring its
+			// stale tab would be misleading. Other failures put the tab back so the
+			// user can retry instead of losing access to a still-live PTY.
+			if (apiErrorCode(error) !== "SHELL_TERMINAL_NOT_FOUND" && context?.previous) {
+				queryClient.setQueryData(queryKey, context.previous);
+			}
+		},
+		// Settled, not success: a close that 404s means the daemon already lost
+		// the shell, and the stale tab still needs to disappear.
+		onSettled: (_data, _error, handleId, context) => {
+			const key = hostKey(hostId);
+			const closing = closingShellHandles.get(key);
+			closing?.delete(handleId);
+			if (closing?.size === 0) closingShellHandles.delete(key);
+			// A pending tab closed nothing on the daemon; its create request settles
+			// the list once the shell it created is destroyed. A tab closed while
+			// it was reopening is settled the same way by its reopen request, so a
+			// refetch here cannot show the replacement before it is destroyed.
+			if (closedWhileReopening.has(reopenKey(handleId, hostId))) return;
+			if (!context?.isCloud && !isPendingShellHandle(handleId)) void queryClient.invalidateQueries({ queryKey });
+		},
+	});
+}
+
+export type ReopenShellTerminalInput = { handleId: string; resumeAgent?: boolean };
+
+export function useReopenShellTerminal(hostId?: HostId) {
+	const queryClient = useQueryClient();
+	const queryKey = shellTerminalsQueryKeyForHost(hostId);
+	const remote = Boolean(hostId && hostId !== LOCAL_HOST);
+	return useMutation({
+		mutationFn: async ({ handleId, resumeAgent }: ReopenShellTerminalInput): Promise<ShellTerminal | null> => {
+			const key = reopenKey(handleId, hostId);
+			reopeningShells.add(key);
+			try {
+				const shell = await requestReopen(handleId, resumeAgent);
+				if (!closedWhileReopening.has(key)) return shell;
+				discardingShells.add(shell.handleId);
+				try {
+					await destroyShellTerminal(shell.handleId, hostId);
+				} finally {
+					discardingShells.delete(shell.handleId);
+				}
+				return null;
+			} finally {
+				reopeningShells.delete(key);
+				closedWhileReopening.delete(key);
+			}
+		},
+		onMutate: ({ handleId, resumeAgent }) =>
+			resumeAgent && !remote
+				? queryClient.getQueryData<ShellTerminal[]>(queryKey)?.find((candidate) => candidate.handleId === handleId)?.resumeHarness
+				: undefined,
+		onSuccess: (shell, { handleId }, harness) => {
+			if (!shell) return;
+			adoptedShellHandles.set(handleId, shell.handleId);
+			if (harness) useShellAgentStore.getState().expectResume(shell.handleId, harness);
+			queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) =>
+				current?.map((candidate) => (candidate.handleId === handleId ? shell : candidate)),
+			);
+		},
+		onSettled: () => {
+			void queryClient.invalidateQueries({ queryKey });
+		},
+	});
+
+	async function requestReopen(handleId: string, resumeAgent?: boolean): Promise<ShellTerminal> {
+		const body: components["schemas"]["ReopenShellTerminalRequest"] = {};
+		if (resumeAgent) body.resumeAgent = true;
+		const grid = paneTerminalGridHint();
+		if (grid) {
+			body.cols = grid.cols;
+			body.rows = grid.rows;
+		}
+		if (!remote) {
+			await useTerminalShellStore.getState().load();
+			body.shell = terminalShellRequestValue(useTerminalShellStore.getState().preference);
+		}
+		const { data, error } = await clientForSessionHost(hostId).POST("/api/v1/shell-terminals/{handleId}/reopen", {
+			params: { path: { handleId } },
+			body,
+		});
+		if (error) throw error;
+		if (!data) throw new Error("Daemon returned no shell terminal");
+		if (!remote) markTerminalHandleFresh(data.shellTerminal.handleId);
+		return toShellTerminal(data.shellTerminal, hostId);
+	}
+}
+
+export type RenameShellTerminalInput = { handleId: string; title: string };
+
+/** Each shell's tab as it was when its first rename still in flight started, for an exact rollback. */
+const shellsBeforeRename = new Map<string, ShellTerminal>();
+
+function writeShell(queryClient: QueryClient, queryKey: ReturnType<typeof shellTerminalsQueryKeyForHost>, handleId: string, update: (shell: ShellTerminal) => ShellTerminal) {
+	queryClient.setQueryData<ShellTerminal[]>(queryKey, (current) =>
+		current?.map((shell) => (shell.handleId === handleId ? update(shell) : shell)),
+	);
+}
+
+type RenameShellTerminalRequest = RenameShellTerminalInput & { token: number };
+
+/**
+ * Renames a shell terminal's tab. The new title persists on the daemon and
+ * shows from the commit that calls `mutate`; a newer rename always wins over an
+ * older one's answer, and a failure rolls back only its own title and says so.
+ */
+export function useRenameShellTerminal(hostId?: HostId) {
+	const queryClient = useQueryClient();
+	const queryKey = shellTerminalsQueryKeyForHost(hostId);
+	const remote = Boolean(hostId && hostId !== LOCAL_HOST);
+	const mutation = useMutation({
+		mutationFn: async ({ handleId, title }: RenameShellTerminalRequest): Promise<ShellTerminal> => {
+			if (usePreviewData && !remote) {
+				previewShellTerminals = previewShellTerminals.map((s) => (s.handleId === handleId ? { ...s, title } : s));
+				const shell = previewShellTerminals.find((s) => s.handleId === handleId);
+				if (!shell) throw new Error("No such shell terminal");
+				return shell;
+			}
+			const cloudIndex = remote ? -1 : cloudShellTerminals.findIndex((shell) => shell.handleId === handleId);
+			if (cloudIndex >= 0) {
+				const shell = { ...cloudShellTerminals[cloudIndex], title };
+				setCloudShellTerminals(cloudShellTerminals.map((candidate, index) =>
+					index === cloudIndex ? shell : candidate,
+				));
+				return shell;
+			}
+			// After any earlier rename of this tab, so the newest is the one stored.
+			const { data, error } = await queueRenameWrite(shellRenameKey(handleId, hostId), () =>
+				clientForSessionHost(hostId).PATCH("/api/v1/shell-terminals/{handleId}", {
+					params: { path: { handleId } },
+					body: { title },
+				}));
+			if (error) throw error;
+			if (!data) throw new Error("Daemon returned no shell terminal");
+			return toShellTerminal(data.shellTerminal, hostId);
+		},
+		onSuccess: (shell, { handleId, token }) => {
+			const key = shellRenameKey(handleId, hostId);
+			const settled = settleOptimisticRename(key, token, true, shell.title);
+			// Stored: a later failure rolls back to this name, never to the snapshot.
+			if (settled) shellsBeforeRename.delete(key);
+			// An older rename's answer must not replace a newer title.
+			if (!settled?.latest) return;
+			writeShell(queryClient, queryKey, handleId, () => shell);
+			if (!shell.cloud) void queryClient.invalidateQueries({ queryKey });
+		},
+		onError: (error, { handleId, title, token }) => {
+			const key = shellRenameKey(handleId, hostId);
+			const settled = settleOptimisticRename(key, token, false);
+			if (!settled?.latest) return;
+			// Nothing else in flight: the tab goes back to exactly what it held before
+			// (a program's title stays a program's title), and the snapshot has served
+			// its purpose. Without a snapshot, the last stored name is a given name.
+			const live = hasLiveOptimisticRename(key);
+			const before = live ? undefined : shellsBeforeRename.get(key);
+			if (!live) shellsBeforeRename.delete(key);
+			if (before) writeShell(queryClient, queryKey, handleId, (shell) => ({ ...shell, title: before.title, terminalTitle: before.terminalTitle }));
+			else writeShell(queryClient, queryKey, handleId, (shell) => withShellTitle(shell, settled.title));
+			void queryClient.invalidateQueries({ queryKey });
+			useUiStore.getState().showGlobalToast(
+				appI18n.t("shell.renameFailed", { name: title }),
+				error instanceof Error ? error.message : undefined,
+				"error",
+			);
+		},
+	});
+	const { mutate: send, mutateAsync: sendAsync } = mutation;
+	// Synchronous up to the request, so the tab shows the new title in the same
+	// commit as its editor closing (useMutation's onMutate runs after an await).
+	const start = useCallback(({ handleId, title }: RenameShellTerminalInput): RenameShellTerminalRequest => {
+		const key = shellRenameKey(handleId, hostId);
+		const shell = queryClient.getQueryData<ShellTerminal[]>(queryKey)?.find((candidate) => candidate.handleId === handleId);
+		// The first rename in flight records the tab as it is, program title and all.
+		if (!hasLiveOptimisticRename(key)) {
+			if (shell) shellsBeforeRename.set(key, shell);
+			else shellsBeforeRename.delete(key);
+		}
+		const token = beginOptimisticRename(key, title, shell ? (shell.terminalTitle ?? shell.title) : title);
+		writeShell(queryClient, queryKey, handleId, (current) => withShellTitle(current, title));
+		return { handleId, title, token };
+	}, [hostId, queryClient, queryKey]);
+	const mutate = useCallback((input: RenameShellTerminalInput) => send(start(input)), [send, start]);
+	const mutateAsync = useCallback((input: RenameShellTerminalInput) => sendAsync(start(input)), [sendAsync, start]);
+	return { ...mutation, mutate, mutateAsync };
+}

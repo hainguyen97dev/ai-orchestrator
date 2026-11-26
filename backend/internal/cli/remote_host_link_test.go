@@ -1,0 +1,277 @@
+package cli
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+)
+
+const (
+	linkTestToken   = "abababababababababababababababababababababababababababababababab"
+	linkTestHostKey = "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+	linkFixedHost   = "h-abc.useao.dev"
+	linkQuickHost   = "quick.trycloudflare.com"
+)
+
+// linkFixture fakes the three parties of `ao remote-host link`: the local
+// daemon, the account sign-in, and AO Cloud's account machine list.
+type linkFixture struct {
+	mu sync.Mutex
+	// Daemon.
+	enabled, loopbackOnly, tunnel, fixed bool
+	// AO Cloud.
+	listed           string // JSON for the account's hosts
+	fixedAddresses   bool
+	refuseWithoutURL string // "<status> <code>" AO Cloud answers a registration without url
+	connectorStuck   bool   // never gets its fixed address
+	registrations    []map[string]string
+	// Sign-in: signInErr fails it; nil signs in as me@example.com.
+	signInErr error
+	// useDefaultSignIn runs the real sign-in instead of the fake.
+	useDefaultSignIn bool
+}
+
+func (f *linkFixture) run(t *testing.T, deps Deps, args ...string) (string, error) {
+	t.Helper()
+	cfg := setConfigEnv(t)
+	if f.listed == "" {
+		f.listed = "[]"
+	}
+	cloud := httptest.NewServer(http.HandlerFunc(f.cloud))
+	t.Cleanup(cloud.Close)
+	daemon := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { f.daemon(w, r, cloud.URL) }))
+	t.Cleanup(daemon.Close)
+	writeRunFileFor(t, cfg, daemon)
+	if !f.useDefaultSignIn {
+		previous := remoteHostSignIn
+		remoteHostSignIn = func(context.Context, io.Writer) (accountSession, error) {
+			if f.signInErr != nil {
+				return accountSession{}, f.signInErr
+			}
+			session := accountSession{AccessToken: "access-1"}
+			session.User.ID = "user_1"
+			session.User.Email = "me@example.com"
+			return session, nil
+		}
+		t.Cleanup(func() { remoteHostSignIn = previous })
+	}
+
+	if deps.Now == nil {
+		deps = (&fakeClock{}).deps()
+	}
+	deps.ProcessAlive = func(int) bool { return true }
+	out, _, err := executeCLI(t, deps, append([]string{"remote-host", "link", "--no-qr"}, args...)...)
+	if strings.Contains(out, "pairing-secret") || strings.Contains(out, linkTestToken) {
+		t.Fatalf("output leaks a credential: %q", out)
+	}
+	return out, err
+}
+
+func (f *linkFixture) daemon(w http.ResponseWriter, r *http.Request, cloudURL string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	w.Header().Set("Content-Type", "application/json")
+	switch r.Method + " " + r.URL.Path {
+	case "GET /api/v1/settings":
+		_ = json.NewEncoder(w).Encode(map[string]string{"cloudControlPlaneUrl": cloudURL})
+		return
+	case "GET /api/v1/mobile/status":
+	case "POST /api/v1/mobile/enable-tunnel-only":
+		f.enabled, f.loopbackOnly, f.tunnel = true, true, true
+	case "POST /api/v1/mobile/remote-access":
+		f.tunnel = f.tunnel || f.enabled
+	case "POST /api/v1/remote-host/account-token":
+		if r.Header.Get("Authorization") != "Bearer pairing-secret" || r.Header.Get("X-AO-Account-ID") != "user_1" {
+			http.Error(w, `{"error":"forbidden"}`, http.StatusForbidden)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{"hostId": "h_vm", "token": linkTestToken, "hostKey": linkTestHostKey})
+		return
+	default:
+		http.NotFound(w, r)
+		return
+	}
+	endpoints := []map[string]any{}
+	if f.tunnel {
+		host := linkQuickHost
+		if f.fixed {
+			host = linkFixedHost
+		}
+		endpoints = append(endpoints, map[string]any{"kind": "tunnel", "host": host, "port": 443, "secure": true})
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"enabled": f.enabled, "loopbackOnly": f.loopbackOnly, "hostId": "h_vm", "password": "pairing-secret",
+		"tunnel":    map[string]bool{"supported": true, "running": f.tunnel, "fixed": f.fixed},
+		"endpoints": endpoints,
+	})
+}
+
+func (f *linkFixture) cloud(w http.ResponseWriter, r *http.Request) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if r.Header.Get("Authorization") != "Bearer access-1" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	switch r.Method + " " + r.URL.Path {
+	case "GET /api/cloud/v1/me/hosts":
+		_, _ = io.WriteString(w, `{"hosts":`+f.listed+`,"fixedAddresses":`+map[bool]string{true: "true", false: "false"}[f.fixedAddresses]+`,"hostKeys":true}`)
+	case "PUT /api/cloud/v1/me/hosts/h_vm":
+		var registration map[string]string
+		_ = json.NewDecoder(r.Body).Decode(&registration)
+		f.registrations = append(f.registrations, registration)
+		if status, code, ok := strings.Cut(f.refuseWithoutURL, " "); ok && registration["url"] == "" {
+			n, _ := strconv.Atoi(status)
+			w.WriteHeader(n)
+			_, _ = io.WriteString(w, `{"code":"`+code+`"}`)
+			return
+		}
+		// Listed without an address, the machine's connector gets its fixed one.
+		f.fixed = registration["url"] == "" && !f.connectorStuck
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		http.NotFound(w, r)
+	}
+}
+
+// fakeClock advances only when the command sleeps, so waits and expiry
+// run instantly.
+type fakeClock struct{ now time.Time }
+
+func (c *fakeClock) deps() Deps {
+	c.now = time.Unix(1_000_000, 0)
+	return Deps{Now: func() time.Time { return c.now }, Sleep: func(d time.Duration) { c.now = c.now.Add(d) }}
+}
+
+func wantOutput(t *testing.T, out string, parts ...string) {
+	t.Helper()
+	for _, part := range parts {
+		if !strings.Contains(out, part) {
+			t.Fatalf("output %q missing %q", out, part)
+		}
+	}
+}
+
+func TestRemoteHostLinkSignsInAndListsTheMachineInTheAccount(t *testing.T) {
+	f := &linkFixture{fixedAddresses: true}
+	out, err := f.run(t, Deps{}, "--label", "build-vm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.registrations) != 1 {
+		t.Fatalf("registrations = %v, want one", f.registrations)
+	}
+	want := map[string]string{"label": "build-vm", "token": linkTestToken, "hostKey": linkTestHostKey}
+	got := f.registrations[0]
+	if len(got) != len(want) || got["label"] != want["label"] || got["token"] != want["token"] || got["hostKey"] != want["hostKey"] {
+		t.Fatalf("registration = %v, want %v (no url: AO Cloud gives the fixed address)", got, want)
+	}
+	wantOutput(t, out, `Linked "build-vm" to me@example.com`,
+		"Address: https://"+linkFixedHost, "Cloudflare terminates TLS")
+}
+
+// AO Cloud answers 409, 429 or 502 when it cannot make the fixed address; a
+// registration with url still lists the machine (#7294, #7976).
+func TestRemoteHostLinkUsesTheQuickTunnelWhenAOCloudCannotMakeTheFixedAddress(t *testing.T) {
+	for _, refusal := range []string{"409 fixed_address_limit_reached", "429 tunnel_rate_limited", "502 tunnel_unavailable"} {
+		t.Run(refusal, func(t *testing.T) {
+			f := &linkFixture{fixedAddresses: true, refuseWithoutURL: refusal}
+			out, err := f.run(t, Deps{}, "--label", "build-vm")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(f.registrations) != 2 || f.registrations[1]["url"] != "https://"+linkQuickHost {
+				t.Fatalf("registrations = %v, want a retry at the quick tunnel", f.registrations)
+			}
+			// The address the machine is listed at, not a wait for a fixed one that never comes.
+			wantOutput(t, out, `Linked "build-vm"`, "Address: https://"+linkQuickHost)
+			if strings.Contains(out, "not ready") {
+				t.Fatalf("output %q waited for a fixed address", out)
+			}
+		})
+	}
+}
+
+func TestRemoteHostLinkStartsTheTunnelOnALanOnlyMachine(t *testing.T) {
+	// LAN-only, on an AO Cloud without fixed addresses: the registration needs
+	// the tunnel's address, so link must start the tunnel first.
+	f := &linkFixture{enabled: true}
+	out, err := f.run(t, Deps{}, "--label", "build-vm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.registrations) != 1 || f.registrations[0]["url"] != "https://"+linkQuickHost {
+		t.Fatalf("registrations = %v, want the quick tunnel's address", f.registrations)
+	}
+	wantOutput(t, out, "Cloudflare terminates TLS and can see the connection password and traffic.")
+}
+
+func TestRemoteHostLinkKeepsTheNameTheAccountHasForTheMachine(t *testing.T) {
+	f := &linkFixture{enabled: true, loopbackOnly: true, tunnel: true, fixedAddresses: true,
+		listed: `[{"hostId":"h_vm","label":"Desk name","token":"` + linkTestToken + `"}]`}
+	out, err := f.run(t, Deps{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.registrations) != 1 || f.registrations[0]["label"] != "Desk name" {
+		t.Fatalf("registrations = %v, want the account's name kept", f.registrations)
+	}
+	wantOutput(t, out, "already linked to me@example.com")
+
+	f = &linkFixture{enabled: true, loopbackOnly: true, tunnel: true, fixedAddresses: true,
+		listed: `[{"hostId":"h_vm","label":"Desk name","token":"` + linkTestToken + `"}]`}
+	out, err = f.run(t, Deps{}, "--label", "build-vm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.registrations[0]["label"] != "build-vm" {
+		t.Fatalf("registrations = %v, want --label to rename it", f.registrations)
+	}
+	wantOutput(t, out, `Linked "build-vm"`)
+}
+
+func TestRemoteHostLinkStopsWhenTheSignInIsNotFinished(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		f    *linkFixture
+		want string
+	}{
+		{"sign-in not available yet", &linkFixture{fixedAddresses: true, useDefaultSignIn: true}, "not available yet"},
+		{"sign-in failed", &linkFixture{fixedAddresses: true, signInErr: errors.New("sign-in was declined")}, "declined"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := tc.f
+			_, err := f.run(t, Deps{})
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("err = %v, want %q", err, tc.want)
+			}
+			if len(f.registrations) != 0 {
+				t.Fatalf("registrations = %v, want none", f.registrations)
+			}
+			if f.enabled || f.tunnel {
+				t.Fatal("remote access was turned on for a sign-in that did not finish")
+			}
+		})
+	}
+}
+
+func TestRemoteHostLinkSaysWhenTheFixedAddressIsNotReadyYet(t *testing.T) {
+	f := &linkFixture{fixedAddresses: true, connectorStuck: true}
+	out, err := f.run(t, Deps{}, "--label", "build-vm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Listed in the account, so not a failure; the quick address is not the one to show.
+	wantOutput(t, out, `Linked "build-vm"`, "not ready yet")
+	if strings.Contains(out, linkQuickHost) {
+		t.Fatalf("output %q shows the quick tunnel as the address", out)
+	}
+}

@@ -1,0 +1,43 @@
+name: Pricing catalog validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - "backend/internal/pricing/**"
+      - ".github/workflows/pricing-catalog-validate.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || format('{0}-{1}', github.event_name, github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+      # The daemon builds its catalog from the live LiteLLM table. Run that
+      # build on the same table, through a throwaway cache, so a table the
+      # daemon cannot load fails here rather than on a user's machine.
+      - name: Download the live LiteLLM table
+        run: |
+          set -euo pipefail
+          curl --fail --location --max-filesize 33554432 \
+            --output "$RUNNER_TEMP/model_prices_and_context_window.json" \
+            "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
+      - name: Verify the live table through the runtime fetcher and cache
+        env:
+          AO_PRICING_SOURCE: ${{ runner.temp }}/model_prices_and_context_window.json
+        run: |
+          set -euo pipefail
+          (cd backend && go test ./internal/pricing/catalogsync \
+            -run TestLiveTableBuildsThroughTheFetcherAndSurvivesCache -count 1)

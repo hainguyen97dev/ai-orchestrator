@@ -1,0 +1,868 @@
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import {
+	SessionCardView,
+	SessionsBoardGridView,
+	type BoardPullRequestLabels,
+	type BoardPullRequestPresentation,
+	type BoardSessionPresentation,
+	type BoardColumnLabels,
+} from "./SessionsBoardView";
+import {
+	boardKanbanColumnOrder,
+	getKanbanColumnView,
+	getSessionStatusView,
+} from "./session-presentation";
+import type { ExternalLinkProps } from "./external-link";
+
+function ExternalLink({ ariaLabel, children, stopPropagation, ...props }: ExternalLinkProps) {
+	return (
+		<a
+			{...props}
+			aria-label={ariaLabel}
+			onClick={stopPropagation ? (event) => event.stopPropagation() : undefined}
+		>
+			{children}
+		</a>
+	);
+}
+
+const columnLabels: BoardColumnLabels = {
+	columnAria: (label) => `${label} sessions`,
+};
+
+const baseSession: BoardSessionPresentation = {
+	id: "session-1",
+	kanbanColumn: "building",
+	provider: "codex",
+	status: "idle",
+	title: "portable task",
+	updatedAt: "2026-08-09T10:00:00Z",
+};
+
+const progressLabels: BoardPullRequestLabels = {
+	progress: ({ closed, draft, merged, open, total }) => {
+		const parts = [`${merged} of ${total} ${total === 1 ? "PR" : "PRs"} merged`];
+		if (open > 0) parts.push(`${open} open`);
+		if (draft > 0) parts.push(`${draft} draft`);
+		if (closed > 0) parts.push(`${closed} closed`);
+		return parts.join(" · ");
+	},
+	short: "PR",
+	states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+};
+
+describe("SessionsBoardView", () => {
+	it.each(["checking", "unavailable"] as const)("withholds provisional activity while %s", (statusReadiness) => {
+		render(<SessionCardView externalLink={ExternalLink}
+			labels={{ formatTime: () => "now", intakeIssue: (id) => id, pr: progressLabels, updatedAt: (at) => at }}
+			renderAvatar={() => null}
+			session={{ ...baseSession, status: "working", displayStatus: "Working", statusReadiness }} />);
+		expect(screen.queryByText("Working")).not.toBeInTheDocument();
+		expect(screen.getByText(statusReadiness === "checking" ? "Checking…" : "Unable to verify")).toBeInTheDocument();
+	});
+
+	it("renders one lane per Kanban column, newest first, with one scroller each", () => {
+		const sessions: BoardSessionPresentation[] = [
+			baseSession,
+			{ ...baseSession, id: "later", title: "later task", updatedAt: "2026-08-09T12:00:00Z" },
+			{
+				...baseSession,
+				id: "ready",
+				kanbanColumn: "ready",
+				status: "mergeable",
+				title: "ready task",
+			},
+		];
+		render(
+			<SessionsBoardGridView
+				columns={boardKanbanColumnOrder.map((column) => getKanbanColumnView(column))}
+				labels={columnLabels}
+				renderSessionCard={(session) => <div data-testid={`card-${session.id}`}>{session.title}</div>}
+				sessions={sessions}
+			/>,
+		);
+
+		const buildingLane = screen.getByRole("region", { name: "Building sessions" });
+		const buildingHeader = buildingLane.firstElementChild as HTMLElement;
+		expect(buildingHeader).not.toHaveAttribute("style");
+		const swatch = within(buildingLane).getByTestId("board-column-swatch");
+		expect(swatch).toHaveClass("size-[var(--size-swatch)]", "rounded-full");
+		expect(swatch.style.boxShadow).toBe("");
+		const title = within(buildingLane).getByText("Building");
+		expect(title).toHaveClass("text-xs", "font-medium");
+		expect(title).not.toHaveClass("font-mono", "uppercase", "tracking-wide-sm");
+		const count = within(buildingLane).getByText("2");
+		expect(count).toHaveClass("tabular-nums", "text-xs");
+		expect(count).not.toHaveClass("font-mono");
+		expect(
+			within(buildingLane)
+				.getAllByTestId(/^card-/)
+				.map((card) => card.textContent),
+		).toEqual(["later task", "portable task"]);
+		expect(buildingLane.querySelectorAll(".overflow-y-auto")).toHaveLength(1);
+
+		expect(within(screen.getByRole("region", { name: "Ready sessions" })).getByTestId("card-ready")).toBeInTheDocument();
+		// Empty lanes still render, so the four-column grid never collapses.
+		expect(screen.getByRole("region", { name: "Validating sessions" })).toBeInTheDocument();
+		expect(screen.getByRole("region", { name: "In review sessions" })).toBeInTheDocument();
+		expect(screen.getByTestId("board-horizontal-scroll")).toHaveClass("board-horizontal-scrollbar");
+	});
+
+	it("pins attention-required sessions first inside every lane without changing lanes", () => {
+		const columns = boardKanbanColumnOrder.map((column) => getKanbanColumnView(column));
+		const sessions: BoardSessionPresentation[] = columns.flatMap(({ column }, index) => [
+			{
+				...baseSession,
+				id: `${column}-newer`,
+				kanbanColumn: column,
+				status: column === "ready" ? "mergeable" : "idle",
+				title: `${column} newer`,
+				updatedAt: `2026-08-09T1${index}:00:00Z`,
+			},
+			{
+				...baseSession,
+				id: `${column}-attention`,
+				kanbanColumn: column,
+				status: "needs_input",
+				title: `${column} attention`,
+				updatedAt: "2026-08-08T09:00:00Z",
+			},
+		]);
+
+		render(
+			<SessionsBoardGridView
+				columns={columns}
+				labels={columnLabels}
+				renderSessionCard={(session) => <div data-testid={`card-${session.id}`}>{session.title}</div>}
+				sessions={sessions}
+			/>,
+		);
+
+		for (const column of columns) {
+			const lane = screen.getByRole("region", { name: `${column.label} sessions` });
+			expect(
+				within(lane)
+					.getAllByTestId(/^card-/)
+					.map((card) => card.textContent),
+			).toEqual([`${column.column} attention`, `${column.column} newer`]);
+		}
+	});
+
+	it("pins display-status attention cards first inside the lane", () => {
+		render(
+			<SessionsBoardGridView
+				columns={boardKanbanColumnOrder.map((column) => getKanbanColumnView(column))}
+				labels={columnLabels}
+				renderSessionCard={(session) => <div data-testid={`card-${session.id}`}>{session.title}</div>}
+				sessions={[
+					{
+						...baseSession,
+						id: "newer-neutral",
+						kanbanColumn: "needs_review",
+						status: "idle",
+						title: "newer neutral",
+						updatedAt: "2026-08-09T12:00:00Z",
+					},
+					{
+						...baseSession,
+						id: "older-attention",
+						displayStatus: "Changes requested",
+						kanbanColumn: "needs_review",
+						status: "idle",
+						title: "older attention",
+						updatedAt: "2026-08-08T09:00:00Z",
+					},
+				]}
+			/>,
+		);
+
+		const lane = screen.getByRole("region", { name: "In review sessions" });
+		expect(
+			within(lane)
+				.getAllByTestId(/^card-/)
+				.map((card) => card.textContent),
+		).toEqual(["older attention", "newer neutral"]);
+	});
+
+	it.each([
+		{ displayStatus: "Blocked", status: "idle" as const },
+		{ displayStatus: "Needs input", status: "idle" as const },
+		{ displayStatus: "CI failing", status: "idle" as const },
+		{ displayStatus: "Merge conflicts", status: "idle" as const },
+		{ displayStatus: "Changes requested", status: "idle" as const },
+		{ displayStatus: undefined, status: "ci_failed" as const },
+		{ displayStatus: undefined, status: "changes_requested" as const },
+	] as const)(
+		"gives %s cards the persistent orange attention treatment",
+		({ displayStatus, status }) => {
+			render(
+				<SessionCardView
+					externalLink={ExternalLink}
+					labels={{
+						formatTime: () => "5m ago",
+						intakeIssue: (id) => `Issue ${id}`,
+						pr: {
+							short: "PR",
+							states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+						},
+						updatedAt: (timestamp) => `Updated ${timestamp}`,
+					}}
+					renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+					session={{ ...baseSession, status, displayStatus }}
+				/>,
+			);
+
+			const card = screen.getByTestId("board-session-card");
+			expect(card).toHaveClass(
+				"animate-attention-card-pulse",
+				"border-status-needs-you",
+				"bg-[color-mix(in_srgb,var(--color-status-needs-you)_8%,var(--color-surface))]",
+			);
+		},
+	);
+
+	it("gives a compact card branch and time on one line, PRs below, and no status strip", () => {
+		const onOpen = vi.fn();
+		render(
+			<SessionCardView
+				branchAction={<button type="button">Copy branch</button>}
+				compact
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: progressLabels,
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				onOpen={onOpen}
+				prs={[{ number: 7, state: "merged", url: "https://example.test/pull/7" }]}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				selected={false}
+				session={{ ...baseSession, branch: "ao/compact-branch", status: "terminated", isTerminated: true }}
+			/>,
+		);
+
+		const card = screen.getByTestId("board-session-card");
+		const meta = within(card).getByTestId("session-card-meta");
+		expect(meta).toHaveTextContent("ao/compact-branch");
+		expect(within(meta).getByRole("link", { name: "PR #7 merged" })).toBeInTheDocument();
+		expect(within(meta).getByText("5m ago")).toBeInTheDocument();
+		expect(card.querySelector(".border-t")).toBeNull();
+		// A list that owns the selection: no hover fill, no whole-card button.
+		expect(card).not.toHaveClass("hover:bg-interactive-hover", "focus-within:bg-interactive-hover");
+		expect(within(card).getAllByRole("button").map((button) => button.textContent)).toEqual(["Copy branch"]);
+		expect(card).not.toHaveAttribute("data-selected");
+		fireEvent.click(within(meta).getByText("ao/compact-branch"));
+		expect(onOpen).toHaveBeenCalledTimes(1);
+	});
+
+	it("shows a session branch as its topic and hides it when it only repeats the title", () => {
+		const renderCard = (branch: string, title: string) =>
+			render(
+				<SessionCardView
+					externalLink={ExternalLink}
+					labels={{
+						formatTime: () => "5m ago",
+						intakeIssue: (id) => `Issue ${id}`,
+						pr: progressLabels,
+						updatedAt: (timestamp) => `Updated ${timestamp}`,
+					}}
+					onOpen={vi.fn()}
+					renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+					selected={false}
+					session={{ ...baseSession, branch, title }}
+				/>,
+			);
+
+		const first = renderCard("ao/agent-orchestrator-132/archived-sessions-label", "Rename the archive");
+		const topic = screen.getByText("archived-sessions-label");
+		expect(topic).toHaveAttribute("title", "ao/agent-orchestrator-132/archived-sessions-label");
+		first.unmount();
+
+		renderCard("ao/fix-login/root", "Fix login");
+		expect(screen.queryByText("fix-login")).not.toBeInTheDocument();
+	});
+
+	it("fills a selected list card and keeps the board card's own hover otherwise", () => {
+		const labels = {
+			formatTime: () => "5m ago",
+			intakeIssue: (id: string) => `Issue ${id}`,
+			pr: progressLabels,
+			updatedAt: (timestamp: string) => `Updated ${timestamp}`,
+		};
+		const { rerender } = render(
+			<SessionCardView compact externalLink={ExternalLink} labels={labels} onOpen={() => undefined} renderAvatar={() => null} selected session={baseSession} />,
+		);
+		const card = screen.getByTestId("board-session-card");
+		expect(card).toHaveAttribute("data-selected", "true");
+		expect(card).toHaveClass("bg-interactive-hover", "border-border-strong");
+		expect(card).not.toHaveClass("bg-surface");
+
+		rerender(<SessionCardView externalLink={ExternalLink} labels={labels} onOpen={() => undefined} renderAvatar={() => null} session={baseSession} />);
+		expect(screen.getByTestId("board-session-card")).toHaveClass("hover:bg-interactive-hover");
+		expect(within(screen.getByTestId("board-session-card")).getByRole("button", { name: "portable task" })).toBeInTheDocument();
+	});
+
+	it("leaves ordinary cards on the neutral surface", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={baseSession}
+			/>,
+		);
+
+		const card = screen.getByTestId("board-session-card");
+		expect(card).toHaveClass("border", "border-border", "bg-surface");
+		expect(card).toHaveClass("rounded-lg");
+		expect(card).not.toHaveClass("animate-attention-card-pulse", "border-status-needs-you");
+	});
+
+	it("does not show the attention border for non-attention display statuses", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, status: "changes_requested", displayStatus: "Awaiting review" }}
+			/>,
+		);
+
+		expect(screen.getByTestId("board-session-card")).not.toHaveClass(
+			"animate-attention-card-pulse",
+			"border-status-needs-you",
+		);
+	});
+
+	it("does not show attention styling when a custom status presentation overrides the card", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{
+					...baseSession,
+					status: "changes_requested",
+					displayStatus: "Changes requested",
+					statusPresentation: {
+						className: "text-status-working",
+						indicatorClassName: "bg-status-working",
+						label: "Switching to Codex",
+					},
+				}}
+			/>,
+		);
+
+		expect(screen.getByTestId("board-session-card")).not.toHaveClass(
+			"animate-attention-card-pulse",
+			"border-status-needs-you",
+		);
+	});
+
+	it("renders a neutral card with grouped multi-PR, usage, and action presentation", () => {
+		const onOpen = vi.fn();
+		const { container } = render(
+			<SessionCardView
+				action={<button type="button">Restore</button>}
+				branchAction={<button type="button">Copy branch</button>}
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				onOpen={onOpen}
+				prs={[
+					{
+						commentCount: 1,
+						number: 10,
+						reviewers: [
+							{
+								id: "ada-lovelace",
+								avatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
+							},
+						],
+						state: "open",
+						url: "https://example.com/pull/10",
+					},
+					{
+						commentCount: 1,
+						number: 11,
+						reviewers: [{ id: "grace-hopper" }],
+						state: "open",
+						url: "https://example.com/pull/11",
+					},
+					{ number: 12, state: "merged", url: "https://example.com/pull/12" },
+				]}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, branch: "feat/portable", trackerIssueId: "github:42" }}
+				usage={{ accessibleLabel: "12,400 tokens", compactLabel: "12.4K tok" }}
+			/>,
+		);
+
+		expect(screen.getByRole("link", { name: "PR #10 open" })).toHaveAttribute(
+			"href",
+			"https://example.com/pull/10",
+		);
+		expect(screen.getByRole("link", { name: "PR #11 open" })).toHaveAttribute(
+			"href",
+			"https://example.com/pull/11",
+		);
+		expect(screen.getByRole("link", { name: "PR #12 merged" })).toHaveAttribute(
+			"href",
+			"https://example.com/pull/12",
+		);
+		const reviewerAvatar = container.querySelector(
+			'img[src="https://avatars.githubusercontent.com/u/1?v=4"]',
+		);
+		expect(reviewerAvatar).not.toBeNull();
+		expect(reviewerAvatar).toHaveAttribute("src", "https://avatars.githubusercontent.com/u/1?v=4");
+		expect(reviewerAvatar).toHaveAttribute("referrerpolicy", "no-referrer");
+		const fallback = screen.getByText("GH");
+		expect(fallback).toHaveAttribute("aria-hidden", "true");
+		// The full label is real text, not an aria-label on a generic span, and
+		// the compact form is hidden so it is not read out alongside it.
+		expect(screen.getByText("12,400 tokens")).toHaveClass("sr-only");
+		expect(screen.getByText("12.4K tok")).toHaveAttribute("aria-hidden", "true");
+		expect(screen.getByText("5m ago")).toHaveAttribute("title", "Updated 2026-08-09T10:00:00Z");
+		expect(screen.getByText("feat/portable")).toHaveClass("text-muted-foreground");
+		expect(screen.getByText("5m ago")).toHaveClass("tabular-nums", "text-muted-foreground");
+		expect(screen.queryByText("github:42")).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "portable task" }));
+		expect(onOpen).toHaveBeenCalledOnce();
+	});
+
+	it("keeps a crowded PR row wrapping instead of crushing entries past the card edge", () => {
+		const { container } = render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "10h ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				prs={[5146, 5147, 5148, 5149, 5217, 5218, 5219, 5221, 5223, 5290].map((number) => ({
+					number,
+					state: "open" as const,
+					url: `https://example.com/pull/${number}`,
+				}))}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={baseSession}
+			/>,
+		);
+
+		// Ten open PRs share one state, so they share one row. The row has to wrap
+		// them; the alternative it must never fall back to is squeezing them into
+		// a single line, where the numbers paint over each other and past the card.
+		const row = screen.getByRole("link", { name: "PR #5146 open" }).parentElement;
+		expect(row).toHaveClass("flex", "flex-wrap");
+
+		const links = screen.getAllByRole("link", { name: /^PR #\d+ open$/ });
+		expect(links).toHaveLength(10);
+		for (const link of links) {
+			// Unshrinkable, so a full row wraps rather than compressing entries.
+			expect(link).toHaveClass("shrink-0");
+			// Capped at the row for the one case wrapping cannot fix — a single
+			// entry wider than the row — which truncates inside the card instead.
+			expect(link).toHaveClass("max-w-full");
+		}
+
+		// The number carries no box of its own to be clipped by, so it needs to
+		// truncate; otherwise it is the glyphs that escape the card.
+		const number = screen.getByText("#5146");
+		expect(number).toHaveClass("truncate");
+		expect(container.querySelector(".pr-link")).toBe(links[0]);
+	});
+
+	it("uses the shared loading and error fallback for reviewer avatars", () => {
+		const avatarUrl = "https://avatars.githubusercontent.com/ada?size=64";
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				prs={[{
+					commentCount: 1,
+					number: 10,
+					reviewers: [{ id: "ada-lovelace", avatarUrl }],
+					state: "open",
+					url: "https://example.com/pull/10",
+				}]}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={baseSession}
+			/>,
+		);
+
+		const prLink = screen.getByRole("link", { name: "PR #10 open" });
+		const image = prLink.querySelector("img");
+		expect(prLink).toHaveTextContent("AL");
+		expect(image).toHaveAttribute("src", avatarUrl);
+		if (image) fireEvent.load(image);
+		expect(prLink).not.toHaveTextContent("AL");
+		if (image) fireEvent.error(image);
+		expect(prLink).toHaveTextContent("AL");
+		expect(prLink.querySelector("img")).not.toBeInTheDocument();
+	});
+
+	it("shows exact PR completion on completed and terminated cards without changing their status", () => {
+		const card = (
+			status: BoardSessionPresentation["status"],
+			prs: BoardPullRequestPresentation[],
+		) => (
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: progressLabels,
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				prs={prs}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, status }}
+			/>
+		);
+		const mixed: BoardPullRequestPresentation[] = [
+			{ number: 10, state: "merged", url: "https://example.com/pull/10" },
+			{ number: 11, state: "open", url: "https://example.com/pull/11" },
+		];
+		const { rerender } = render(card("terminated", mixed));
+
+		expect(screen.getByText("Terminated")).toBeInTheDocument();
+		const mixedProgress = screen.getByTestId("session-pr-progress");
+		expect(mixedProgress).toHaveTextContent(
+			"1 of 2 PRs merged · 1 open",
+		);
+		expect(mixedProgress).toHaveAttribute("title", "1 of 2 PRs merged · 1 open");
+		expect(mixedProgress).toHaveClass("col-span-2", "truncate");
+
+		rerender(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: progressLabels,
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				prs={[
+					{ number: 10, state: "merged", url: "https://example.com/pull/10" },
+					{ number: 11, state: "merged", url: "https://example.com/pull/11" },
+				]}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, status: "merged", isTerminated: true }}
+			/>,
+		);
+		expect(screen.getByText("Merged")).toBeInTheDocument();
+		expect(screen.getByTestId("session-pr-progress")).toHaveTextContent("2 of 2 PRs merged");
+
+		rerender(
+			card("terminated", [
+				{ number: 10, state: "closed", url: "https://example.com/pull/10" },
+				{ number: 11, state: "draft", url: "https://example.com/pull/11" },
+			]),
+		);
+		expect(screen.getByTestId("session-pr-progress")).toHaveTextContent(
+			"0 of 2 PRs merged · 1 draft · 1 closed",
+		);
+
+		rerender(card("pr_open", mixed));
+		expect(screen.queryByTestId("session-pr-progress")).not.toBeInTheDocument();
+
+		rerender(card("terminated", []));
+		expect(screen.queryByTestId("session-pr-progress")).not.toBeInTheDocument();
+	});
+
+	it("hides PR progress for a live merged session that has not actually terminated", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "5m ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: progressLabels,
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				prs={[
+					{ number: 10, state: "merged", url: "https://example.com/pull/10" },
+					{ number: 11, state: "open", url: "https://example.com/pull/11" },
+				]}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, status: "merged", isTerminated: false }}
+			/>,
+		);
+		expect(screen.queryByTestId("session-pr-progress")).not.toBeInTheDocument();
+	});
+
+	it("truncates the status before card metrics can collide", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "1h ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, status: "review_pending" }}
+				usage={{ accessibleLabel: "24,600,000 tokens", compactLabel: "24.6M tok" }}
+			/>,
+		);
+
+		const statusLabel = screen.getByText("Review pending");
+		const status = statusLabel.parentElement;
+		const statusSlot = status?.parentElement;
+		const metadataRow = statusSlot?.parentElement;
+		expect(statusLabel).toHaveClass("min-w-0", "truncate");
+		expect(status).toHaveClass("min-w-0", "max-w-full");
+		expect(statusSlot).toHaveClass("min-w-0", "flex-1");
+		expect(metadataRow).toHaveClass("grid", "grid-cols-[minmax(0,1fr)_auto]", "items-center");
+		expect(metadataRow).not.toHaveClass("flex-wrap");
+		expect(screen.getByText("24.6M tok").parentElement).toHaveClass("shrink-0", "whitespace-nowrap");
+	});
+
+	it("prints the daemon's display status in place of the derived status label", () => {
+		const labels = {
+			formatTime: () => "1h ago",
+			intakeIssue: (id: string) => `Issue ${id}`,
+			pr: {
+				short: "PR",
+				states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+			},
+			updatedAt: (timestamp: string) => `Updated ${timestamp}`,
+		};
+		const { rerender } = render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={labels}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{
+					...baseSession,
+					displayStatus: "Fixing CI failures",
+					kanbanColumn: "validating",
+					status: "ci_failed",
+				}}
+			/>,
+		);
+		expect(screen.getByText("Fixing CI failures")).toBeInTheDocument();
+
+		// A daemon too old to derive one leaves the status badge in charge.
+		rerender(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={labels}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, status: "ci_failed" }}
+			/>,
+		);
+		expect(screen.queryByText("Fixing CI failures")).not.toBeInTheDocument();
+		expect(screen.getByText(getSessionStatusView("ci_failed").label)).toBeInTheDocument();
+	});
+
+	it("counts a multi-PR session's other PRs beside the daemon's status", () => {
+		const labels = {
+			formatTime: () => "1h ago",
+			intakeIssue: (id: string) => `Issue ${id}`,
+			pr: {
+				short: "PR",
+				states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+			},
+			updatedAt: (timestamp: string) => `Updated ${timestamp}`,
+		};
+		const session: BoardSessionPresentation = {
+			...baseSession,
+			displayStatus: "Awaiting review",
+			kanbanColumn: "needs_review",
+			prMix: { lead: "2 awaiting review", detail: "1 waiting on #8277" },
+			status: "review_pending",
+		};
+		const { rerender } = render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={labels}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={session}
+			/>,
+		);
+		expect(screen.getByTestId("session-status")).toHaveTextContent("2 awaiting review · 1 waiting on #8277");
+		expect(screen.queryByText("Awaiting review")).not.toBeInTheDocument();
+
+		// The daemon's phrase decides the tone even where the older derived status still reads mergeable.
+		rerender(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={labels}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, displayStatus: "Waiting on base PR", kanbanColumn: "needs_review", status: "mergeable" }}
+			/>,
+		);
+		expect(screen.getByTestId("session-status")).toHaveTextContent("Waiting on base PR");
+		expect(screen.getByTestId("session-status")).not.toHaveClass("text-success");
+
+		// While the status is still being checked, the counts stay out of it.
+		rerender(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={labels}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...session, statusReadiness: "checking" }}
+			/>,
+		);
+		expect(screen.getByTestId("session-status")).not.toHaveTextContent("1 waiting on #8277");
+	});
+
+	it("translates the daemon's display status instead of printing raw English", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "1h ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{
+					...baseSession,
+					displayStatus: "Fixing CI failures",
+					kanbanColumn: "validating",
+					status: "ci_failed",
+				}}
+				translate={(key) => (key === "displayStatus.fixingCiFailures" ? "CI-Fehler werden behoben" : key)}
+			/>,
+		);
+
+		expect(screen.getByText("CI-Fehler werden behoben")).toBeInTheDocument();
+	});
+
+	it("shows a display status this build does not recognize as raw English rather than a key", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "1h ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{ ...baseSession, displayStatus: "Rebasing onto main", status: "pr_open" }}
+				translate={(key) => `translated:${key}`}
+			/>,
+		);
+
+		expect(screen.getByText("Rebasing onto main")).toBeInTheDocument();
+	});
+
+	it("styles the display status with the daemon-owned Kanban column", () => {
+		render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "1h ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{
+					...baseSession,
+					displayStatus: "Fixing CI failures",
+					kanbanColumn: "validating",
+					status: "ci_failed",
+				}}
+			/>,
+		);
+
+		const label = screen.getByText("Fixing CI failures");
+		const status = label.parentElement;
+		expect(status).toHaveAttribute("data-kanban-column", "validating");
+		expect(status).toHaveClass("text-status-validating");
+		expect(status).not.toHaveClass("rounded-sm", "border");
+		expect(status?.style.getPropertyValue("--session-status-tone")).toBe("");
+		expect(status?.querySelector(".rounded-full")).toBeNull();
+	});
+
+	it("paints a merged PR purple inside the Ready lane", () => {
+		const { container } = render(
+			<SessionCardView
+				externalLink={ExternalLink}
+				labels={{
+					formatTime: () => "1h ago",
+					intakeIssue: (id) => `Issue ${id}`,
+					pr: {
+						short: "PR",
+						states: { closed: "closed", draft: "draft", merged: "merged", open: "open" },
+					},
+					updatedAt: (timestamp) => `Updated ${timestamp}`,
+				}}
+				renderAvatar={(provider) => <span role="img" aria-label={provider}>C</span>}
+				session={{
+					...baseSession,
+					displayStatus: "Merged",
+					kanbanColumn: "ready",
+					status: "merged",
+				}}
+			/>,
+		);
+
+		const status = container.querySelector('[data-kanban-column="ready"]');
+		expect(status).toHaveClass("text-status-merged");
+		expect(status).not.toHaveClass("text-status-ready");
+	});
+});

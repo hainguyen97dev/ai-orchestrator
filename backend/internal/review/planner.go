@@ -1,0 +1,157 @@
+package review
+
+import (
+	"sort"
+
+	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/aoagents/agent-orchestrator/backend/pkg/contract"
+)
+
+// StateStatus is the per-PR review planning state.
+type StateStatus = contract.AOReviewState
+
+const (
+	// ReviewStateNeedsReview means an eligible PR has no current AO approval or running pass.
+	ReviewStateNeedsReview = contract.AOReviewNeedsReview
+	// ReviewStateRunning means a review run is already active for the PR's current head.
+	ReviewStateRunning = contract.AOReviewRunning
+	// ReviewStateUpToDate means AO approved the PR's current head.
+	ReviewStateUpToDate = contract.AOReviewUpToDate
+	// ReviewStateChangesRequested means AO requested changes on the PR's current head.
+	ReviewStateChangesRequested = contract.AOReviewChangesRequested
+	// ReviewStateIneligible means the PR is closed, merged, missing required facts,
+	// or a draft excluded from automatic review.
+	ReviewStateIneligible = contract.AOReviewIneligible
+)
+
+// PRReviewState is one PR-scoped review decision for a worker session.
+type PRReviewState struct {
+	PRURL       string            `json:"prUrl"`
+	PRNumber    int               `json:"prNumber"`
+	Title       string            `json:"title"`
+	TargetSHA   string            `json:"targetSha"`
+	Status      StateStatus       `json:"status" enum:"needs_review,running,up_to_date,changes_requested,ineligible"`
+	LatestRun   *domain.ReviewRun `json:"latestRun,omitempty"`
+	PreviousRun *domain.ReviewRun `json:"previousRun,omitempty"`
+}
+
+// Plan computes per-PR review work from the currently observed PRs and existing
+// review runs for explicit triggers and the API read model. Automatic review
+// paths must use PlanAuto to apply the draft policy.
+func Plan(prs []domain.PullRequest, runs []domain.ReviewRun) []PRReviewState {
+	latest := latestRunsByPRAndSHA(runs)
+	reviews := make([]PRReviewState, 0, len(prs))
+	for _, pr := range prs {
+		review := PRReviewState{
+			PRURL:     pr.URL,
+			PRNumber:  pr.Number,
+			Title:     pr.Title,
+			TargetSHA: pr.HeadSHA,
+			Status:    ReviewStateNeedsReview,
+		}
+		if run, ok := latestCompletedRunForOtherSHA(runs, review.PRURL, review.TargetSHA); ok {
+			review.PreviousRun = &run
+		}
+		if pr.URL == "" || pr.HeadSHA == "" || pr.Merged || pr.Closed {
+			review.Status = ReviewStateIneligible
+			if run, ok := latest[review.PRURL+"\x00"+review.TargetSHA]; ok {
+				review.LatestRun = &run
+			}
+			reviews = append(reviews, review)
+			continue
+		}
+		if run, ok := latest[review.PRURL+"\x00"+review.TargetSHA]; ok {
+			review.LatestRun = &run
+			switch {
+			case run.Status.IsActive():
+				review.Status = ReviewStateRunning
+			case run.Status == domain.ReviewRunCompleted && run.Verdict == domain.VerdictApproved:
+				review.Status = ReviewStateUpToDate
+			case run.Status == domain.ReviewRunCompleted && run.Verdict == domain.VerdictChangesRequested:
+				review.Status = ReviewStateChangesRequested
+			default:
+				// failed, cancelled and superseded passes never produced a review.
+				review.Status = ReviewStateNeedsReview
+			}
+		}
+		reviews = append(reviews, review)
+	}
+	sort.SliceStable(reviews, func(i, j int) bool {
+		if reviews[i].PRNumber != reviews[j].PRNumber {
+			return reviews[i].PRNumber < reviews[j].PRNumber
+		}
+		return reviews[i].PRURL < reviews[j].PRURL
+	})
+	return reviews
+}
+
+// PlanAuto is the planner for every automatic review path. It excludes draft PRs
+// from new work while retaining active passes.
+func PlanAuto(prs []domain.PullRequest, runs []domain.ReviewRun) []PRReviewState {
+	reviews := Plan(prs, runs)
+	drafts := make(map[string]bool, len(prs))
+	for _, pr := range prs {
+		drafts[pr.URL] = pr.Draft
+	}
+	for i := range reviews {
+		if drafts[reviews[i].PRURL] && reviews[i].Status != ReviewStateRunning {
+			reviews[i].Status = ReviewStateIneligible
+		}
+	}
+	return reviews
+}
+
+func latestCompletedRunForOtherSHA(runs []domain.ReviewRun, prURL, targetSHA string) (domain.ReviewRun, bool) {
+	if prURL == "" || targetSHA == "" {
+		return domain.ReviewRun{}, false
+	}
+	var latest domain.ReviewRun
+	found := false
+	for _, run := range runs {
+		if run.PRURL != prURL || run.TargetSHA == "" || run.TargetSHA == targetSHA {
+			continue
+		}
+		if run.Status != domain.ReviewRunCompleted {
+			continue
+		}
+		if run.Verdict != domain.VerdictApproved && run.Verdict != domain.VerdictChangesRequested {
+			continue
+		}
+		if !found || run.CreatedAt.After(latest.CreatedAt) {
+			latest = run
+			found = true
+		}
+	}
+	return latest, found
+}
+
+// latestRunsByPRAndSHA picks the authoritative run per PR head: the newest
+// active pass while any reviewer is still working on that head, otherwise the
+// newest pass. Several reviewers may review one head at once, so a reviewer that
+// finished first must not hide one that is still running.
+func latestRunsByPRAndSHA(runs []domain.ReviewRun) map[string]domain.ReviewRun {
+	latest := make(map[string]domain.ReviewRun)
+	for _, run := range runs {
+		if run.PRURL == "" || run.TargetSHA == "" {
+			continue
+		}
+		key := run.PRURL + "\x00" + run.TargetSHA
+		existing, ok := latest[key]
+		if !ok {
+			latest[key] = run
+			continue
+		}
+		runRunning := run.Status.IsActive()
+		existingRunning := existing.Status.IsActive()
+		if runRunning != existingRunning {
+			if runRunning {
+				latest[key] = run
+			}
+			continue
+		}
+		if run.CreatedAt.After(existing.CreatedAt) {
+			latest[key] = run
+		}
+	}
+	return latest
+}

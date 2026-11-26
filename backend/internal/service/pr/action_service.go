@@ -1,0 +1,1036 @@
+package pr
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+	"unicode/utf8"
+
+	"github.com/aoagents/agent-orchestrator/backend/internal/deliverytelemetry"
+	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/aoagents/agent-orchestrator/backend/internal/telemetrymeta"
+)
+
+var (
+	prNumberPattern = regexp.MustCompile(`^[1-9]\d*$`)
+	gitSHAPattern   = regexp.MustCompile(`^[0-9a-fA-F]{40}([0-9a-fA-F]{24})?$`)
+)
+
+type actionStore interface {
+	GetPR(ctx context.Context, url string) (domain.PullRequest, bool, error)
+}
+
+type resolveStore interface {
+	actionStore
+	GetPRByNumber(ctx context.Context, number int) (domain.PullRequest, bool, error)
+	ListChecks(ctx context.Context, prURL string) ([]domain.PullRequestCheck, error)
+	ListPRComments(ctx context.Context, prURL string) ([]domain.PullRequestComment, error)
+	ListPRReviewThreads(ctx context.Context, prURL string) ([]domain.PullRequestReviewThread, error)
+	ListPRReviews(ctx context.Context, prURL string) ([]domain.PullRequestReview, error)
+}
+
+type resolveNumberCounter interface {
+	CountActivePRsByNumber(context.Context, int) (int, error)
+}
+
+type actionReader interface {
+	FetchPullRequests(ctx context.Context, refs []ports.SCMPRRef) ([]ports.SCMObservation, error)
+	FetchReviewThreads(ctx context.Context, ref ports.SCMPRRef) (ports.SCMReviewObservation, error)
+}
+
+type actionLifecycle interface {
+	ApplySCMObservation(ctx context.Context, sessionID domain.SessionID, obs ports.SCMObservation) error
+}
+
+type mergeStateWriter interface {
+	MarkPRMerged(ctx context.Context, prURL, mergeCommitSHA string, mergedAt time.Time) error
+}
+
+// StateWriter records a provider-confirmed PR state change locally.
+type StateWriter interface {
+	MarkPRState(ctx context.Context, prURL string, state domain.PRState, changedAt time.Time) error
+}
+
+// CommentWriter records a just-posted comment locally so the PR summary shows
+// it before the next SCM observation reconciles it.
+type CommentWriter interface {
+	UpsertPRReviewComment(ctx context.Context, prURL string, comment domain.PullRequestComment) error
+	AppendPRConversationComment(ctx context.Context, prURL string, comment domain.PullRequestConversationComment) (bool, error)
+}
+
+// ReviewRefresher asks the SCM observer to re-fetch one PR's metadata and
+// review threads now without waiting for its regular cadence.
+type ReviewRefresher interface {
+	RequestReviewRefresh(prURL string)
+}
+
+// MergeQueueWriter records a provider-confirmed merge queue change locally, so
+// the PR view shows it before the next SCM observation; nil entry is a PR that
+// left the queue.
+type MergeQueueWriter interface {
+	MarkPRMergeQueue(ctx context.Context, prURL string, entry *domain.MergeQueueEntry, at time.Time) error
+}
+
+// mergedViaWriter records which client asked AO to merge, for the worker PR
+// merge measurement (ao.usage.worker_pr_merged). Optional on the merge writer.
+type mergedViaWriter interface {
+	RecordWorkerPRMergedVia(ctx context.Context, prURL, mergedVia string) error
+}
+
+// ActionDeps contains the storage and SCM boundaries used by ActionService.
+type ActionDeps struct {
+	Store        actionStore
+	ResolveStore resolveStore
+	Merger       ports.SCMMerger
+	Reader       actionReader
+	Resolver     ports.SCMReviewResolver
+	Writer       ports.SCMWriter
+	MergeWriter  mergeStateWriter
+	Lifecycle    actionLifecycle
+	Clock        func() time.Time
+	Logger       *slog.Logger
+	// ThreadWriter updates one resolved thread and its comments without
+	// replacing a potentially newer SCM observation.
+	ThreadWriter interface {
+		MarkPRReviewThreadResolved(context.Context, string, string) error
+	}
+	StateChanger  ports.SCMPRStateChanger
+	StateWriter   StateWriter
+	Commenter     ports.SCMCommenter
+	CommentWriter CommentWriter
+	Refresher     ReviewRefresher
+	Attachments   ports.SCMAttachmentStore
+	// Stacker is nil where no provider supports stacks.
+	Stacker ports.SCMStacker
+	// Details stores details read on demand; when nil, Store is used if it can.
+	Details detailsStore
+	// HeadChecks confirms that nothing checks a PR's head, for a merge that
+	// asks to treat no checks as passing. Nil means it's never confirmed.
+	HeadChecks ports.SCMHeadChecksReader
+	// Queuer adds PRs to a merge queue, the way a merge lands where the base
+	// branch requires one. Nil leaves such a PR unmergeable from AO.
+	Queuer ports.SCMMergeQueuer
+	// QueueWriter records queue changes; when nil, MergeWriter is used if it can.
+	QueueWriter MergeQueueWriter
+}
+
+// ActionService validates current pull request state before applying mutations.
+type ActionService struct {
+	store        actionStore
+	resolve      resolveStore
+	merger       ports.SCMMerger
+	reader       actionReader
+	resolver     ports.SCMReviewResolver
+	mergeWriter  mergeStateWriter
+	lifecycle    actionLifecycle
+	clock        func() time.Time
+	logger       *slog.Logger
+	threadWriter interface {
+		MarkPRReviewThreadResolved(context.Context, string, string) error
+	}
+	stateChanger  ports.SCMPRStateChanger
+	stateWriter   StateWriter
+	commenter     ports.SCMCommenter
+	commentWriter CommentWriter
+	refresher     ReviewRefresher
+	attachments   ports.SCMAttachmentStore
+	stacker       ports.SCMStacker
+	stackBehind   stackBehindCache
+	details       detailsStore
+	headChecks    ports.SCMHeadChecksReader
+	queuer        ports.SCMMergeQueuer
+	queueWriter   MergeQueueWriter
+}
+
+var _ ActionManager = (*ActionService)(nil)
+
+// NewActionService builds the guarded pull request action service.
+func NewActionService(deps ActionDeps) *ActionService {
+	resolve := deps.ResolveStore
+	if resolve == nil {
+		resolve, _ = deps.Store.(resolveStore)
+	}
+	threadWriter := deps.ThreadWriter
+	if threadWriter == nil {
+		threadWriter, _ = deps.Writer.(interface {
+			MarkPRReviewThreadResolved(context.Context, string, string) error
+		})
+	}
+	clock := deps.Clock
+	if clock == nil {
+		clock = time.Now
+	}
+	logger := deps.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
+	details := deps.Details
+	if details == nil {
+		details, _ = deps.Store.(detailsStore)
+	}
+	queueWriter := deps.QueueWriter
+	if queueWriter == nil {
+		queueWriter, _ = deps.MergeWriter.(MergeQueueWriter)
+	}
+	return &ActionService{
+		store:         deps.Store,
+		resolve:       resolve,
+		merger:        deps.Merger,
+		reader:        deps.Reader,
+		resolver:      deps.Resolver,
+		mergeWriter:   deps.MergeWriter,
+		lifecycle:     deps.Lifecycle,
+		clock:         clock,
+		logger:        logger,
+		threadWriter:  threadWriter,
+		stateChanger:  deps.StateChanger,
+		stateWriter:   deps.StateWriter,
+		commenter:     deps.Commenter,
+		commentWriter: deps.CommentWriter,
+		refresher:     deps.Refresher,
+		attachments:   deps.Attachments,
+		stacker:       deps.Stacker,
+		headChecks:    deps.HeadChecks,
+		details:       details,
+		queuer:        deps.Queuer,
+		queueWriter:   queueWriter,
+	}
+}
+
+// Merge re-fetches authoritative SCM state and then merges (squash by default,
+// or the requested merge/rebase method) only the exact head the user saw. The
+// provider repeats the SHA guard atomically. Where the base branch requires a
+// merge queue, a direct merge can only be refused, so the PR joins the queue
+// instead, pinned to the same head; the queue's own settings pick the method.
+func (s *ActionService) Merge(ctx context.Context, request MergeRequest) (MergeResult, error) {
+	prNumber, err := parsePRNumber(request.PRID)
+	if err != nil || strings.TrimSpace(request.PRURL) == "" {
+		return MergeResult{}, fmt.Errorf("%w: invalid pull request identity", ErrInvalidPR)
+	}
+	if s.store == nil || s.merger == nil || s.reader == nil {
+		return MergeResult{}, errors.New("pr: merge action is not configured")
+	}
+	expectedHead := strings.ToLower(strings.TrimSpace(request.ExpectedHeadSHA))
+	if !gitSHAPattern.MatchString(expectedHead) {
+		return MergeResult{}, fmt.Errorf("%w: invalid expected head", ErrInvalidPR)
+	}
+	method := ports.SCMMergeMethod(strings.ToLower(strings.TrimSpace(request.Method)))
+	if method == "" {
+		method = ports.SCMMergeSquash
+	}
+	if !method.Valid() {
+		return MergeResult{}, fmt.Errorf("%w: unknown merge method %q", ErrInvalidAction, request.Method)
+	}
+
+	tracked, ok, err := s.store.GetPR(ctx, request.PRURL)
+	if err != nil {
+		return MergeResult{}, fmt.Errorf("load pull request: %w", err)
+	}
+	if !ok || tracked.Number != prNumber {
+		return MergeResult{}, ErrPRNotFound
+	}
+	if tracked.Draft || tracked.Merged || tracked.Closed {
+		return MergeResult{}, ErrPRNotMergeable
+	}
+	if !gitSHAPattern.MatchString(strings.TrimSpace(tracked.HeadSHA)) {
+		return MergeResult{}, fmt.Errorf("%w: pull request head is unknown", ErrPRPreconditions)
+	}
+	if !strings.EqualFold(expectedHead, tracked.HeadSHA) {
+		return MergeResult{}, ErrPRHeadChanged
+	}
+
+	repo, ok := scmRepoForPR(tracked)
+	if !ok {
+		return MergeResult{}, fmt.Errorf("%w: pull request repository is unknown", ErrPRPreconditions)
+	}
+	ref := ports.SCMPRRef{Repo: repo, Number: tracked.Number, URL: tracked.URL}
+	if err := s.guardStackedMerge(ctx, ref); err != nil {
+		return MergeResult{}, err
+	}
+	fresh, review, err := s.fetchMergeReadiness(ctx, ref)
+	if err != nil {
+		return MergeResult{}, err
+	}
+	if !strings.EqualFold(fresh.PR.HeadSHA, expectedHead) {
+		return MergeResult{}, ErrPRHeadChanged
+	}
+	if fresh.PR.MergeQueue != nil {
+		return MergeResult{}, ErrPRQueued
+	}
+	if !readyToMerge(fresh, review, request.AllowNoChecks && s.noChecksSettled(ctx, repo, fresh)) {
+		return MergeResult{}, ErrPRPreconditions
+	}
+	if fresh.PR.MergeQueueRequired {
+		return s.enqueue(ctx, tracked, ref, fresh, expectedHead, method)
+	}
+
+	out, err := s.merger.MergePullRequest(ctx, ports.SCMMergeRequest{PR: ref, ExpectedHeadSHA: expectedHead, Method: method})
+	if err != nil {
+		switch {
+		case errors.Is(err, ports.ErrSCMUnsupported):
+			return MergeResult{}, fmt.Errorf("%w: %w", ErrUnsupported, err)
+		case errors.Is(err, ports.ErrSCMNotFound):
+			return MergeResult{}, fmt.Errorf("%w: %w", ErrPRNotFound, err)
+		case errors.Is(err, ports.ErrSCMHeadChanged):
+			return MergeResult{}, fmt.Errorf("%w: %w", ErrPRHeadChanged, err)
+		case errors.Is(err, ports.ErrSCMNotMergeable):
+			return MergeResult{}, fmt.Errorf("%w: %w", ErrPRNotMergeable, err)
+		default:
+			return MergeResult{}, fmt.Errorf("merge pull request: %w", err)
+		}
+	}
+	mergedAt := s.clock().UTC()
+	s.recordMerge(ctx, tracked, fresh, out.MergeCommitSHA, mergedAt)
+	return MergeResult{
+		PRNumber:       tracked.Number,
+		Method:         string(method),
+		State:          domain.PRStateMerged,
+		MergeCommitSHA: out.MergeCommitSHA,
+		StateChangedAt: mergedAt,
+	}, nil
+}
+
+// enqueue adds a PR that passed the merge guard to its base branch's merge
+// queue and records its place there.
+func (s *ActionService) enqueue(ctx context.Context, tracked domain.PullRequest, ref ports.SCMPRRef, fresh ports.SCMObservation, expectedHead string, method ports.SCMMergeMethod) (MergeResult, error) {
+	if s.queuer == nil {
+		return MergeResult{}, fmt.Errorf("%w: merge queues", ErrUnsupported)
+	}
+	entry, err := s.queuer.EnqueuePullRequest(ctx, ports.SCMEnqueueRequest{
+		PR:              ref,
+		NodeID:          firstNonEmptyString(fresh.PR.ProviderID, tracked.ProviderID),
+		ExpectedHeadSHA: expectedHead,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, ports.ErrSCMHeadChanged):
+			return MergeResult{}, fmt.Errorf("%w: %w", ErrPRHeadChanged, err)
+		default:
+			return MergeResult{}, mapMutationError("add pull request to merge queue", err)
+		}
+	}
+	at := s.clock().UTC()
+	s.recordQueue(context.WithoutCancel(ctx), tracked.URL, &entry, at)
+	return MergeResult{
+		PRNumber:       tracked.Number,
+		Method:         string(method),
+		State:          domain.PRStateOpen,
+		StateChangedAt: at,
+		Queue:          &entry,
+	}, nil
+}
+
+// Dequeue removes a tracked PR from its merge queue. It reads the PR first, so
+// a PR that already left the queue (merged, or dropped by the provider) is
+// reported rather than mutated.
+func (s *ActionService) Dequeue(ctx context.Context, prID, prURL string) (DequeueResult, error) {
+	prNumber, err := parsePRNumber(prID)
+	if err != nil || strings.TrimSpace(prURL) == "" {
+		return DequeueResult{}, fmt.Errorf("%w: invalid pull request identity", ErrInvalidPR)
+	}
+	if s.store == nil || s.reader == nil {
+		return DequeueResult{}, errors.New("pr: dequeue action is not configured")
+	}
+	if s.queuer == nil {
+		return DequeueResult{}, fmt.Errorf("%w: merge queues", ErrUnsupported)
+	}
+	tracked, ok, err := s.store.GetPR(ctx, prURL)
+	if err != nil {
+		return DequeueResult{}, fmt.Errorf("load pull request: %w", err)
+	}
+	if !ok || tracked.Number != prNumber {
+		return DequeueResult{}, ErrPRNotFound
+	}
+	repo, ok := scmRepoForPR(tracked)
+	if !ok {
+		return DequeueResult{}, fmt.Errorf("%w: pull request repository is unknown", ErrPRPreconditions)
+	}
+	ref := ports.SCMPRRef{Repo: repo, Number: tracked.Number, URL: tracked.URL}
+	observations, err := s.reader.FetchPullRequests(ctx, []ports.SCMPRRef{ref})
+	if err != nil {
+		if errors.Is(err, ports.ErrSCMNotFound) {
+			return DequeueResult{}, fmt.Errorf("%w: %w", ErrPRNotFound, err)
+		}
+		return DequeueResult{}, fmt.Errorf("refresh pull request before leaving the merge queue: %w", err)
+	}
+	if len(observations) != 1 || !observations[0].Fetched || observations[0].PR.Number != ref.Number {
+		return DequeueResult{}, ErrPRNotFound
+	}
+	fresh := observations[0]
+	if fresh.PR.MergeQueue == nil {
+		// Clear a stale entry, but only on a branch that has a queue: the
+		// write also marks the branch as merging through one.
+		if fresh.PR.MergeQueueRequired {
+			s.recordQueue(ctx, tracked.URL, nil, s.clock().UTC())
+		}
+		return DequeueResult{}, ErrPRNotQueued
+	}
+	if err := s.queuer.DequeuePullRequest(ctx, ports.SCMDequeueRequest{
+		PR:     ref,
+		NodeID: firstNonEmptyString(fresh.PR.ProviderID, tracked.ProviderID),
+	}); err != nil {
+		return DequeueResult{}, mapMutationError("remove pull request from merge queue", err)
+	}
+	at := s.clock().UTC()
+	s.recordQueue(context.WithoutCancel(ctx), tracked.URL, nil, at)
+	return DequeueResult{PRNumber: tracked.Number, ChangedAt: at}, nil
+}
+
+// recordQueue stores a confirmed queue change and asks the observer for a
+// sooner look, which brings the position and state up to date. The provider
+// already made the change, so a failure here only logs.
+func (s *ActionService) recordQueue(ctx context.Context, prURL string, entry *domain.MergeQueueEntry, at time.Time) {
+	if s.queueWriter != nil {
+		if err := s.queueWriter.MarkPRMergeQueue(ctx, prURL, entry, at); err != nil {
+			s.logger.Warn("pr merge queue change succeeded but local persistence failed", "pr", prURL, "err", err)
+		}
+	}
+	if s.refresher != nil {
+		s.refresher.RequestReviewRefresh(prURL)
+	}
+}
+
+func firstNonEmptyString(values ...string) string {
+	for _, v := range values {
+		if v = strings.TrimSpace(v); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// recordMerge brings AO up to date with a merge the provider confirmed, from
+// fresh, the observation read just before merging. A merged row is terminal and
+// the observer stops polling it, so this is lifecycle's one look at the merge.
+// The provider has already committed the irreversible remote mutation, so a
+// failure here only logs: callers still report the merge so it isn't retried,
+// and a row that failed to persist stays open for the observer to reconcile.
+func (s *ActionService) recordMerge(ctx context.Context, tracked domain.PullRequest, fresh ports.SCMObservation, mergeCommitSHA string, mergedAt time.Time) {
+	// Recorded before the merged row, so the usage flush can never see this
+	// merge without its client; a failed local write leaves the observer to
+	// record the merge later, still attributed correctly.
+	if via, ok := s.mergeWriter.(mergedViaWriter); ok {
+		if err := via.RecordWorkerPRMergedVia(ctx, tracked.URL, deliverytelemetry.MergedViaSurface(telemetrymeta.SurfaceFromContext(ctx))); err != nil {
+			s.logger.Warn("pr merge telemetry: record merged_via", "pr", tracked.URL, "err", err)
+		}
+	}
+	if s.mergeWriter == nil {
+		return
+	}
+	if err := s.mergeWriter.MarkPRMerged(ctx, tracked.URL, mergeCommitSHA, mergedAt); err != nil {
+		s.logger.Error("pr merge succeeded but local state persistence failed", "pr", tracked.URL, "err", err)
+		return
+	}
+	if s.lifecycle == nil {
+		return
+	}
+	fresh.PR.Draft = false
+	fresh.PR.Merged = true
+	fresh.PR.Closed = false
+	fresh.PR.State = string(domain.PRStateMerged)
+	fresh.PR.MergeCommitSHA = mergeCommitSHA
+	fresh.ObservedAt = mergedAt
+	if err := s.lifecycle.ApplySCMObservation(ctx, tracked.SessionID, fresh); err != nil {
+		s.logger.Error("pr merge succeeded but lifecycle notification failed", "session", tracked.SessionID, "pr", tracked.URL, "err", err)
+	}
+}
+
+func (s *ActionService) fetchMergeReadiness(ctx context.Context, ref ports.SCMPRRef) (ports.SCMObservation, ports.SCMReviewObservation, error) {
+	observations, err := s.reader.FetchPullRequests(ctx, []ports.SCMPRRef{ref})
+	if err != nil {
+		if errors.Is(err, ports.ErrSCMNotFound) {
+			return ports.SCMObservation{}, ports.SCMReviewObservation{}, fmt.Errorf("%w: %w", ErrPRNotFound, err)
+		}
+		return ports.SCMObservation{}, ports.SCMReviewObservation{}, fmt.Errorf("refresh pull request before merge: %w", err)
+	}
+	if len(observations) != 1 || !observations[0].Fetched || observations[0].PR.Number != ref.Number {
+		return ports.SCMObservation{}, ports.SCMReviewObservation{}, ErrPRNotFound
+	}
+	review, err := s.reader.FetchReviewThreads(ctx, ref)
+	if err != nil {
+		if errors.Is(err, ports.ErrSCMNotFound) {
+			return ports.SCMObservation{}, ports.SCMReviewObservation{}, fmt.Errorf("%w: %w", ErrPRNotFound, err)
+		}
+		return ports.SCMObservation{}, ports.SCMReviewObservation{}, fmt.Errorf("refresh pull request reviews before merge: %w", err)
+	}
+	return observations[0], review, nil
+}
+
+// readyToMerge is the merge guard on a fresh observation. noChecks says the
+// head is confirmed to have nothing checking it (see noChecksSettled), so its
+// unknown CI has nothing to wait for; the provider's mergeability still
+// enforces any checks a branch requires.
+func readyToMerge(o ports.SCMObservation, review ports.SCMReviewObservation, noChecks bool) bool {
+	if o.PR.HeadSHA == "" || o.CI.HeadSHA != o.PR.HeadSHA || review.Partial {
+		return false
+	}
+	ci := domain.CIState(o.CI.Summary)
+	if noChecks && hasNoChecks(o.CI) {
+		ci = domain.CIPassing
+	}
+	return domain.MergeReadiness{
+		Draft:              o.PR.Draft,
+		Merged:             o.PR.Merged,
+		Closed:             o.PR.Closed,
+		CI:                 ci,
+		Review:             domain.ReviewDecision(review.Decision),
+		Mergeability:       domain.Mergeability(o.Mergeability.State),
+		UnresolvedComments: hasUnresolvedHumanComments(review.Threads),
+	}.ReadyToMerge()
+}
+
+// hasNoChecks says the head's status rollup is empty: CI reads as unknown with
+// no checks listed. A cancelled run still lists its checks, so it never counts.
+// An empty rollup is also what a commit pushed seconds ago looks like before
+// its checks register, so it alone never lets a PR merge: see noChecksSettled.
+func hasNoChecks(ci ports.SCMCIObservation) bool {
+	return ci.Summary == string(domain.CIUnknown) && len(ci.Checks) == 0 && len(ci.FailedChecks) == 0
+}
+
+// noChecksSettle is how long a head's checks get to start before an empty
+// rollup is taken to mean nothing checks it. Actions and other check apps
+// register within seconds of a push.
+const noChecksSettle = 2 * time.Minute
+
+// noChecksSettled confirms with the provider that nothing checks o's head: its
+// rollup is empty, no check suite has started and no status was posted, for at
+// least noChecksSettle since checks could first have started. Without that, a
+// merge right after a push would land a commit whose CI hadn't begun.
+func (s *ActionService) noChecksSettled(ctx context.Context, repo ports.SCMRepo, o ports.SCMObservation) bool {
+	if s.headChecks == nil || !hasNoChecks(o.CI) || o.PR.HeadSHA == "" {
+		return false
+	}
+	facts, err := s.headChecks.HeadChecks(ctx, repo, o.PR.HeadSHA)
+	if err != nil {
+		s.logger.Debug("pr: read head checks", "pr", o.PR.Number, "error", err)
+		return false
+	}
+	return facts.Started == 0 && facts.Statuses == 0 && !facts.Since.IsZero() && !s.clock().Before(facts.Since.Add(noChecksSettle))
+}
+
+func hasUnresolvedHumanComments(threads []ports.SCMReviewThreadObservation) bool {
+	for _, thread := range threads {
+		if thread.Resolved {
+			continue
+		}
+		for _, comment := range thread.Comments {
+			if !comment.IsBot {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func parsePRNumber(value string) (int, error) {
+	if !prNumberPattern.MatchString(value) {
+		return 0, ErrInvalidPR
+	}
+	n, err := strconv.ParseInt(value, 10, 32)
+	if err != nil || n <= 0 {
+		return 0, ErrInvalidPR
+	}
+	return int(n), nil
+}
+
+func scmRepoForPR(pr domain.PullRequest) (ports.SCMRepo, bool) {
+	parts := strings.Split(pr.Repo, "/")
+	if len(parts) < 2 || strings.TrimSpace(parts[0]) == "" || strings.TrimSpace(parts[len(parts)-1]) == "" {
+		return ports.SCMRepo{}, false
+	}
+	provider := strings.ToLower(strings.TrimSpace(pr.Provider))
+	if provider == "" {
+		provider = "github"
+	}
+	host := strings.ToLower(strings.TrimSpace(pr.Host))
+	if host == "" && provider == "github" {
+		host = "github.com"
+	}
+	return ports.SCMRepo{
+		Provider: provider,
+		Host:     host,
+		Owner:    strings.Join(parts[:len(parts)-1], "/"),
+		Name:     parts[len(parts)-1],
+		Repo:     pr.Repo,
+	}, true
+}
+
+// ResolveComments resolves provider review threads first and then marks each
+// successful mutation locally. Empty commentIDs resolves every unresolved
+// thread returned by the provider. Supplied IDs may be either provider thread
+// IDs or comment IDs; comment IDs are mapped to their owning thread before the
+// mutation. Resolve-all requires a complete provider listing; an explicit ID
+// may still be used when it is present in a partial listing, while unknown IDs
+// are rejected because the response cannot prove their membership.
+func (s *ActionService) ResolveComments(ctx context.Context, prID string, commentIDs []string) (ResolveResult, error) {
+	if s.resolve == nil || s.reader == nil || s.resolver == nil || s.threadWriter == nil {
+		return ResolveResult{}, errors.New("pr: resolve-comments action is not configured")
+	}
+	pr, err := s.lookupResolvePR(ctx, prID)
+	if err != nil {
+		return ResolveResult{}, err
+	}
+
+	repo, ok := scmRepoForPR(pr)
+	if !ok {
+		return ResolveResult{}, fmt.Errorf("%w: pull request repository is unknown", ErrPRPreconditions)
+	}
+	ref := ports.SCMPRRef{Repo: repo, Number: pr.Number, URL: pr.URL}
+
+	// Refresh the provider view before mutating anything. This both supplies the
+	// resolve-all set and confirms that the tracked number still exists remotely.
+	review, err := s.reader.FetchReviewThreads(ctx, ref)
+	if err != nil {
+		if errors.Is(err, ports.ErrSCMNotFound) {
+			return ResolveResult{}, fmt.Errorf("%w: %w", ErrPRNotFound, err)
+		}
+		return ResolveResult{}, fmt.Errorf("refresh pull request reviews before resolving comments: %w", err)
+	}
+	if review.Partial && len(commentIDs) == 0 {
+		return ResolveResult{}, fmt.Errorf("%w: review thread listing is incomplete; provide an explicit thread or comment id", ErrPRPreconditions)
+	}
+
+	threadIDs, err := requestedThreadIDs(review, commentIDs)
+	if err != nil {
+		return ResolveResult{}, err
+	}
+	if len(commentIDs) == 0 {
+		threadIDs = make([]string, 0, len(review.Threads))
+		for _, thread := range review.Threads {
+			if thread.Resolved {
+				continue
+			}
+			if id := strings.TrimSpace(thread.ID); id != "" {
+				threadIDs = append(threadIDs, id)
+			}
+		}
+		threadIDs = normalizeThreadIDs(threadIDs)
+	}
+	if len(threadIDs) == 0 {
+		return ResolveResult{}, ErrNothingToResolve
+	}
+
+	resolved := 0
+	for _, id := range threadIDs {
+		if err := s.resolver.ResolveReviewThread(ctx, ports.SCMReviewResolveRequest{PR: ref, ThreadID: id}); err != nil {
+			mapped := mapResolveError(err)
+			return ResolveResult{Resolved: resolved}, mapped
+		}
+		if err := s.threadWriter.MarkPRReviewThreadResolved(ctx, pr.URL, id); err != nil {
+			return ResolveResult{Resolved: resolved}, fmt.Errorf("persist resolved review thread %q: %w", id, err)
+		}
+		resolved++
+	}
+	return ResolveResult{Resolved: resolved}, nil
+}
+
+func (s *ActionService) lookupResolvePR(ctx context.Context, prID string) (domain.PullRequest, error) {
+	number, err := parsePRNumber(strings.TrimSpace(prID))
+	if err != nil {
+		return domain.PullRequest{}, fmt.Errorf("%w: invalid pull request identity", ErrInvalidPR)
+	}
+	pr, ok, err := s.resolve.GetPRByNumber(ctx, number)
+	if err != nil {
+		return domain.PullRequest{}, fmt.Errorf("load pull request: %w", err)
+	}
+	if counter, ok := s.resolve.(resolveNumberCounter); ok {
+		active, err := counter.CountActivePRsByNumber(ctx, number)
+		if err != nil {
+			return domain.PullRequest{}, fmt.Errorf("check pull request identity: %w", err)
+		}
+		if active > 1 {
+			return domain.PullRequest{}, fmt.Errorf("%w: pull request number %d is tracked in multiple active repositories", ErrPRPreconditions, number)
+		}
+	}
+	if !ok {
+		return domain.PullRequest{}, ErrPRNotFound
+	}
+	return pr, nil
+}
+
+func normalizeThreadIDs(ids []string) []string {
+	seen := make(map[string]struct{}, len(ids))
+	out := make([]string, 0, len(ids))
+	for _, raw := range ids {
+		id := strings.TrimSpace(raw)
+		if id == "" {
+			continue
+		}
+		if _, exists := seen[id]; exists {
+			continue
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
+	}
+	return out
+}
+
+// requestedThreadIDs validates explicit IDs against the provider observation
+// and maps documented comment IDs to their owning thread IDs.
+func requestedThreadIDs(review ports.SCMReviewObservation, commentIDs []string) ([]string, error) {
+	if len(commentIDs) == 0 {
+		return nil, nil
+	}
+	threadIDs := make(map[string]struct{}, len(review.Threads))
+	commentToThread := make(map[string]string)
+	for _, thread := range review.Threads {
+		threadID := strings.TrimSpace(thread.ID)
+		if threadID == "" {
+			continue
+		}
+		threadIDs[threadID] = struct{}{}
+		for _, comment := range thread.Comments {
+			if commentID := strings.TrimSpace(comment.ID); commentID != "" {
+				commentToThread[commentID] = threadID
+			}
+		}
+	}
+
+	requested := normalizeThreadIDs(commentIDs)
+	out := make([]string, 0, len(requested))
+	for _, id := range requested {
+		if _, ok := threadIDs[id]; ok {
+			out = append(out, id)
+			continue
+		}
+		if threadID, ok := commentToThread[id]; ok {
+			out = append(out, threadID)
+			continue
+		}
+		return nil, fmt.Errorf("%w: review thread or comment %q is not part of pull request", ErrPRPreconditions, id)
+	}
+	return normalizeThreadIDs(out), nil
+}
+
+func mapResolveError(err error) error {
+	if errors.Is(err, ports.ErrSCMNotFound) {
+		return fmt.Errorf("%w: %w", ErrPRNotFound, err)
+	}
+	return fmt.Errorf("resolve review thread: %w", err)
+}
+
+// maxCommentBodyBytes mirrors GitHub's 65,536-character comment limit as a
+// byte bound so oversized bodies fail fast with a 400 instead of a provider 422.
+const maxCommentBodyBytes = 65536
+
+// ChangeState closes, reopens, marks ready, or converts to draft a tracked PR.
+// The transition is checked against AO's stored state first; the provider is
+// the final authority. On success the stored state is updated immediately and
+// lifecycle receives a fresh observation, as Merge does.
+func (s *ActionService) ChangeState(ctx context.Context, request StateRequest) (StateResult, error) {
+	prNumber, err := parsePRNumber(request.PRID)
+	if err != nil || strings.TrimSpace(request.PRURL) == "" {
+		return StateResult{}, fmt.Errorf("%w: invalid pull request identity", ErrInvalidPR)
+	}
+	action := ports.SCMPRStateAction(strings.ToLower(strings.TrimSpace(request.Action)))
+	if !action.Valid() {
+		return StateResult{}, fmt.Errorf("%w: unknown state action %q", ErrInvalidAction, request.Action)
+	}
+	if s.store == nil || s.stateChanger == nil {
+		return StateResult{}, errors.New("pr: state action is not configured")
+	}
+	tracked, ok, err := s.store.GetPR(ctx, request.PRURL)
+	if err != nil {
+		return StateResult{}, fmt.Errorf("load pull request: %w", err)
+	}
+	if !ok || tracked.Number != prNumber {
+		return StateResult{}, ErrPRNotFound
+	}
+	target, err := stateTransitionTarget(tracked, action)
+	if err != nil {
+		return StateResult{}, err
+	}
+	repo, ok := scmRepoForPR(tracked)
+	if !ok {
+		return StateResult{}, fmt.Errorf("%w: pull request repository is unknown", ErrPRPreconditions)
+	}
+	ref := ports.SCMPRRef{Repo: repo, Number: tracked.Number, URL: tracked.URL}
+	scmRequest := ports.SCMPRStateRequest{PR: ref, Action: action}
+	if repo.Provider == "github" {
+		scmRequest.NodeID = strings.TrimSpace(tracked.ProviderID)
+	}
+	if err := s.stateChanger.ChangePullRequestState(ctx, scmRequest); err != nil {
+		return StateResult{}, mapMutationError("change pull request state", err)
+	}
+
+	changedAt := s.clock().UTC()
+	persisted := false
+	if s.stateWriter != nil {
+		if err := s.stateWriter.MarkPRState(ctx, tracked.URL, target, changedAt); err != nil {
+			// The provider already applied the change; report its success and let
+			// the observer reconcile the durable row.
+			s.logger.Error("pr state change succeeded but local state persistence failed", "pr", tracked.URL, "state", target, "err", err)
+		} else {
+			persisted = true
+		}
+	}
+	if persisted {
+		s.notifyStateChange(ctx, tracked, ref, target, changedAt)
+	}
+	return StateResult{PRNumber: tracked.Number, State: target, StateChangedAt: changedAt}, nil
+}
+
+// notifyStateChange hands lifecycle a fresh observation of the new state. A
+// closed PR is not polled again, so this is the only time lifecycle sees the
+// close; failures are logged because the provider mutation already happened.
+func (s *ActionService) notifyStateChange(ctx context.Context, tracked domain.PullRequest, ref ports.SCMPRRef, target domain.PRState, changedAt time.Time) {
+	if s.lifecycle == nil || s.reader == nil {
+		return
+	}
+	observations, err := s.reader.FetchPullRequests(ctx, []ports.SCMPRRef{ref})
+	if err != nil || len(observations) != 1 || !observations[0].Fetched {
+		s.logger.Warn("pr state change succeeded but refresh for lifecycle failed", "pr", tracked.URL, "err", err)
+		return
+	}
+	fresh := observations[0]
+	// This read has no CI log tails (the observer fetches those). Without the
+	// stored ones, an unchanged failure would look new to the CI nudge's dedup
+	// and the agent would be told again about a failure it already has.
+	if fresh.CI.Summary == string(domain.CIFailing) && s.resolve != nil {
+		if checks, err := s.resolve.ListChecks(ctx, tracked.URL); err == nil {
+			fresh.CI.ApplyStoredLogTails(checks)
+		}
+	}
+	// The provider may answer the read before the mutation is visible; the
+	// mutation's confirmed result is authoritative for the state fields.
+	// Closing leaves a draft a draft; the other actions decide it.
+	if target == domain.PRStateClosed {
+		fresh.PR.Draft = tracked.Draft
+	} else {
+		fresh.PR.Draft = target == domain.PRStateDraft
+	}
+	fresh.PR.Closed = target == domain.PRStateClosed
+	fresh.PR.Merged = false
+	fresh.PR.State = string(target)
+	fresh.ObservedAt = changedAt
+	if err := s.lifecycle.ApplySCMObservation(ctx, tracked.SessionID, fresh); err != nil {
+		s.logger.Error("pr state change succeeded but lifecycle notification failed", "session", tracked.SessionID, "pr", tracked.URL, "err", err)
+	}
+}
+
+// stateTransitionTarget validates action against the stored PR state and
+// returns the state the PR moves to.
+func stateTransitionTarget(pr domain.PullRequest, action ports.SCMPRStateAction) (domain.PRState, error) {
+	if pr.Merged {
+		return "", fmt.Errorf("%w: pull request is merged", ErrInvalidTransition)
+	}
+	switch action {
+	case ports.SCMPRClose:
+		if pr.Closed {
+			return "", fmt.Errorf("%w: pull request is already closed", ErrInvalidTransition)
+		}
+		return domain.PRStateClosed, nil
+	case ports.SCMPRReopen:
+		if !pr.Closed {
+			return "", fmt.Errorf("%w: pull request is not closed", ErrInvalidTransition)
+		}
+		if pr.Draft {
+			return domain.PRStateDraft, nil
+		}
+		return domain.PRStateOpen, nil
+	case ports.SCMPRReady:
+		if pr.Closed || !pr.Draft {
+			return "", fmt.Errorf("%w: pull request is not an open draft", ErrInvalidTransition)
+		}
+		return domain.PRStateOpen, nil
+	case ports.SCMPRDraft:
+		if pr.Closed || pr.Draft {
+			return "", fmt.Errorf("%w: pull request is not open and ready for review", ErrInvalidTransition)
+		}
+		return domain.PRStateDraft, nil
+	default:
+		return "", fmt.Errorf("%w: unknown state action %q", ErrInvalidAction, action)
+	}
+}
+
+// PostComment posts a conversation comment, or a reply in one of the PR's
+// review threads, then stores it locally and asks the observer to reconcile.
+func (s *ActionService) PostComment(ctx context.Context, request CommentRequest) (CommentResult, error) {
+	prNumber, err := parsePRNumber(request.PRID)
+	if err != nil || strings.TrimSpace(request.PRURL) == "" {
+		return CommentResult{}, fmt.Errorf("%w: invalid pull request identity", ErrInvalidPR)
+	}
+	if strings.TrimSpace(request.Body) == "" {
+		return CommentResult{}, fmt.Errorf("%w: comment body is required", ErrInvalidComment)
+	}
+	if len(request.Body) > maxCommentBodyBytes {
+		return CommentResult{}, fmt.Errorf("%w: comment body exceeds %d bytes", ErrInvalidComment, maxCommentBodyBytes)
+	}
+	files, err := commentAttachments(request.Body, request.Attachments)
+	if err != nil {
+		return CommentResult{}, err
+	}
+	if s.store == nil || s.commenter == nil {
+		return CommentResult{}, errors.New("pr: comment action is not configured")
+	}
+	tracked, ok, err := s.store.GetPR(ctx, request.PRURL)
+	if err != nil {
+		return CommentResult{}, fmt.Errorf("load pull request: %w", err)
+	}
+	if !ok || tracked.Number != prNumber {
+		return CommentResult{}, ErrPRNotFound
+	}
+	repo, ok := scmRepoForPR(tracked)
+	if !ok {
+		return CommentResult{}, fmt.Errorf("%w: pull request repository is unknown", ErrPRPreconditions)
+	}
+	ref := ports.SCMPRRef{Repo: repo, Number: tracked.Number, URL: tracked.URL}
+
+	threadID := strings.TrimSpace(request.ThreadID)
+	var thread *storedThread
+	if threadID != "" {
+		// A provider thread id is global: without this check a reply could land
+		// in a thread of another PR the token can reach.
+		if thread, err = s.findThread(ctx, tracked, ref, threadID); err != nil {
+			return CommentResult{}, err
+		}
+	}
+
+	// A comment's files are stored only now that it is being posted, and
+	// removed again if the post fails, so a cancelled draft writes nothing.
+	body, attachmentsHandle := request.Body, ""
+	if len(files) > 0 {
+		if body, attachmentsHandle, err = s.storeCommentAttachments(ctx, ref, request.Body, files); err != nil {
+			return CommentResult{}, err
+		}
+	}
+	posted, err := s.commenter.PostComment(ctx, ports.SCMCommentRequest{PR: ref, Body: body, ThreadID: threadID})
+	if err != nil {
+		s.discardAttachments(ctx, ref, attachmentsHandle)
+		return CommentResult{}, mapMutationError("post pull request comment", err)
+	}
+	createdAt := posted.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = s.clock().UTC()
+	}
+	s.storePostedComment(ctx, tracked, thread, posted, createdAt)
+	if s.refresher != nil {
+		s.refresher.RequestReviewRefresh(tracked.URL)
+	}
+	return CommentResult{ID: posted.ID, URL: posted.URL, CreatedAt: createdAt}, nil
+}
+
+// storedThread is a review thread confirmed to belong to the PR. Stored is
+// false when only the live provider listing knew it, so there is no local row
+// to attach an immediate reply to.
+type storedThread struct {
+	ID               string
+	Path             string
+	Line             int
+	Resolved         bool
+	Stored           bool
+	AutoInjectReview bool
+}
+
+func (s *ActionService) findThread(ctx context.Context, tracked domain.PullRequest, ref ports.SCMPRRef, threadID string) (*storedThread, error) {
+	if s.resolve != nil {
+		threads, err := s.resolve.ListPRReviewThreads(ctx, tracked.URL)
+		if err != nil {
+			return nil, fmt.Errorf("load review threads: %w", err)
+		}
+		for _, th := range threads {
+			if th.ThreadID != threadID {
+				continue
+			}
+			found := &storedThread{ID: th.ThreadID, Path: th.Path, Line: th.Line, Resolved: th.Resolved, Stored: true}
+			comments, err := s.resolve.ListPRComments(ctx, tracked.URL)
+			if err != nil {
+				return nil, fmt.Errorf("load review comments: %w", err)
+			}
+			// A reply inherits the injection decision its thread was stored with.
+			for _, c := range comments {
+				if c.ThreadID == threadID {
+					found.AutoInjectReview = c.AutoInjectReview
+				}
+			}
+			return found, nil
+		}
+	}
+	if s.reader == nil {
+		return nil, fmt.Errorf("%w: %q", ErrThreadNotFound, threadID)
+	}
+	// The thread may be newer than the last stored observation.
+	review, err := s.reader.FetchReviewThreads(ctx, ref)
+	if err != nil {
+		if errors.Is(err, ports.ErrSCMNotFound) {
+			return nil, fmt.Errorf("%w: %w", ErrPRNotFound, err)
+		}
+		return nil, fmt.Errorf("refresh review threads before replying: %w", err)
+	}
+	for _, th := range review.Threads {
+		if strings.TrimSpace(th.ID) == threadID {
+			return &storedThread{ID: threadID, Path: th.Path, Line: th.Line, Resolved: th.Resolved}, nil
+		}
+	}
+	return nil, fmt.Errorf("%w: %q", ErrThreadNotFound, threadID)
+}
+
+func (s *ActionService) storePostedComment(ctx context.Context, tracked domain.PullRequest, thread *storedThread, posted ports.SCMCommentResult, createdAt time.Time) {
+	if s.commentWriter == nil || strings.TrimSpace(posted.ID) == "" {
+		return
+	}
+	if thread != nil {
+		if !thread.Stored {
+			return
+		}
+		err := s.commentWriter.UpsertPRReviewComment(ctx, tracked.URL, domain.PullRequestComment{
+			ThreadID:         thread.ID,
+			ID:               posted.ID,
+			Author:           posted.Author,
+			File:             thread.Path,
+			Line:             thread.Line,
+			Body:             posted.Body,
+			URL:              posted.URL,
+			Resolved:         thread.Resolved,
+			IsBot:            posted.IsBot,
+			CreatedAt:        createdAt,
+			AutoInjectReview: thread.AutoInjectReview,
+		})
+		if err != nil {
+			s.logger.Warn("pr comment posted but local review comment write failed", "pr", tracked.URL, "thread", thread.ID, "err", err)
+		}
+		return
+	}
+	body := truncateUTF8(posted.Body, domain.MaxPullRequestCommentBodyBytes)
+	if _, err := s.commentWriter.AppendPRConversationComment(ctx, tracked.URL, domain.PullRequestConversationComment{
+		ID:        posted.ID,
+		Author:    posted.Author,
+		IsBot:     posted.IsBot,
+		Body:      body,
+		URL:       posted.URL,
+		CreatedAt: createdAt,
+	}); err != nil {
+		s.logger.Warn("pr comment posted but local conversation write failed", "pr", tracked.URL, "err", err)
+	}
+}
+
+func truncateUTF8(body string, limit int) string {
+	if len(body) <= limit {
+		return body
+	}
+	cut := limit
+	for cut > 0 && !utf8.RuneStart(body[cut]) {
+		cut--
+	}
+	return body[:cut]
+}
+
+// mapMutationError maps provider sentinels from a PR mutation to service errors.
+func mapMutationError(op string, err error) error {
+	switch {
+	case errors.Is(err, ports.ErrSCMNotFound):
+		return fmt.Errorf("%w: %w", ErrPRNotFound, err)
+	case errors.Is(err, ports.ErrSCMRejected):
+		return fmt.Errorf("%w: %w", ErrPRRejected, err)
+	case errors.Is(err, ports.ErrSCMUnsupported):
+		return fmt.Errorf("%w: %w", ErrUnsupported, err)
+	default:
+		return fmt.Errorf("%s: %w", op, err)
+	}
+}

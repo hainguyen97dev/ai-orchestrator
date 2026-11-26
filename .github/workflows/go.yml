@@ -1,0 +1,234 @@
+name: Go
+
+on:
+  workflow_call:
+    inputs:
+      windows:
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  # -race stays on for our code, but not for modernc.org's machine-translated
+  # SQLite and libc. Instrumenting every memory access in them made every
+  # SQLite-backed test several times slower (the slowest migration test took
+  # 128s with it, 9s without), and catching races in our own Go code doesn't
+  # depend on it.
+  GOFLAGS: -gcflags=modernc.org/...=-race=false
+
+jobs:
+  backend-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-go-cached
+        with:
+          name: backend-core-${{ matrix.shard }}
+
+      - name: Install Cue test shells
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends zsh fish
+
+      - name: Test
+        env:
+          skip_global_compinit: "1"
+        # -count=1 disables Go's test-result cache. The build cache restored
+        # above also carries test results between runs, and without this a run
+        # reported 158 of 170 packages as (cached) without executing them. The
+        # cache is content-aware for Go inputs but not for the things these
+        # tests actually touch — subprocesses, PATH contents, the network — so
+        # a required check must still run every test. Compilation stays cached.
+        run: |
+          packages=$(go list ./... | grep -v -e '/internal/storage/sqlite$' -e '/internal/service/chat$' -e '/internal/session_manager$' -e '/internal/storage/sqlite/store$')
+          selected=$(printf '%s\n' "$packages" | awk -v shard=${{ matrix.shard }} '((NR - 1) % 3) == shard')
+          test -n "$selected"
+          printf '%s\n' "$selected" | xargs go test -race -count=1 -timeout=10m
+
+  # These packages run their tests serially inside one test binary, for minutes
+  # each, so this job splits each across processes to use the runner's cores.
+  storage-race:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-go-cached
+        with:
+          name: storage-race
+
+      - name: Test SQLite, chat, session manager and SQLite store
+        run: ../.github/scripts/go-test-parallel.sh 4 ./internal/storage/sqlite ./internal/service/chat ./internal/session_manager ./internal/storage/sqlite/store
+
+  # The suite above only ever runs on Linux, so the packages whose behaviour is
+  # genuinely platform-specific have never been exercised on Windows: worktree
+  # teardown renames and unlinks directories, and Windows is the platform where
+  # an open handle makes both fail. Scoped to those packages rather than the
+  # whole suite to keep the matrix cheap.
+  windows-workspace:
+    if: inputs.windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      # Scoped to teardown and kill by name rather than running these packages
+      # whole: running them on Windows for the first time surfaced ten
+      # pre-existing failures (agent switching, handoff artifacts, spawn PATH
+      # and branch namespacing) that have nothing to do with worktree teardown.
+      # Widening this is worth doing, but as its own change with its own fixes.
+      - name: Test SQLite filesystem path identity
+        run: go test -race -count=1 -run 'Test(OpenPreservesDataDirectoryCharacters|FragmentPathsKeepDatabasesIsolated|OpenRefusesToHideLegacyDatabase|OpenPrefersExistingIntendedDatabase|DatabaseURIPreservesWindowsPaths)$' ./internal/storage/sqlite
+
+      - name: Test MiniMax Windows auth, native history and restore
+        run: go test -race -count=1 -run '^Test(AuthStatus|LocalAuth|NativeHistory|History)' ./internal/adapters/agent/minimaxcode
+
+      - name: Test data-dir lock (LockFileEx)
+        run: go test -race -count=1 ./internal/datadirlock/
+
+      - name: Test workspace teardown and session kill
+        run: go test -race -count=1 -v -run 'Destroy|Discard|Sweep|Kill|RunPostCreate|TaskNaming|RenameTaskBranch' ./internal/adapters/workspace/... ./internal/session_manager/
+
+      - name: Test Windows Chat environment precedence
+        run: go test -race -count=1 ./internal/adapters/chatdriver/processenv/ ./internal/agentlaunch/
+
+      - name: Test Docker Agent Windows admission and native config
+        run: go test -race -count=1 -run '^(TestProbeChecksPlatformWithoutRequiringDaemonConfig|TestContextualConfigValidation)$' ./internal/adapters/chatdriver/dockeragentacp/
+
+      - name: Test Windows background task log redirects
+        run: go test -race -count=1 -run '^(TestStdoutFile|TestRedirectedOutput)' ./internal/adapters/chatdriver/backgroundtasks/
+
+      - name: Test Windows shell terminal start grid (pty-host --size)
+        run: go test -race -count=3 -v -run '^(TestConPTYStartsAtRequestedGrid|TestHostStartGrid|TestPtyHostArgsCarryInitialGrid|TestPtyHostArgsCarryHostOptions)$' ./internal/adapters/runtime/conpty/
+
+      - name: Test Windows Cue shell readiness and command delivery
+        run: go test -race -count=1 -timeout=10m -run '^TestCue' ./internal/service/shellterm
+
+      - name: Test Windows Chat host launch and provider cleanup
+        run: go test -race -count=1 -run '^(TestHostExecutable|TestCommandConfigRoundTrip|TestCommandConfigRejectsIncompleteLaunch|TestWindowsProviderJobReapsGrandchild|TestWindowsHostDescriptorReadAndRemovalDoNotBlockEachOther|TestWindowsHostDescriptorReadsPastMaxPath|TestExtendedLengthPathMatchesOS)$' ./internal/adapters/chatdriver/persistenthost/
+
+      - name: Test Windows Chat hibernate and native resume
+        run: go test -race -count=1 -run '^(TestPersistentClaudeACPHibernateAndNativeResume|TestCodexHibernateStopsAppServerAndNativeResumesThread)$' ./internal/adapters/chatdriver/acp/ ./internal/adapters/chatdriver/codexappserver/
+
+      - name: Test Windows background agent commands have no console
+        run: go test -race -count=1 -run '^TestBackgroundCommandHasNoConsole$' ./internal/adapters/agent/pi ./internal/adapters/agent/omp ./internal/adapters/agent/primeagent
+      - name: Test Windows subprocess commands
+        run: go test -race -count=1 -run 'Cloudflared|Tunnel|Command' ./internal/mobilebridge/ ./internal/process/ ./internal/adapters/systemexec/
+
+      - name: Test Windows PowerShell installers
+        run: go test -race -count=1 -v -run '^TestRunInstallScriptPowerShell' ./internal/adapters/systemexec/
+
+      - name: Test Mastra native history and Windows lock liveness
+        run: go test -race -count=1 -timeout=10m ./internal/adapters/agent/mastracode
+
+      - name: Test native Goose identity
+        run: go test -race -count=1 -timeout=10m ./internal/adapters/agent/binaryutil ./internal/adapters/agent/goose
+
+      - name: Test OpenCode Windows npm shim version probe
+        run: go test -race -count=1 -run '^TestResolveBinaryForMajorAcceptsSlowShim$' ./internal/adapters/agent/opencode
+
+      - name: Test Goose readiness and inventory
+        run: go test -race -count=1 -timeout=10m -run '^Test(FindInstalledBinary|WarmReadinessAndFindInstalled|PresslyGoose|Refresh|Probe|ReadinessCoordinator)' ./internal/service/agent
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # golangci-lint type-checks against compiled dependencies, so a warm Go
+      # build cache saves it most of its run.
+      - uses: ./.github/actions/setup-go-cached
+        with:
+          name: lint
+
+      # Format, build and vet run here rather than in a test shard: the lint
+      # job finishes well inside the test jobs' time.
+      - name: Check formatting
+        working-directory: backend
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "These files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Build
+        working-directory: backend
+        run: go build ./...
+
+      - name: Vet
+        working-directory: backend
+        run: go vet ./...
+
+      - name: golangci-lint
+        # v8 of the action drives golangci-lint v2 (the schema this config uses);
+        # the v6 action speaks v1 CLI flags and errors against a v2 binary.
+        uses: golangci/golangci-lint-action@v8
+        with:
+          # Pinned for reproducibility: bump intentionally rather than letting an
+          # upstream release change CI. Must be built with Go >= the module's
+          # (go.mod is 1.27); v2.14.0 is built with go1.27 — older v2 tags
+          # (e.g. v2.1.x) are built with go1.24 and refuse to analyze 1.27 code.
+          # v2.13.2 cannot read packages compiled by Go 1.27.3 or later.
+          version: v2.14.0
+          working-directory: backend
+          # Blocking on the full ruleset: the tree is clean at zero findings, so
+          # any new issue fails CI rather than being grandfathered.
+
+  codegen-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # A warm build cache spares rebuilding the pinned sqlc on every run.
+      - uses: ./.github/actions/setup-go-cached
+        with:
+          name: codegen-drift
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Regenerate storage queries with pinned sqlc
+        run: npm run sqlc
+
+      - name: Check for generated storage drift
+        run: |
+          git diff --exit-code -- backend/internal/storage/sqlite/gen
+          test -z "$(git ls-files --others --exclude-standard -- backend/internal/storage/sqlite/gen)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regenerate API spec and TS types
+        run: npm run api
+
+      # openapi.yaml drift is already caught by TestBuild_MatchesEmbedded in
+      # the backend-core job (go test -race). Only schema.ts needs checking here.
+      - name: Check for schema.ts drift
+        run: git diff --exit-code -- frontend/src/api/schema.ts

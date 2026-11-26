@@ -1,0 +1,58 @@
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { aoBridge } from "../../lib/bridge";
+import { collectReportProblemDiagnostics, reportProblemDestinationUrl, startProblemReport } from "../../lib/report-problem";
+import { useShell } from "../../lib/shell-context";
+import { captureRendererEvent } from "../../lib/telemetry";
+import { Button } from "../ui/button";
+
+export function ReportProblemContent({ active }: { active: boolean }) {
+	const { t } = useTranslation();
+	const { daemonStatus } = useShell();
+	const [opening, setOpening] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [githubUrl, setGithubUrl] = useState("https://github.com/OrchestratorInc/agent-orchestrator/issues/new");
+	useEffect(() => {
+		if (!active) return;
+		void captureRendererEvent("ao.support.opened");
+		let cancelled = false;
+		void collectReportProblemDiagnostics().then((diagnostics) => {
+			if (!cancelled) setGithubUrl(reportProblemDestinationUrl(diagnostics));
+		});
+		return () => { cancelled = true; };
+	}, [active]);
+	const report = async () => {
+		setOpening(true);
+		setError(null);
+		const failure = await startProblemReport(daemonStatus.state);
+		setOpening(false);
+		if (failure) setError(failure);
+	};
+	return (
+		<div className="flex flex-col items-start gap-3">
+			<p className="text-sm text-muted-foreground">{t("report.description")}</p>
+			<Button disabled={!active || opening} onClick={() => void report()}>
+				{t(opening ? "report.opening" : "report.action")}
+			</Button>
+			{error ? <p role="alert" className="text-sm text-error">{error}</p> : null}
+			<div className="flex flex-wrap gap-4 text-sm">
+				{([
+					["report.github", githubUrl, "github"],
+					["report.discord", "https://discord.gg/WjKNa7EbB8", "discord"],
+					["report.email", "mailto:prasad@untrivial.ai?cc=prateek@untrivial.ai", "email"],
+				] as const).map(([label, href, destination]) => (
+					<a key={label} href={href} className="text-muted-foreground underline-offset-2 hover:underline"
+						onClick={(event) => {
+							event.preventDefault();
+							void aoBridge.app.openExternal(href).then(() => {
+								void captureRendererEvent("ao.renderer.support_submitted", { destination, outcome: "succeeded" });
+							}).catch(() => {
+								setError(t("report.linkFailed"));
+								void captureRendererEvent("ao.renderer.support_submitted", { destination, outcome: "failed" });
+							});
+						}}>{t(label)}</a>
+				))}
+			</div>
+		</div>
+	);
+}
