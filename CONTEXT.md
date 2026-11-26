@@ -46,3 +46,17 @@ details, no decisions (those live in `docs/adr/`).
 - **Lockout** — the brute-force guard on the **LAN Listener**: repeated failed
   password attempts from a source are throttled (per-source, not global, so a
   hostile device cannot lock out the real phone). Resets on a successful auth.
+
+## Flow and tooling (fork)
+
+- **Flow**: a versioned, ordered definition of work stages a person runs end to end; editing a Flow creates a new version.
+- **FlowRun**: one execution of a Flow that pins a single Flow version and records each node's state, gate decisions, and artifacts.
+- **Stage / Node**: one step of a Flow (agent, assisted, or human work) with the role, tools, and evidence required before handoff.
+- **Gate**: the decision point at the end of a Stage where a human or policy accepts, rejects, or sends the work back.
+- **Artifact**: a durable output of a Stage, such as a document, plan, diff, PR, or test report, referenced by later Stages.
+- **RoleProfile**: a versioned job role (for example PO, BA, SA, Dev, QA) with its skills, knowledge, and default agent settings; not a harness override.
+- **SkillDefinition**: a versioned, reusable instruction set a RoleProfile or Stage references to perform one kind of task.
+- **KnowledgeSnapshot**: a pinned reference to project knowledge (path or URI plus ref or content hash and time) captured for a FlowRun.
+- **ToolProfile**: a versioned allow/deny policy over builtin, MCP, and shell tools, resolved node → role → project where each lower layer may only narrow.
+- **MCPServer**: a registered MCP server (transport, command or URL, env, headers) that a ToolProfile can grant tools from.
+- **Enforcement level**: how strongly an agent adapter applies a ToolProfile: `enforced`, `best-effort`, or `none`.
