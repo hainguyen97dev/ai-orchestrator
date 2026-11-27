@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // codexRollout is how Codex names a thread's rollout: `rollout-<time>-<thread>`,

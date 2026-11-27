@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/providerenv"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // importedRestoreCommand resumes the exact identity checkpointed by native

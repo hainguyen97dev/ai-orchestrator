@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // ErrCleanupScript marks a script failure that preserves the worktree for retry.

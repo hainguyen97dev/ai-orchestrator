@@ -11,8 +11,8 @@ import (
 
 	workeragent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencodev2"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/agentrestore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const configContentPrefix = "OPENCODE_CONFIG_CONTENT="

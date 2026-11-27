@@ -3,7 +3,7 @@ package store_test
 import (
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // A launched task's background rename applies only while the row still

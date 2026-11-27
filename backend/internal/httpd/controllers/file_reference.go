@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type fileReferenceResolver interface {

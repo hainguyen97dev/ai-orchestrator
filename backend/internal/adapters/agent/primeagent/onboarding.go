@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Prime Agent submits the prompt from its command line only after its first-run

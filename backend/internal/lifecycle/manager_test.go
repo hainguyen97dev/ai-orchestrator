@@ -14,8 +14,8 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 

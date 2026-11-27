@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/importcopy"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 var _ ports.AgentImportedSessionPreparer = (*Plugin)(nil)

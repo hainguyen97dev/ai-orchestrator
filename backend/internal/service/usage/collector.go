@@ -24,8 +24,8 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"golang.org/x/sync/semaphore"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const (

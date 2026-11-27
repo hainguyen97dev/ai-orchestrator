@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/aider"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const aiderImportHistory = ".aider.chat.history.md"

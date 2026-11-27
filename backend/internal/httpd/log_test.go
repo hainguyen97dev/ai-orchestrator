@@ -15,7 +15,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/telemetrymeta"
 )
 

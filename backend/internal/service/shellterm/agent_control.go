@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Agents drive their session's shell terminals with `ao pane run|send|read|

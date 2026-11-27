@@ -13,10 +13,10 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/caller"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/reqid"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Neutral action names stored on an ao_action activity. Chat maps these. It

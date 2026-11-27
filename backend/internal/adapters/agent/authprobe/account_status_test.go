@@ -3,7 +3,7 @@ package authprobe
 import (
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Measured from kiro-cli 2.21.0 on macOS with an isolated HOME: signed out,

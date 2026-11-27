@@ -38,7 +38,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/primeagent"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/tau"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/vibe"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // DeriveFunc maps a native agent hook event and its raw stdin payload onto an AO

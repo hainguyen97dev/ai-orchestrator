@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/conpty/ptyregistry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // livePID returns a PID that is guaranteed to be alive (the current process).

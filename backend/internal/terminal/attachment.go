@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Source is what the terminal needs from the runtime: open an attach Stream and

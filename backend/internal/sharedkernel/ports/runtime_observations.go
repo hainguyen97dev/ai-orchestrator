@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // ProbeResult is a single liveness reading. "failed" means the probe errored

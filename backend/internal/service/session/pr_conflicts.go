@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // maxConflictFiles caps the files named for one PR; the view lists a few and

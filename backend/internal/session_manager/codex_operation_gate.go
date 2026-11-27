@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/codexops"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func (m *Manager) acquireCodexControllerAdmission(ctx context.Context, harness domain.AgentHarness) (func(), error) {

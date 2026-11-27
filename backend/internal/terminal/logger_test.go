@@ -3,7 +3,7 @@ package terminal
 import (
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestNilLoggerFallsBackToDefault(t *testing.T) {

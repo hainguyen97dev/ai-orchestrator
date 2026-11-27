@@ -8,8 +8,8 @@ import (
 	"time"
 	"unicode/utf16"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )

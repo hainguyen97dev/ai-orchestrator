@@ -24,11 +24,11 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func TestArtifactFileRemoteCompressionPreservesRangesAndValidators(t *testing.T) {

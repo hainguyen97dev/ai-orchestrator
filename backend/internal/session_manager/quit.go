@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // StopAgentsForQuit releases processes without terminating sessions or removing worktrees.

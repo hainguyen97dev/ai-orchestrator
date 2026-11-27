@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/providerkeys"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // SwitchTUIProvider replaces one terminal provider with another in the same AO

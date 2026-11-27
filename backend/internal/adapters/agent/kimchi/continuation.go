@@ -16,7 +16,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/importcopy"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const kimchiCodingAgentDirEnv = "KIMCHI_CODING_AGENT_DIR"

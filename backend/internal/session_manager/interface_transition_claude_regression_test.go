@@ -9,7 +9,7 @@ import (
 	"time"
 
 	claudeagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func TestInterfaceTransitionClaudeStaleIdleEmptyComposerCompletes(t *testing.T) {

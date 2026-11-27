@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // AccountHandoffCandidateTurns lists recent failed chat turns that have no retry yet.

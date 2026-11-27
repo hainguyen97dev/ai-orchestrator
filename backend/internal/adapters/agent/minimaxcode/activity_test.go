@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const footer = "  workspace │ Full access │ ✦ glm-5.3-flash · Thinking On\n"

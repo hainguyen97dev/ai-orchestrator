@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // nativeReplayRows excludes predecessor providers from reconciliation, including

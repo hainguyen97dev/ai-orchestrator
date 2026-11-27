@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // fakeNPM writes a script that mimics `npm install --prefix <dir> <pkg>@<v>`

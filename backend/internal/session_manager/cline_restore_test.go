@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cline"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionguard"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func TestClineRestoreProbesRecoveredConversation(t *testing.T) {

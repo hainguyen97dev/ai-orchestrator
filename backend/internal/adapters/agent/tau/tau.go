@@ -18,8 +18,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // MinimumVersion is the oldest released contract inspected for this adapter.

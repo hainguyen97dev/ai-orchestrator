@@ -27,8 +27,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencodev2"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/openinterpreter"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/tau"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/agentcreds"
 )
 

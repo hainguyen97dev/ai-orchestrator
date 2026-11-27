@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // ActionManager is the controller-facing contract for guarded PR mutations.

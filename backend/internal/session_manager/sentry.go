@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // captureBackgroundFault reports a session-manager failure that happens off

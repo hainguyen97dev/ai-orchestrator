@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // PRWriter records the PR facts a PR observation carries. The pr table's own DB

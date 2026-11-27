@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/deliverytelemetry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // DeliveryTelemetry returns the shared delivery recorder, so the services that

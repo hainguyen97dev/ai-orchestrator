@@ -32,11 +32,9 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/previewserver"
 	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/browser"
@@ -44,6 +42,8 @@ import (
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/contract"
 )
 

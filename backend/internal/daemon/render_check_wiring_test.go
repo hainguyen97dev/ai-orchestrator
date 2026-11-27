@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 type fakeRenderCheckBroker struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cursorstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // Before adoption Cursor uses the default open-elsewhere check on its

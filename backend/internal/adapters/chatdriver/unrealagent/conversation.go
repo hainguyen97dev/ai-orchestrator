@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const eventBuffer = 4096

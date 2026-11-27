@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // skillfulConversation is a provider double that can enumerate skills.

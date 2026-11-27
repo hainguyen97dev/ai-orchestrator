@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // A phone that has paired is indistinguishable from one that has not, from the

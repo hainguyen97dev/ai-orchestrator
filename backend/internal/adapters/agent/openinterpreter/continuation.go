@@ -15,7 +15,7 @@ import (
 	"github.com/klauspost/compress/zstd"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // ContinuationCapabilities reports provider-assigned native UUIDs.

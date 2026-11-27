@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // stubSessionSearch records the parsed query and returns a fixed page, so the

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const codexLoginTerminalPollInterval = 250 * time.Millisecond

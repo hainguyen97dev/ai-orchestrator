@@ -51,8 +51,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/tau"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/unrealagent"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/vibe"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Constructors returns a fresh instance of every agent adapter the daemon

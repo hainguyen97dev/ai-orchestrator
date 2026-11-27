@@ -17,7 +17,7 @@ package shellterm
 import (
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // ShellTerminal is one standalone shell pane. HandleID is the runtime handle

@@ -12,9 +12,9 @@ import (
 	"time"
 
 	telemetryadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/telemetry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/review"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type wireRoundTripper func(*http.Request) (*http.Response, error)

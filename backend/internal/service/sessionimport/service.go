@@ -22,8 +22,8 @@ import (
 	kimiadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kimi"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // recentDays is the window of activity a chat needs to be offered. Neither

@@ -3,7 +3,7 @@ package auggie
 import (
 	"encoding/json"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // DeriveActivityState maps Auggie lifecycle callbacks onto normalized AO

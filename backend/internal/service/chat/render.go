@@ -19,10 +19,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const (

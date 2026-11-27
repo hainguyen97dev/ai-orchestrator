@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // A FIFO under the render's name must not hang the same-bytes check.

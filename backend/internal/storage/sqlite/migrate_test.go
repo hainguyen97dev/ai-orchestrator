@@ -12,7 +12,7 @@ import (
 
 	"github.com/pressly/goose/v3"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 var expectedUsageTableColumns = map[string][]string{

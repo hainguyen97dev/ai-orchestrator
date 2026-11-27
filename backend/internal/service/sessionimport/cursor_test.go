@@ -14,8 +14,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cursor"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cursorstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func cursorFixture(t *testing.T, root, cwd string) string {

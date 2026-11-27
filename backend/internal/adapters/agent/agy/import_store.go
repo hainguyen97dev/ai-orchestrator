@@ -19,7 +19,7 @@ import (
 	"google.golang.org/protobuf/encoding/protowire"
 	"modernc.org/sqlite/vfs"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // maxImportDB bounds source admission only. A prepared private DB is AO-owned

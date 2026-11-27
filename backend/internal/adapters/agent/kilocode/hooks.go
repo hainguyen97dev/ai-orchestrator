@@ -11,7 +11,7 @@ import (
 	_ "embed"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Telemetry event names for updates that meet running sessions.

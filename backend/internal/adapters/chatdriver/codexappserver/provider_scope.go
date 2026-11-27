@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Native IDs stay on the wire; AO projection IDs belong to an ownership scope.

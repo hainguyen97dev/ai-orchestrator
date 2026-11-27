@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type fakeCodexAccounts struct {

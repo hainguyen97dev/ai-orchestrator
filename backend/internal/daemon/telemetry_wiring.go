@@ -10,7 +10,7 @@ import (
 	telemetryadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/telemetry"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 

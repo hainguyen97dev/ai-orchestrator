@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type recordedInstallCommands struct{ ran []ports.InstallCommand }

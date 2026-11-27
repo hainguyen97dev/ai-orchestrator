@@ -11,7 +11,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/backgroundtasks"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // A completed launch with no exit code may leave a native process behind.

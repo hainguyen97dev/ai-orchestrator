@@ -6,8 +6,8 @@ import (
 
 	workermuse "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/muse"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/agentrestore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Reviewer is the Muse Code reviewer adapter.

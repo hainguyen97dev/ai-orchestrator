@@ -12,8 +12,8 @@ import (
 
 	agentregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
 	chatregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/registry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 

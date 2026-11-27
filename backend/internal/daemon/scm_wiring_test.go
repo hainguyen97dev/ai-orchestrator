@@ -8,7 +8,7 @@ import (
 	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/scm"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // TestSCMWiring_MultiProviderSatisfiesScopedIdentityResolver verifies that the

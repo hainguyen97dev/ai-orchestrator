@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	automationobserver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/automations"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	automationsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/automation"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 

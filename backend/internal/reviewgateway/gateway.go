@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const manifestVersion = 1

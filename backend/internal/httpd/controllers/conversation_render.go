@@ -15,11 +15,11 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const (

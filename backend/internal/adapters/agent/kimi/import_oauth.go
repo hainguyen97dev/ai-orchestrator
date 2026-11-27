@@ -13,7 +13,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 var kimiOAuthSlot = regexp.MustCompile(`^oauth/[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`)

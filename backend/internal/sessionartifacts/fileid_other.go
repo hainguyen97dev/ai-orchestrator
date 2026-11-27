@@ -5,7 +5,7 @@ package sessionartifacts
 import (
 	"io/fs"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // quickIdentity reports nothing on this platform, so a rename here is seen

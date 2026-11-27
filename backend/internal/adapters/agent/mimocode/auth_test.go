@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestProviderListCredentialEvidenceIsConfiguredNotAuthorized(t *testing.T) {

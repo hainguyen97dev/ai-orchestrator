@@ -15,8 +15,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/requestscope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // LANManager owns the daemon's second, network-facing HTTP listener. It binds

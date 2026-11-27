@@ -10,8 +10,8 @@ import (
 	codexagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/codexappserver/codexproto"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/commanddetail"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Translation from Codex app-server notifications into AO's provider-neutral

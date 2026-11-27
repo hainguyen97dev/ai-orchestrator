@@ -11,7 +11,7 @@ import (
 	"time"
 
 	workeragent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // captureAgent is a stub ports.Agent that records the LaunchConfig the reviewer

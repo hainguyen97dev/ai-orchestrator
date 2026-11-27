@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/openhands"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // OpenHands stores local conversations by UUID hex, independently of cwd.

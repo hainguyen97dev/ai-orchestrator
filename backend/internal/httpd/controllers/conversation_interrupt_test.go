@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // targetedInterruptService records which Stop path the route took.

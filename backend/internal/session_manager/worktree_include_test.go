@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func TestCopyWorktreeInclude(t *testing.T) {

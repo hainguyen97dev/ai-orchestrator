@@ -13,9 +13,9 @@ import (
 	trackergitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/gitlab"
 	trackermulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func newGitHubTracker() (ports.Tracker, error) {

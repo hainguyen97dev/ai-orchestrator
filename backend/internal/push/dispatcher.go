@@ -10,8 +10,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // Subscriber is the notification fan-out source the dispatcher listens on,

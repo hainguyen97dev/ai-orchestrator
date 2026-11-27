@@ -8,7 +8,7 @@ import (
 
 	"github.com/pressly/goose/v3"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	sqlitestore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/store"
 )
 

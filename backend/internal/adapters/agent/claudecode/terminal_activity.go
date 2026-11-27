@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // DetectTerminalActivity reports idle only when Claude's rendered surface

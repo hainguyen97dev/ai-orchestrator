@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // findSnapshot takes one lock and never calls SideSnapshot, which can restore a

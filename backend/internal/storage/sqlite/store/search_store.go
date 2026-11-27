@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // searchConversationMessagesSQL orders finished chat messages matching ?1

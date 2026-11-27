@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // A slow or unavailable provider must not leave the board loading forever.

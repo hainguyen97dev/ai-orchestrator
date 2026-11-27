@@ -12,8 +12,8 @@ import (
 
 	"github.com/klauspost/compress/zstd"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 

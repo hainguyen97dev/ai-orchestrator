@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const grokTestSessionID = "01a1a16e-c4c7-7c51-92d5-bf8beef81073"

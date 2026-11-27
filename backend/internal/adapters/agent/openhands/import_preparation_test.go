@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func openHandsImportFixture(t *testing.T) ports.ImportedSessionRelocation {

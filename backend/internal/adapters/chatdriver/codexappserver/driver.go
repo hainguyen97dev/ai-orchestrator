@@ -19,9 +19,9 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/processenv"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // clientName identifies AO to the provider. It shows up in the app-server's

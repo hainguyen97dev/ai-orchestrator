@@ -17,8 +17,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencode"
 	agentregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestRecheckAgentLogsFailure(t *testing.T) {

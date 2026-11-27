@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	workerautohand "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/autohand"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestReviewCommandKeepsNativeApprovalsEnabled(t *testing.T) {

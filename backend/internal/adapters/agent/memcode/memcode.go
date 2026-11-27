@@ -18,8 +18,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/modelcatalog"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/providerenv"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Plugin implements the official native TUI adapter.

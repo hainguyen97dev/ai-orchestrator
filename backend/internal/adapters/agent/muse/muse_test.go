@@ -14,7 +14,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestManifest(t *testing.T) {

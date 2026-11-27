@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // NativeConversationExists checks local history because a failed v1 TUI resume

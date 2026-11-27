@@ -12,7 +12,7 @@ import (
 	acpsdk "github.com/coder/acp-go-sdk"
 
 	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type fakePiPlugin struct {

@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	workergrok "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/grok"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // HostTrustWarning documents that Grok relies on its normal interactive

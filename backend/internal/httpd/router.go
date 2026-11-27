@@ -22,7 +22,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/daemonmeta"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/telemetrymeta"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/terminal"
 )

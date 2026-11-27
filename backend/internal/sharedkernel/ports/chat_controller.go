@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // ChatHistoryMode makes required replay and deferred import mutually exclusive.

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/memcode"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 var memcodeImportID = regexp.MustCompile(`^sess_([0-9a-f]{8}|[0-9a-f]{16})$`)

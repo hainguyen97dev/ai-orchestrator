@@ -6,7 +6,7 @@ import (
 
 	localdevice "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/device/local"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devices"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // deviceSessions is the slice of the session service the device service

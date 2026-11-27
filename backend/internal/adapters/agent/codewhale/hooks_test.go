@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func lifecycleTestRunner(_ context.Context, _ string, _ string, _ map[string]string, args ...string) ([]byte, error) {

@@ -9,8 +9,8 @@ import (
 
 	workeragent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/agentrestore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Reviewer is the codex code-review adapter.

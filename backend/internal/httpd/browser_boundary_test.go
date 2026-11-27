@@ -24,8 +24,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	shelltermsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/terminal"
 )
 

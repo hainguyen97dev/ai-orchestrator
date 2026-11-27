@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const qwenTestID = "807b463e-6160-40ef-aa01-eb87dcc061e1"

@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	workerautohand "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/autohand"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // HostTrustWarning documents that Autohand retains its normal approval flow.

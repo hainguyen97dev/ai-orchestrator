@@ -1,7 +1,7 @@
 package vibe
 
 import (
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // DeriveActivityState maps Vibe's available hook events conservatively. A

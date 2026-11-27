@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 var nativeIDPattern = regexp.MustCompile(`^sess_([0-9a-f]{8}|[0-9a-f]{16})$`)

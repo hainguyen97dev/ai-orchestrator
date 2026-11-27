@@ -15,9 +15,9 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hermes"
 	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/nativeacp"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // hermesACPVersionTimeout bounds the `hermes acp --version` admission probe.

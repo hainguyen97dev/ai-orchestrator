@@ -10,11 +10,11 @@ import (
 	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/gitlab"
 	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
 	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/scm"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/review"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 

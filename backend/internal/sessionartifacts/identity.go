@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // MaxPreviousPaths bounds how many earlier paths an artifact remembers.

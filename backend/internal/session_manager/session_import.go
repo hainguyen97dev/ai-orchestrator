@@ -19,11 +19,11 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/processalive"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionimport"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // ImportArchiveRefresher rereads an imported conversation before its first open.

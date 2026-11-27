@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devimport"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/legacyimport"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentaccounts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentauth"
@@ -21,6 +19,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionimport"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systemcheck"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/contract"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"

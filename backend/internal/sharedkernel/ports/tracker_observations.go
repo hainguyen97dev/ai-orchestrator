@@ -8,7 +8,7 @@ package ports
 import (
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // TrackerObservation is the provider-neutral issue observation emitted by the

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // TestLiveDeepSeekACPModelCatalog drives the installed DeepSeek Harness through

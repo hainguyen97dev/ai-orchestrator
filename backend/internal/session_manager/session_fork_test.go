@@ -15,8 +15,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/scratch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifactversions"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/deepseekharness"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func deepseekRoot(home string) string {

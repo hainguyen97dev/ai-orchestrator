@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // validateKiloImportedWorkspace runs with the effective launch environment,

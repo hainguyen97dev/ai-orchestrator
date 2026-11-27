@@ -16,7 +16,7 @@ import (
 	"time"
 
 	kimiadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kimi"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // Kimi Code (Moonshot AI) keeps one conversation per session directory under

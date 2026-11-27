@@ -16,10 +16,10 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserstream"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/requestscope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const (

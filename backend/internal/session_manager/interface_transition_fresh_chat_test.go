@@ -13,8 +13,8 @@ import (
 
 	claudeagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
 	codexagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 

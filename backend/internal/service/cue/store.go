@@ -3,7 +3,7 @@ package cue
 import (
 	"context"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // Store is the cue service's persistence surface. The SQLite store satisfies

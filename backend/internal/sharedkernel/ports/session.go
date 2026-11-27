@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // ErrSessionNotFound reports an observation for an unknown session id.

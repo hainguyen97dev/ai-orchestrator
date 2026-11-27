@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func gooseFixtureDB(t *testing.T) (string, *sql.DB) {

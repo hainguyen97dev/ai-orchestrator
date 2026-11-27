@@ -27,8 +27,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Plugin is the Kiro agent adapter. It is safe for concurrent use; the binary

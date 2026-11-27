@@ -12,8 +12,8 @@ import (
 
 	_ "modernc.org/sqlite" // register sqlite driver
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const defaultSQLiteChunkRows = 1000

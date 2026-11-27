@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const claudeConfigDirEnv = "CLAUDE_CONFIG_DIR"

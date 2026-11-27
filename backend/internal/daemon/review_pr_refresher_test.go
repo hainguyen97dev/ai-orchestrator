@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/review"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type fakeClaimer struct {

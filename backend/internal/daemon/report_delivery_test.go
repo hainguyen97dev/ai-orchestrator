@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	reportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/report"
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 type reportDeliverySession struct {

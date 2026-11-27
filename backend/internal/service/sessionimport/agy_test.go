@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/encoding/protowire"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agy"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func TestAgyScanUsesEligibleCWDAndNativeIdentity(t *testing.T) {

@@ -3,7 +3,7 @@ package ports
 import (
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // NotificationIntent is the lifecycle-to-notification-producer contract. It is

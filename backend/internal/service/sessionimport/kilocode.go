@@ -13,7 +13,7 @@ import (
 	_ "modernc.org/sqlite" // read-only SQLite driver for KiloCode's session store
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // KiloCode keeps every conversation in one global SQLite database rather than a

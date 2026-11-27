@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // TokenIdentity reads the display identity a JWT carries in its payload (an

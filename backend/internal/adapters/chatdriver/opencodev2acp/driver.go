@@ -14,8 +14,8 @@ import (
 	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/nativeacp"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/opencodeidentity"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // New launches `opencode acp` from the exact major-two binary resolved by the

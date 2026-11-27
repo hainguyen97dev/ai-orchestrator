@@ -16,7 +16,7 @@ import (
 	"github.com/pelletier/go-toml/v2"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Grok Build shows a full-screen "Do you trust the contents of this

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func (f *fakeSessionService) DeleteKeepingArtifacts(_ context.Context, id domain.SessionID, _ bool) error {

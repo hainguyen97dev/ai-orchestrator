@@ -17,7 +17,7 @@ import (
 
 	"github.com/creack/pty"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Spawn starts argv on a real PTY via creack/pty, sized rows×cols from birth

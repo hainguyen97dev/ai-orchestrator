@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 var _ ports.AgentProcessConversationReader = (*Plugin)(nil)

@@ -12,8 +12,8 @@ import (
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // The wire shape below is an anonymized replay of what `agy acp` 1.5.14 sends:

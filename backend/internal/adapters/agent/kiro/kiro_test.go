@@ -12,8 +12,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/authprobe"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestManifestIDIsKiro(t *testing.T) {

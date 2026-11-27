@@ -10,7 +10,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/gitworktree"
 	workspacerouter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/router"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func newIncludedWorktree(t *testing.T, project string) (string, *gitworktree.Workspace) {

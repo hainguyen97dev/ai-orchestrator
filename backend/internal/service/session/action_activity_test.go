@@ -9,9 +9,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/caller"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func actionFixture(t *testing.T) (*Service, *fakeStore, *fakeCommander) {

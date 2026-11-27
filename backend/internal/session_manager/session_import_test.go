@@ -15,8 +15,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kimchi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestImportCopiesDirtyGitStateWithoutChangingSource(t *testing.T) {

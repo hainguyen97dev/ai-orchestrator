@@ -9,10 +9,10 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 const browserCapabilityHeader = "X-AO-Browser-Capability"

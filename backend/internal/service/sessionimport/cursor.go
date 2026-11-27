@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cursorstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func cursorRoot(home string) string {

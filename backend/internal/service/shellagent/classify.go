@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // executableHarness maps the command a harness installs onto its harness id.

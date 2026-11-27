@@ -3,10 +3,10 @@ package daemon
 import (
 	"context"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	usagepipeline "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/usage"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentaccounts"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 type freshUsageSummary struct {

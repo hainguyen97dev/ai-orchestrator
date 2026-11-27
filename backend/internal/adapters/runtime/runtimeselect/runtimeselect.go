@@ -10,7 +10,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/conpty"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/tmux"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Runtime is the union interface that every selected runtime satisfies.

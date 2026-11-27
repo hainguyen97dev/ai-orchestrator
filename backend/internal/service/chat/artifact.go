@@ -11,10 +11,10 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
 	reportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/report"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 var _ reportsvc.ArtifactRecorder = (*Service)(nil)

@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
 	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // watchInstalledHarnessUpdates checks installed harnesses for updates once

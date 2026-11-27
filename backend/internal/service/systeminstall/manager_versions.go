@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const maxRegistryMetadataBytes = 1 << 20

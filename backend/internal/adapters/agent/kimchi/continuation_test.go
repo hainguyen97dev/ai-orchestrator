@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const kimchiTestSession = "019fe4d5-24c5-77ac-a0e3-d3c18b37dcef"

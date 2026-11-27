@@ -17,8 +17,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hooksjson"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestManifestIDIsGoose(t *testing.T) {

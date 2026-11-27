@@ -28,8 +28,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/opencode"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/opencodev2"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/pi"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Adapter is a registered reviewer: a ports.Reviewer that names its harness.

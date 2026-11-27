@@ -3,7 +3,7 @@ package modelcatalog
 import (
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestLabelClaudeAliasVersionsUsesNewestProviderModelPerFamily(t *testing.T) {

@@ -14,14 +14,14 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devices"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/computeruse"
 	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionimport"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func remainingRequestBudget(ctx context.Context) time.Duration {

@@ -1,6 +1,6 @@
 package codex
 
-import "github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+import "github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 
 // DeriveActivityState maps a Codex hook event onto an AO activity state. The
 // bool is false when the event carries no activity signal.

@@ -48,8 +48,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/piacp"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/qwenacp"
 	unrealchat "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/unrealagent"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // Registry maps a harness to its Chat driver.

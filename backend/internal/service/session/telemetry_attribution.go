@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/deliverytelemetry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // createdByStore persists created_by for ao.sessions.ended. It is optional so

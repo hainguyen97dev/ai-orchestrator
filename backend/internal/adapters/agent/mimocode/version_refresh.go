@@ -6,7 +6,7 @@ import (
 	"runtime"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // SupportsTerminalVersionRefresh declares unattended exact-conversation resume.

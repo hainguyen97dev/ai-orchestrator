@@ -18,11 +18,11 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/presence"
 	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
 	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/review"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // APIDeps bundles every service the API layer's controllers depend on.

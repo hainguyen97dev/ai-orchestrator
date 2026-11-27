@@ -3,7 +3,7 @@ package activitydispatch
 import (
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // Every deriver key must be a known harness name except fake, whose deriver is

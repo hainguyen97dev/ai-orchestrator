@@ -6,8 +6,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	trackerintake "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/trackerintake"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 
