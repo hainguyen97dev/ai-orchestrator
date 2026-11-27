@@ -103,12 +103,11 @@ func ValidateToolProfile(p ToolProfile) error {
 	if strings.TrimSpace(string(p.ID)) == "" || p.Version < 1 || !validToolName(p.Name) {
 		return errors.New("tool profile requires an ID, positive version, and name of at most 100 bytes")
 	}
-	for _, patterns := range [][]string{p.ShellAllow, p.ShellDeny} {
-		for _, pattern := range patterns {
-			if strings.TrimSpace(pattern) == "" || (strings.Contains(pattern, "*") && (!strings.HasSuffix(pattern, " *") || strings.Count(pattern, "*") != 1)) {
-				return fmt.Errorf("invalid shell pattern %q", pattern)
-			}
-		}
+	if err := validateBuiltinNames(p.BuiltinAllow, p.BuiltinDeny); err != nil {
+		return err
+	}
+	if err := validateShellPatterns(p.ShellAllow, p.ShellDeny); err != nil {
+		return err
 	}
 	seen := make(map[MCPServerID]struct{}, len(p.MCP))
 	for _, grant := range p.MCP {
@@ -119,11 +118,53 @@ func ValidateToolProfile(p ToolProfile) error {
 			return fmt.Errorf("duplicate MCP server %q", grant.Server)
 		}
 		seen[grant.Server] = struct{}{}
-		for _, tool := range grant.Tools {
-			if strings.TrimSpace(tool) == "" {
-				return fmt.Errorf("MCP server %q has an empty tool", grant.Server)
+		if err := validateGrantTools(grant); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateShellPatterns accepts literals and patterns with one trailing " *"
+// after a non-blank command base.
+func validateShellPatterns(lists ...[]string) error {
+	for _, patterns := range lists {
+		for _, pattern := range patterns {
+			wildcard := strings.Contains(pattern, "*")
+			if strings.TrimSpace(pattern) == "" || (wildcard && (!strings.HasSuffix(pattern, " *") || strings.Count(pattern, "*") != 1 ||
+				strings.TrimSpace(strings.TrimSuffix(pattern, " *")) == "")) {
+				return fmt.Errorf("invalid shell pattern %q", pattern)
 			}
 		}
+	}
+	return nil
+}
+
+func validateBuiltinNames(lists ...[]string) error {
+	for _, names := range lists {
+		for _, name := range names {
+			if strings.TrimSpace(name) == "" {
+				return errors.New("builtin tool name must not be empty")
+			}
+		}
+	}
+	return nil
+}
+
+// validateGrantTools rejects blank and duplicate tool names in one MCP grant.
+func validateGrantTools(grant MCPGrant) error {
+	seen := make(map[string]bool, len(grant.Tools))
+	for _, tool := range grant.Tools {
+		if strings.TrimSpace(tool) == "" {
+			return fmt.Errorf("MCP server %q has an empty tool", grant.Server)
+		}
+		if seen[tool] {
+			return fmt.Errorf("MCP server %q has duplicate tool %q", grant.Server, tool)
+		}
+		if tool == "*" && len(grant.Tools) != 1 {
+			return fmt.Errorf("MCP server %q cannot mix \"*\" with other tools", grant.Server)
+		}
+		seen[tool] = true
 	}
 	return nil
 }
@@ -164,6 +205,12 @@ func ResolveToolPolicy(base ToolProfile, layers ...ToolNarrowing) (ResolvedToolP
 		MCP:          cloneMCPGrants(base.MCP),
 	}
 	for _, layer := range layers {
+		if err := validateBuiltinNames(layer.BuiltinAllow, layer.BuiltinDeny); err != nil {
+			return ResolvedToolPolicy{}, err
+		}
+		if err := validateShellPatterns(layer.ShellAllow, layer.ShellDeny); err != nil {
+			return ResolvedToolPolicy{}, err
+		}
 		var err error
 		if policy.BuiltinAllow, err = narrowAllow(policy.BuiltinAllow, layer.BuiltinAllow); err != nil {
 			return ResolvedToolPolicy{}, fmt.Errorf("builtin allow: %w", err)
@@ -239,8 +286,14 @@ func narrowMCP(previous, requested []MCPGrant) ([]MCPGrant, error) {
 	wanted := make(map[MCPServerID][]string, len(requested))
 	for _, grant := range requested {
 		prior, ok := byServer[grant.Server]
-		if !ok || len(grant.Tools) == 0 {
+		if !ok {
 			return nil, fmt.Errorf("MCP server %q: %w", grant.Server, ErrToolPolicyWidening)
+		}
+		if len(grant.Tools) == 0 {
+			return nil, fmt.Errorf("MCP server %q requires tools; omit the server to remove it", grant.Server)
+		}
+		if err := validateGrantTools(grant); err != nil {
+			return nil, err
 		}
 		if _, duplicate := wanted[grant.Server]; duplicate {
 			return nil, fmt.Errorf("duplicate MCP server %q: %w", grant.Server, ErrToolPolicyWidening)
@@ -264,6 +317,11 @@ func narrowMCP(previous, requested []MCPGrant) ([]MCPGrant, error) {
 	return result, nil
 }
 
+// shellUnsafeChars lets the shell run a command other than the literal text:
+// chaining, substitution, redirection, quoting, escapes, brace and glob
+// expansion, and non-space whitespace. Such commands only pass an exact allow.
+const shellUnsafeChars = ";&|$`><()\n'\"\\\t\r\v\f{}*?[]"
+
 // AllowsShell checks literal or trailing-wildcard patterns. An exact allow may
 // contain shell metacharacters; wildcard allows cannot authorize them.
 func (p ResolvedToolPolicy) AllowsShell(command string) bool {
@@ -272,7 +330,7 @@ func (p ResolvedToolPolicy) AllowsShell(command string) bool {
 			return false
 		}
 	}
-	if strings.ContainsAny(command, ";&|$`><()\n") {
+	if strings.ContainsAny(command, shellUnsafeChars) || strings.Contains(command, "  ") {
 		for _, pattern := range p.ShellAllow {
 			if pattern == command {
 				return true

@@ -55,6 +55,8 @@ func TestValidateToolProfile(t *testing.T) {
 		{"duplicate server", func(p *ToolProfile) { p.MCP = append(p.MCP, MCPGrant{Server: "gitnexus", Tools: []string{"query"}}) }},
 		{"empty tools", func(p *ToolProfile) { p.MCP = []MCPGrant{{Server: "gitnexus"}} }},
 		{"mid-pattern wildcard", func(p *ToolProfile) { p.ShellAllow = []string{"git * push"} }},
+		// Review PR #8 item 4: "*" only means "all tools" when it stands alone.
+		{"wildcard mixed with tool", func(p *ToolProfile) { p.MCP = []MCPGrant{{Server: "s", Tools: []string{"*", "query"}}} }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			p := valid
@@ -72,14 +74,14 @@ func TestResolveToolPolicyNarrowsOnly(t *testing.T) {
 		MCP: []MCPGrant{{Server: "gitnexus", Tools: []string{"*"}}, {Server: "postman", Tools: []string{"get", "list"}}}}
 	got, err := ResolveToolPolicy(base,
 		ToolNarrowing{BuiltinAllow: []string{"Read"}, ShellAllow: []string{"go test *"}, MCP: []MCPGrant{{Server: "gitnexus", Tools: []string{"query"}}, {Server: "postman", Tools: []string{"list"}}}},
-		ToolNarrowing{ShellDeny: []string{"go test private/*"}, MCP: []MCPGrant{{Server: "gitnexus", Tools: []string{"query"}}}})
+		ToolNarrowing{ShellDeny: []string{"go test ./private *"}, MCP: []MCPGrant{{Server: "gitnexus", Tools: []string{"query"}}}})
 	if err != nil {
 		t.Fatalf("narrowing policy: %v", err)
 	}
 	if got.ProfileID != "tp_1" || got.ProfileVersion != 3 {
 		t.Fatalf("lost profile identity: %+v", got)
 	}
-	if !equalStrings(got.BuiltinAllow, []string{"Read"}) || !equalStrings(got.ShellAllow, []string{"go test *"}) || !equalStrings(got.ShellDeny, []string{"git push *", "go test private/*"}) {
+	if !equalStrings(got.BuiltinAllow, []string{"Read"}) || !equalStrings(got.ShellAllow, []string{"go test *"}) || !equalStrings(got.ShellDeny, []string{"git push *", "go test ./private *"}) {
 		t.Fatalf("unexpected resolved lists: %+v", got)
 	}
 	if len(got.MCP) != 1 || got.MCP[0].Server != "gitnexus" || !equalStrings(got.MCP[0].Tools, []string{"query"}) {
@@ -121,6 +123,82 @@ func TestResolveToolPolicyInheritsNilAndPreservesOrder(t *testing.T) {
 	}
 }
 
+// Review PR #8 item 2: a layer pattern the base would reject must not be
+// accepted silently (it would only match its literal text and fail open).
+func TestResolveToolPolicyRejectsInvalidLayerShellPatterns(t *testing.T) {
+	base := ToolProfile{ID: "tp", Version: 1, Name: "dev", ShellAllow: []string{"go test *", "go *"}}
+	for _, tc := range []struct {
+		name  string
+		layer ToolNarrowing
+	}{
+		{"deny", ToolNarrowing{ShellDeny: []string{"go test private/*"}}},
+		{"mid-wildcard deny", ToolNarrowing{ShellDeny: []string{"go * private"}}},
+		{"allow", ToolNarrowing{ShellAllow: []string{"go test private/*"}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got, err := ResolveToolPolicy(base, tc.layer); err == nil {
+				t.Fatalf("invalid layer pattern accepted: deny=%q allow=%q", got.ShellDeny, got.ShellAllow)
+			}
+		})
+	}
+}
+
+// Review PR #8 item 3: narrowing a "*" grant must apply the same tool checks as
+// the base profile.
+func TestResolveToolPolicyRejectsEmptyOrDuplicateToolsUnderWildcard(t *testing.T) {
+	base := ToolProfile{ID: "tp", Version: 1, Name: "dev", MCP: []MCPGrant{{Server: "s", Tools: []string{"*"}}}}
+	for _, tools := range [][]string{{"", "a", "a"}, {"a", "a"}, {" "}} {
+		if got, err := ResolveToolPolicy(base, ToolNarrowing{MCP: []MCPGrant{{Server: "s", Tools: tools}}}); err == nil {
+			t.Errorf("narrow %q accepted: mcp=%+v", tools, got.MCP)
+		}
+	}
+}
+
+// Review PR #8 item 4: a layer cannot mix "*" with named tools either.
+func TestResolveToolPolicyRejectsMixedWildcardInLayer(t *testing.T) {
+	base := ToolProfile{ID: "tp", Version: 1, Name: "dev", MCP: []MCPGrant{{Server: "s", Tools: []string{"*"}}}}
+	if got, err := ResolveToolPolicy(base, ToolNarrowing{MCP: []MCPGrant{{Server: "s", Tools: []string{"*", "query"}}}}); err == nil {
+		t.Fatalf("layer mixing wildcard accepted: mcp=%+v", got.MCP)
+	}
+}
+
+// Review PR #8 nit 6: " *" has an empty command base and would allow any
+// command that starts with a space.
+func TestShellPatternRejectsEmptyWildcardBase(t *testing.T) {
+	if err := ValidateToolProfile(ToolProfile{ID: "tp", Version: 1, Name: "dev", ShellAllow: []string{" *"}}); err == nil {
+		t.Error("base accepted shell pattern \" *\"")
+	}
+	base := ToolProfile{ID: "tp", Version: 1, Name: "dev", ShellAllow: []string{"go test *"}}
+	if _, err := ResolveToolPolicy(base, ToolNarrowing{ShellDeny: []string{"  *"}}); err == nil {
+		t.Error("layer accepted shell pattern \"  *\"")
+	}
+}
+
+// Review PR #8 nit 7: a layer grant without tools is invalid input, not widening.
+func TestResolveToolPolicyEmptyLayerToolsIsInvalidNotWidening(t *testing.T) {
+	base := ToolProfile{ID: "tp", Version: 1, Name: "dev", MCP: []MCPGrant{{Server: "s", Tools: []string{"*"}}}}
+	_, err := ResolveToolPolicy(base, ToolNarrowing{MCP: []MCPGrant{{Server: "s"}}})
+	if err == nil || errors.Is(err, ErrToolPolicyWidening) {
+		t.Fatalf("got %v, want a non-widening validation error", err)
+	}
+}
+
+// Review PR #8 nit 8: builtin names follow the same non-empty rule as shell and MCP.
+func TestToolPolicyRejectsEmptyBuiltinNames(t *testing.T) {
+	for _, p := range []ToolProfile{
+		{ID: "tp", Version: 1, Name: "dev", BuiltinAllow: []string{"Read", ""}},
+		{ID: "tp", Version: 1, Name: "dev", BuiltinDeny: []string{" "}},
+	} {
+		if err := ValidateToolProfile(p); err == nil {
+			t.Errorf("base accepted empty builtin name: allow=%q deny=%q", p.BuiltinAllow, p.BuiltinDeny)
+		}
+	}
+	base := ToolProfile{ID: "tp", Version: 1, Name: "dev", BuiltinAllow: []string{"Read"}}
+	if _, err := ResolveToolPolicy(base, ToolNarrowing{BuiltinDeny: []string{""}}); err == nil {
+		t.Error("layer accepted empty builtin deny")
+	}
+}
+
 func TestAllowsShell(t *testing.T) {
 	p := ResolvedToolPolicy{ShellAllow: []string{"go test *", "git *", "npm run sqlc"}, ShellDeny: []string{"git push *"}}
 	for command, want := range map[string]bool{
@@ -148,6 +226,31 @@ func TestAllowsShellRejectsChaining(t *testing.T) {
 	p.ShellDeny = []string{"go test ./... && git push"}
 	if p.AllowsShell("go test ./... && git push") {
 		t.Fatal("exact deny did not override allow")
+	}
+}
+
+// Review PR #8 item 1: shell treats each of these as `git push origin main`,
+// so deny `git push *` must still win.
+func TestAllowsShellDenyResistsQuotingEscapesAndWhitespace(t *testing.T) {
+	p := ResolvedToolPolicy{ShellAllow: []string{"git *"}, ShellDeny: []string{"git push *"}}
+	for _, command := range []string{
+		"git  push origin main",
+		"git 'push' origin main",
+		"git \"push\" origin main",
+		"git p\\ush origin main",
+		"git\tpush origin main",
+		"git push\torigin main",
+		"git\rpush origin main",
+		"git {push,} origin main",
+		"git pus? origin main",
+		"git pus[h] origin main",
+	} {
+		if p.AllowsShell(command) {
+			t.Errorf("deny bypassed by %q", command)
+		}
+	}
+	if !p.AllowsShell("git status --short") {
+		t.Fatal("plain allowed command rejected")
 	}
 }
 

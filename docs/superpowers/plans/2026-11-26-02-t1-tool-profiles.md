@@ -94,7 +94,7 @@ Nếu package `domain` chưa dùng `require`, viết theo kiểu `if err != nil 
   - `func ResolveToolPolicy(base ToolProfile, layers ...ToolNarrowing) (ResolvedToolPolicy, error)`
   - `func (p ResolvedToolPolicy) AllowsShell(command string) bool`
 
-Luật: allow = giao (layer không được thêm phần tử không có trong lớp trước, nếu có → `ErrToolPolicyWidening`); deny = hợp; MCP = giao theo server rồi giao theo tool (`"*"` ở lớp trước chấp nhận mọi tool ở lớp sau). Shell pattern: khớp đúng nguyên văn, hoặc pattern kết thúc bằng `" *"` thì khớp mọi lệnh bắt đầu bằng phần trước dấu `*` cộng khoảng trắng hoặc bằng đúng phần đó. Lệnh chứa một trong `; & | $ \` > < ( ) \n` → `false`, trừ khi khớp nguyên văn một mục allow. Deny thắng allow.
+Luật: allow = giao (layer không được thêm phần tử không có trong lớp trước, nếu có → `ErrToolPolicyWidening`); deny = hợp; MCP = giao theo server rồi giao theo tool (`"*"` ở lớp trước chấp nhận mọi tool ở lớp sau). Shell pattern: khớp đúng nguyên văn, hoặc pattern kết thúc bằng `" *"` thì khớp mọi lệnh bắt đầu bằng phần trước dấu `*` cộng khoảng trắng hoặc bằng đúng phần đó. Lệnh chứa một trong `; & | $ \` > < ( ) \n`, dấu nháy `' "`, `\`, `{ } * ? [ ]`, tab/CR/VT/FF, hoặc hai khoảng trắng liền nhau → `false`, trừ khi khớp nguyên văn một mục allow. Deny thắng allow. Shell pattern của mọi layer được validate cùng luật với base (pattern `" *"` có phần trước `*` rỗng là không hợp lệ). Tool MCP trong một grant không được rỗng/trùng; `"*"` phải đứng một mình; grant ở layer có `Tools` rỗng là input lỗi, không phải `ErrToolPolicyWidening`. Builtin name không được rỗng.
 
 - [ ] **Step 1: Viết test lỗi**
 
