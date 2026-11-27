@@ -12,8 +12,10 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 ## Trạng thái (2026-11-27)
 
 - P0 xong: chỉ còn `main`, không worktree phụ, không session/script chạy nền.
-- Chưa có plan cho phase nào. Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge.
-- Phase kế tiếp: **P1** (bảng map tính năng ↔ code ↔ bounded context + cổng nhận) và **P3a** (dời khung). Smoke tự động dựng trên harness stub `backend/e2e` là việc đầu của P3a.
+- Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge. Plan hiện có: `2026-11-27-p1-feature-code-map.md`, `2026-11-27-p3a-frame-move.md`.
+- P3a (nhánh `feat/p3a-frame-move`, chờ duyệt): module path `github.com/hainguyen97dev/ai-orchestrator/backend`; `internal/sharedkernel/{domain,ports}`; `platform/persistence/sqlite` (migrations ở `backend/platform/persistence/sqlite/migrations`); `platform/eventbus/cdc`; `cmd/server`; test kiến trúc `internal/archtest`; smoke `TestSmokeProjectSessionWorktreeDiff`; job CI `import-only` theo label.
+- P1 (nhánh `docs/p1-feature-code-map`, chờ duyệt): `docs/fork/ddd-spec/17-feature-code-map.md`.
+- Phase kế tiếp sau khi merge: P2 (Strategic DDD) và P3b (dời theo cụm, thứ tự ở §5 của 17).
 
 ## Quyết định đã chốt
 
@@ -37,9 +39,9 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 - Không chạy wave/autoscale nhiều session tự động.
 
 **Hotspot** — mỗi lúc chỉ 1 PR mở đụng tới; lane gom thay đổi hotspot vào một PR cuối:
-- migration SQLite + `shippedMigrations`
+- migration SQLite (`backend/platform/persistence/sqlite/migrations/*`) + `shippedMigrations`
 - `openapi.yaml`, `frontend/src/api/schema.ts`, `specgen/build.go`
-- wiring daemon (`daemon/daemon.go`, `httpd/api.go`; sau P3a là `cmd/server`)
+- wiring daemon (`internal/daemon/daemon.go`, `httpd/api.go`; entry `cmd/server`)
 
 PR đụng hotspot: merge PR trước, rebase, chạy lại `npm run sqlc && npm run api`, không sửa tay file generated.
 
