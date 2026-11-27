@@ -31,6 +31,7 @@ Bản sao trong repo của workspace `feature-surgery/`. Worker trong worktree c
 - [State machine ví dụ: CMS Permission Review](./specs/cms-permission-flow-state-machine.md)
 - [Mô hình role, skill, năng lực và tri thức dự án](./specs/role-skill-knowledge-model.md)
 - [Settings cho Role, Skill và Project Knowledge](./specs/settings-role-skill-project-knowledge.md)
+- [Contract A1/A2: Role, Skill có version, Project Knowledge + snapshot](./specs/a1-a2-contract.md)
 
 Link sang vault nghiên cứu 1DevTool được giữ dạng text `(workspace: 1devtool-research/...)` vì vault nằm ngoài repo.
 
@@ -41,6 +42,7 @@ Link sang vault nghiên cứu 1DevTool được giữ dạng text `(workspace: 1
 - [02 T1 ToolProfile + MCP backend](../superpowers/plans/2026-11-26-02-t1-tool-profiles.md)
 - [03 UI-S Skill UI](../superpowers/plans/2026-11-26-03-ui-skill.md)
 - [04 Chạy bằng ai-orchestra](../superpowers/plans/2026-11-26-04-run-with-ai-orchestra.md)
+- [A1/A2 Role + Skill, Project Knowledge](../superpowers/plans/2026-11-27-a1-a2.md)
 
 ## Ngoài phạm vi
 
