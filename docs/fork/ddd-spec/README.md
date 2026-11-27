@@ -21,5 +21,6 @@ Bộ đặc tả thiết kế v0.1 — mở thư mục này bằng Obsidian ho�
 - [[14-system-architecture]]
 - [[15-development-roadmap]]
 - [[16-assessment-and-build-plan]]
+- [[17-feature-code-map]]
 
 Đây là bản thiết kế sơ bộ dựa trên trao đổi, chưa audit repository hay xác minh tính năng thực tế của sản phẩm tham chiếu.
