@@ -16,8 +16,10 @@ type PipelineDefinition struct {
 	Stages    []PipelineStage `json:"stages"`
 }
 
+// PipelineStageMode says who does a stage's work: a human, an agent, or both.
 type PipelineStageMode string
 
+// Supported pipeline stage modes.
 const (
 	PipelineStageManual   PipelineStageMode = "manual"
 	PipelineStageAgent    PipelineStageMode = "agent"
@@ -35,6 +37,7 @@ type PipelineStage struct {
 	MaxRejections    int               `json:"maxRejections"`
 }
 
+// MaxPipelineRejections caps how many times one stage may be rejected and retried.
 const MaxPipelineRejections = 5
 
 // ValidatePipelineDefinition rejects definitions that cannot be run safely as
@@ -80,8 +83,10 @@ func ValidatePipelineDefinition(def PipelineDefinition) error {
 	return nil
 }
 
+// PipelineHandoffDecision is a reviewer's verdict on a stage's output.
 type PipelineHandoffDecision string
 
+// Supported handoff decisions.
 const (
 	PipelineHandoffAccept PipelineHandoffDecision = "accept"
 	PipelineHandoffReject PipelineHandoffDecision = "reject"
@@ -91,6 +96,7 @@ const (
 // the decision and changing the run's stage must happen atomically in storage.
 type PipelineHandoffResult string
 
+// Possible next actions after a handoff decision.
 const (
 	PipelineHandoffAdvance  PipelineHandoffResult = "advance"
 	PipelineHandoffRetry    PipelineHandoffResult = "retry"

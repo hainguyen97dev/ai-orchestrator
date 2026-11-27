@@ -109,3 +109,6 @@ pnpm-lock.yaml
 
 /frontend/wake-helper/
 /frontend/dictation-helper/
+
+# Android Gradle cache from mobile native modules
+packages/mobile/native/**/.gradle/
