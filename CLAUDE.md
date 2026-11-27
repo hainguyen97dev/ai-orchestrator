@@ -39,3 +39,33 @@ opens the inspector and selects Browser without changing the routed session,
 project, or OS window focus. Passive browser activity (`snapshot`, `click`,
 `fill`, `errors`, etc.) only badges a hidden Browser tab as unseen. Mention
 "check the Browser tab" when passive activity is the only update.
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+The repo is indexed by GitNexus under the name **ai-orchestrator**. The index lives only in the main checkout (`.gitnexus/`, gitignored), so from a lane worktree always pass `--repo ai-orchestrator`:
+
+```bash
+npx gitnexus impact <Symbol> --direction upstream --repo ai-orchestrator   # who depends on it
+npx gitnexus context <Symbol> --repo ai-orchestrator                       # callers, callees, flows
+npx gitnexus query "<concept>" --repo ai-orchestrator                      # find code for a feature
+npx gitnexus detect-changes --scope compare --base-ref main --repo ai-orchestrator
+```
+
+## When it is required
+
+- **Before moving, cutting, or deleting a package or symbol** (phases P3a/P3b, lane L1): run `impact` upstream and list the dependents in the PR.
+- **Before opening a move or cut PR**: run `detect-changes --scope compare --base-ref main` and confirm the affected flows match the task.
+- For ordinary edits inside your lane, use it when you are unsure who calls the code; it is not mandatory.
+
+## Reading results
+
+- The index does not link TypeScript to Go: frontend ↔ daemon goes through HTTP routes and `openapi.yaml`, so check those by hand.
+- An empty caller set or `risk: UNKNOWN` is **not** proof that code is unused (dynamic dispatch, cross-language calls). Confirm with a text search before deleting.
+- Do not ignore a HIGH or CRITICAL `risk`; mention it in the PR.
+- Rename symbols with `gopls`/`gitnexus rename`, not find-and-replace.
+
+## Keeping the index fresh
+
+Refresh from the main checkout after merges that move code: `npx gitnexus analyze --index-only` (`--index-only` keeps this block from being rewritten). Skill guides: `.claude/skills/gitnexus-*/SKILL.md`.
+<!-- gitnexus:end -->
