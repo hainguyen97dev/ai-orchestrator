@@ -1,6 +1,6 @@
 # De-vendor inventory (kiểm chứng 27/11/2026)
 
-Phạm vi: `backend/`, `frontend/`, `packages/`, `scripts/`, `.github/`, `contracts/`. Kiểm trên `origin/main` @ `9959aa6b`; code ở đây giống `feat/pipeline-foundation` cộng thêm phần automerge. `file:line` là chỗ cấu hình, chỗ phát request, hoặc chỗ nối có thể kích hoạt request. Đây là kiểm kê tĩnh. Nó không chứng minh runtime đã ngừng gửi; bằng chứng đó do test của DV-1 cung cấp.
+Phạm vi: `backend/`, `frontend/`, `packages/`, `scripts/`, `.github/`, `contracts/`. Kiểm trên `origin/main` @ `9959aa6b`; code ở đây giống `feat/pipeline-foundation` cộng thêm phần automerge. `file:line` là chỗ cấu hình, chỗ phát request, hoặc chỗ nối có thể kích hoạt request. Đây là kiểm kê tĩnh. Nó không chứng minh runtime đã ngừng gửi; bằng chứng đó do test của DV-1 cung cấp. `docs/fork/devendor-log.md` trên `main` (`9629a873`) chưa có dòng nào, nên inventory này không phải gộp thêm phát hiện nào từ log.
 
 **Thế nào là "vendor outbound":** request do AO tự tạo tới PostHog, Sentry, AO Cloud/control plane, website/share host của nhà phát hành, hoặc endpoint release/installer ghim về repo của nhà phát hành (`Untrivial-ai`, `OrchestratorInc`, `AgentWrapper`, `aoagents`). Những thứ sau **không** thuộc vendor outbound: kết nối GitHub/GitLab do người dùng chọn, nhà cung cấp model/agent, loopback/LAN tới daemon, cloudflared quick tunnel, và telemetry usage cục bộ.
 

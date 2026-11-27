@@ -21,7 +21,7 @@
 - Đổi DTO/specgen thì chạy `npm run api` và commit cả `backend/internal/httpd/apispec/openapi.yaml` lẫn `frontend/src/api/schema.ts`. Không sửa `gen/*` bằng tay.
 - **Hotspot (§4):** task có nhãn 🔥 vào contract queue. Chỉ một PR chạm hotspot được mở tại một thời điểm. Trước khi push: `git rebase origin/main`, chạy lại `npm run api` nếu có đổi DTO.
 - PR theo `.agents/skills/pr-description/SKILL.md`, có thêm hai mục `Out-of-plan files` và `De-vendor`. Scope cleanup theo roadmap §6. Tới 27/11/2026, A0 Task 3 (`chore/a0-ci`) **chưa** merge: lúc đó commit cuối của PR có code dùng `[skip ci]`; A0 Task 3 merge rồi thì bỏ. CI skip không thay được kiểm chứng local.
-- Cuối mỗi DV: chạy lại ba lệnh `rg` ở inventory §7, cập nhật cột hướng DV trong `docs/fork/devendor-inventory.md`. Phát hiện ngoài phạm vi thì ghi `docs/fork/devendor-log.md` (tạo nếu chưa có) theo §6a.
+- Cuối mỗi DV: chạy lại ba lệnh `rg` ở inventory §7, cập nhật cột hướng DV trong `docs/fork/devendor-inventory.md`. Phát hiện ngoài phạm vi thì ghi vào `docs/fork/devendor-log.md` theo §6a (file có trên `main` từ PR #2; tới 27/11/2026 bảng còn trống).
 
 ## Review Focus
 
@@ -157,7 +157,7 @@ Branch `feat/dv-1-kill-switch`. Không chạm hotspot: `daemon.go` giữ nguyên
 
 **Files:**
 - Modify: `docs/fork/devendor-inventory.md` (cột hướng DV: đánh dấu "DV-1 ✅ chặn" cho từng dòng đã chặn, kèm tên test)
-- Create nếu có phát hiện: `docs/fork/devendor-log.md`
+- Modify nếu có phát hiện: `docs/fork/devendor-log.md`
 
 - [ ] **Step 1: Rà lại.** Chạy ba lệnh ở inventory §7. Expected: mọi sender **auto** trong inventory §1–§4 đều có test ở Task 1–3 hoặc nằm trong Open questions. Kết quả mới chưa phân loại thì thêm vào test cùng PR (nếu là vendor auto) hoặc ghi `devendor-log.md`.
 - [ ] **Step 2: Chạy toàn bộ.**
