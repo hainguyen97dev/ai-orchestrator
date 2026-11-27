@@ -28,7 +28,9 @@ log() { printf '#%s: %s\n' "$1" "$2"; }
 evaluate() {
   local pr=$1 json mergeable attempt verdict sha
   for attempt in 1 2 3 4 5; do
-    json=$(gh pr view "$pr" --json number,state,isDraft,baseRefName,headRefOid,isCrossRepository,mergeable,labels,statusCheckRollup)
+    # set -e does not apply here (evaluate runs on the left of ||), so fail loudly.
+    json=$(gh pr view "$pr" --json number,state,isDraft,baseRefName,headRefOid,isCrossRepository,mergeable,labels,statusCheckRollup) \
+      || { log "$pr" "cannot read PR state (gh pr view failed)"; return 1; }
     mergeable=$(jq -r .mergeable <<<"$json")
     [[ $mergeable != UNKNOWN ]] && break
     sleep $((attempt * 3)) # GitHub computes mergeability lazily

@@ -29,6 +29,9 @@ on:
         default: false
 
 permissions:
+  # gh pr view --json statusCheckRollup resolves each check's workflow run,
+  # which needs actions: read; without it GraphQL errors and nothing merges.
+  actions: read
   contents: write
   pull-requests: write
   checks: read
