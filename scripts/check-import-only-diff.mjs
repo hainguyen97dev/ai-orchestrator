@@ -8,8 +8,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 export const MODULE_PATHS = [
-  'github.com/aoagents/agent-orchestrator/backend',
-  'github.com/hainguyen97dev/ai-orchestrator/backend',
+  'github.com/aoagents/agent-orchestrator',
+  'github.com/hainguyen97dev/ai-orchestrator',
 ];
 
 const GO_IMPORT_SPEC = /^\s*(?:import\s+)?(?:[\w.]+\s+)?"[^"]+"\s*$/;
@@ -22,11 +22,34 @@ export function classifyHunkLine(line, file) {
   return MODULE_PATHS.some((p) => body.includes(p)) ? 'ok' : 'violation';
 }
 
+const normalize = (body) => MODULE_PATHS.reduce((s, p) => s.split(p).join('<module>'), body);
+
+// A changed line that carries a module path passes when the opposite side of
+// the same hunk has a line identical to it once module paths are normalized.
+function dropModuleOnlyPairs(hunk) {
+  const counts = new Map();
+  for (const { line } of hunk) {
+    const key = line[0] + normalize(line.slice(1));
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return hunk.filter(({ line }) => {
+    if (!MODULE_PATHS.some((p) => line.includes(p))) return true;
+    const other = (line[0] === '+' ? '-' : '+') + normalize(line.slice(1));
+    return !counts.get(other);
+  });
+}
+
 export function checkDiff(text, { isGenerated }) {
   const violations = [];
   let file = null;
   let skip = false;
+  let hunk = [];
+  const flush = () => {
+    for (const { file: f, line } of dropModuleOnlyPairs(hunk)) violations.push(`${f}: ${line}`);
+    hunk = [];
+  };
   for (const line of text.split('\n')) {
+    if (line.startsWith('diff --git ') || line.startsWith('@@')) flush();
     if (line.startsWith('diff --git ')) {
       file = line.split(' b/').pop();
       skip = isGenerated(file);
@@ -40,9 +63,10 @@ export function checkDiff(text, { isGenerated }) {
     }
     if (line.startsWith('+++') || line.startsWith('---')) continue;
     if ((line.startsWith('+') || line.startsWith('-')) && classifyHunkLine(line, file) === 'violation') {
-      violations.push(`${file}: ${line}`);
+      hunk.push({ file, line });
     }
   }
+  flush();
   return violations;
 }
 

@@ -47,6 +47,19 @@ test('checkDiff reports violations with file and ignores generated files and pur
   assert.deepEqual(violations, ['backend/b.go: -\treturn 1', 'backend/b.go: +\treturn 2']);
 });
 
+test('a Go line that differs from its counterpart only by module path is ok; other edits are not', () => {
+  const text = diff('backend/e.go', [
+    `-\tif strings.Contains(name, "${OLD}/internal/") {`,
+    `+\tif strings.Contains(name, "${NEW}/internal/") {`,
+    `-\tbuild := run("${OLD}/cmd/ao", 1)`,
+    `+\tbuild := run("${NEW}/cmd/ao", 2)`,
+  ]);
+  assert.deepEqual(checkDiff(text, { isGenerated: () => false }), [
+    `backend/e.go: -\tbuild := run("${OLD}/cmd/ao", 1)`,
+    `backend/e.go: +\tbuild := run("${NEW}/cmd/ao", 2)`,
+  ]);
+});
+
 test('a new non-generated file is a violation', () => {
   const text = 'diff --git a/backend/new.go b/backend/new.go\nnew file mode 100644\n--- /dev/null\n+++ b/backend/new.go\n@@ -0,0 +1,1 @@\n+package x\n';
   assert.deepEqual(checkDiff(text, { isGenerated: () => false }), ['backend/new.go: new file']);
