@@ -59,6 +59,10 @@ PR đụng hotspot: merge PR trước, rebase, chạy lại `npm run sqlc && npm
 - Ngoài phạm vi → ghi một dòng vào [devendor-log.md](./devendor-log.md); lane L1 xử lý.
 - Không bao giờ thêm code tracking hoặc sign-in mới.
 
+**Smoke**
+- Smoke = `cd backend && go test ./e2e -run TestSmokeProjectSessionWorktreeDiff` (harness stub, không cần account thật; CI chạy sẵn trong `go test ./...`). Phải pass sau mọi PR dời/cắt.
+- Bước mở PR thật làm tay một lần mỗi phase.
+
 **Merge**
 - Cần chủ sản phẩm duyệt: migration, `httpd/auth*`, xoá tính năng, đổi API contract đã merge, `.github/workflows`, PR dời khung (P3a).
 - Còn lại: CI xanh + reviewer chéo approve + scope cleanup sạch.
