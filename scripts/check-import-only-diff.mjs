@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Proves a "move" PR only moves code: every changed line must be a Go import
 // spec, the go.mod module line, or a non-Go line carrying the module path.
-// Pure renames (git -M100%) have no hunks and pass; generated files are skipped.
+// Renames (git -M50%) pass; their edited lines are still checked; generated files are skipped.
 // Usage: node scripts/check-import-only-diff.mjs <baseRef>
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -82,7 +82,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     console.error('usage: check-import-only-diff.mjs <baseRef>');
     process.exit(2);
   }
-  const text = execFileSync('git', ['diff', '-M100%', '--unified=0', `${base}...HEAD`], {
+  const text = execFileSync('git', ['diff', '-M50%', '-l0', '--unified=0', `${base}...HEAD`], {
     encoding: 'utf8',
     maxBuffer: 1 << 30,
   });
