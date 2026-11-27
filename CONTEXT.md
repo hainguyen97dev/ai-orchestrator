@@ -47,16 +47,31 @@ details, no decisions (those live in `docs/adr/`).
   password attempts from a source are throttled (per-source, not global, so a
   hostile device cannot lock out the real phone). Resets on a successful auth.
 
-## Flow and tooling (fork)
+## Platform domain (fork)
 
-- **Flow**: a versioned, ordered definition of work stages a person runs end to end; editing a Flow creates a new version.
-- **FlowRun**: one execution of a Flow that pins a single Flow version and records each node's state, gate decisions, and artifacts.
-- **Stage / Node**: one step of a Flow (agent, assisted, or human work) with the role, tools, and evidence required before handoff.
-- **Gate**: the decision point at the end of a Stage where a human or policy accepts, rejects, or sends the work back.
-- **Artifact**: a durable output of a Stage, such as a document, plan, diff, PR, or test report, referenced by later Stages.
+Full glossary: [`docs/fork/ddd-spec/01-ubiquitous-language.md`](docs/fork/ddd-spec/01-ubiquitous-language.md).
+The earlier "Flow" vocabulary is retired: Flow → **Workflow Definition**,
+FlowRun → **Workflow Run**, Stage/Node → **Node**, Gate → **Approval** or
+**Quality Gate** node.
+
+- **Business Domain**: the business scope of the system being built (for example Payment); distinct from a **Platform Domain** such as Workflow Execution.
+- **Workflow Definition**: a versioned graph of nodes and transitions; immutable once published.
+- **Workflow Run**: one execution of a Workflow Definition that pins the definition version and a knowledge snapshot.
+- **Node**: one step of a Workflow Definition (Trigger, Knowledge Retrieval, Agent, Approval, Quality Gate, Checkpoint, Knowledge Proposal, …).
+- **Node Execution**: the record of one node inside a Workflow Run; one node can create several Agent Run attempts.
+- **Approval**: a human decision pinned to the hash of the inputs/artifacts it approved.
+- **Quality Gate**: a node that validates output (rules, security, contract, tests) and passes, fails, or triggers a bounded retry.
+- **Agent Definition**: role, capabilities, instruction version, and permission policy of an agent.
+- **Agent Run**: one execution of an agent for a Node Execution; backed by an AO Session through the anti-corruption layer.
+- **Checkpoint**: recoverable state of a run; not the same as an agent's native session.
+- **Knowledge Document**: a Markdown file with frontmatter and a stable ID in the project's Obsidian vault; states DRAFT, IN_REVIEW, APPROVED, DEPRECATED, STALE.
+- **Business Rule**: a Knowledge Document of type `business-rule`, with source and approval state; an AI inference is never an approved rule.
+- **Knowledge Proposal**: a suggested change to knowledge that must be reviewed before publish.
+- **Context Package**: the versioned set of knowledge, with citations and token estimate, compiled for one Agent Run.
+- **Provider Profile**: credential reference, allowed models, capability, quota and health of one AI source.
+- **Artifact**: a durable output of a node, such as a document, plan, diff, PR, or test report.
 - **RoleProfile**: a versioned job role (for example PO, BA, SA, Dev, QA) with its skills, knowledge, and default agent settings; not a harness override.
-- **SkillDefinition**: a versioned, reusable instruction set a RoleProfile or Stage references to perform one kind of task.
-- **KnowledgeSnapshot**: a pinned reference to project knowledge (path or URI plus ref or content hash and time) captured for a FlowRun.
+- **SkillDefinition**: a versioned, reusable instruction set a role or node references to perform one kind of task.
 - **ToolProfile**: a versioned allow/deny policy over builtin, MCP, and shell tools, resolved node → role → project where each lower layer may only narrow.
 - **MCPServer**: a registered MCP server (transport, command or URL, env, headers) that a ToolProfile can grant tools from.
 - **Enforcement level**: how strongly an agent adapter applies a ToolProfile: `enforced`, `best-effort`, or `none`.

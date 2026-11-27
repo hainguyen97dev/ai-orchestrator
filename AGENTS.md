@@ -6,11 +6,12 @@ Follow [CONTRIBUTING.md](CONTRIBUTING.md) before choosing an issue or starting w
 
 ## Fork direction
 
-- Read [`docs/fork/README.md`](docs/fork/README.md) (goal, decisions D1–D7, specs, out of scope) before any feature task. Plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/); start from the roadmap `2026-11-26-00-roadmap.md`.
-- Scope cleanup (roadmap §6) is mandatory before opening a PR: revert or remove files outside the task's **Files** list, or justify each one under "Out-of-plan files" in the PR.
-- Hotspots run one PR at a time (roadmap §4): `storage/sqlite/migrations/*` + `shippedMigrations`, `openapi.yaml` / `schema.ts` / `specgen/build.go`, `daemon/daemon.go`, `httpd/api.go`.
-- `ProjectConfig.Worker`, `Orchestrator`, and `Reviewers` are harness overrides, **not** PO/BA/SA roles. Roles come from `RoleProfile` (see [`CONTEXT.md`](CONTEXT.md)).
-- Vendor tracking or sign-in (PostHog, Sentry, remote telemetry, Cloud/WorkOS auth) follows roadmap §6a: disable it when it sits in a file the task already edits and can become a no-op without an API change (note it under "De-vendor" in the PR); otherwise log it in [`docs/fork/devendor-log.md`](docs/fork/devendor-log.md). Never add new tracking or sign-in code.
+- Read [`docs/fork/README.md`](docs/fork/README.md) (goal, decisions K1–K9, standing rules, out of scope) before any task. The approved design is [`docs/superpowers/specs/2026-11-27-ddd-platform-restructure-design.md`](docs/superpowers/specs/2026-11-27-ddd-platform-restructure-design.md); the DDD spec set is in [`docs/fork/ddd-spec/`](docs/fork/ddd-spec/README.md). Plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/) and are written only for the phase about to run.
+- Work stays inside your lane's directories (design §6). Scope cleanup is mandatory before opening a PR: revert or remove files outside the task's **Files** list, or justify each one under "Out-of-plan files" in the PR.
+- Hotspots run one PR at a time: `storage/sqlite/migrations/*` + `shippedMigrations`, `openapi.yaml` / `schema.ts` / `specgen/build.go`, `daemon/daemon.go`, `httpd/api.go`.
+- Move PRs only move (`git mv` + import fixes, no logic change). New bounded contexts under `internal/<bc>` never import AO packages directly; they go through `internal/<bc>/infrastructure/acl`.
+- Use the vocabulary in [`CONTEXT.md`](CONTEXT.md) and `docs/fork/ddd-spec/01-ubiquitous-language.md` (Workflow Definition / Workflow Run / Node; "Flow" is retired). `ProjectConfig.Worker`, `Orchestrator`, and `Reviewers` are harness overrides, **not** PO/BA/SA roles.
+- Vendor tracking or sign-in (PostHog, Sentry, remote telemetry, Cloud/WorkOS auth): disable it when it sits in a file the task already edits and can become a no-op without an API change (note it under "De-vendor" in the PR); otherwise log it in [`docs/fork/devendor-log.md`](docs/fork/devendor-log.md). Never add new tracking or sign-in code.
 
 ## Repo layout
 

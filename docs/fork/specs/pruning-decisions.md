@@ -1,6 +1,6 @@
 # Phương án “đại phẫu” AO
 
-> Quyết định cắt tính năng đã chốt: xem D3 trong [roadmap §1](../../superpowers/plans/2026-11-26-00-roadmap.md#1-quyết-định-đã-chốt-mặc-định-đổi-được).
+> Quyết định cắt tính năng đã chốt: xem K5 trong [docs/fork/README.md](../README.md).
 
 ## Ranh giới sản phẩm đề xuất
 
