@@ -45,7 +45,7 @@ graph TB
         Domain[internal/sharedkernel/domain]
         Ports[internal/sharedkernel/ports]
         Storage[platform/persistence/sqlite]
-        CDC[internal/cdc]
+        CDC[platform/eventbus/cdc]
     end
 
     subgraph Infra["Infrastructure Layer"]
@@ -451,7 +451,7 @@ graph TD
 
 ---
 
-### `internal/cdc`
+### `platform/eventbus/cdc`
 
 **Purpose:** Change-log polling and event broadcasting.
 

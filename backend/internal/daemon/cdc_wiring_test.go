@@ -3,7 +3,7 @@ package daemon
 import (
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 )
 
 // sessionChanges wakes a resting loop for each session created or updated,

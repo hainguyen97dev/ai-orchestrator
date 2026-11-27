@@ -43,7 +43,7 @@ const EVENT_STREAM_STALL_CHECK_MS = 5_000;
 const EVENTSOURCE_CLOSED = 2;
 
 // CDC event types the daemon pushes over the SSE stream (see
-// backend/internal/cdc/event.go). The SSE writer tags each frame with
+// backend/platform/eventbus/cdc/event.go). The SSE writer tags each frame with
 // `event: <type>`, so named events bypass EventSource.onmessage and must be
 // subscribed explicitly. Every one of these can change the project/session list
 // the sidebar renders, so they all trigger a (batched) workspace refetch.

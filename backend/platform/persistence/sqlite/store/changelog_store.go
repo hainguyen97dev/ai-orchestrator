@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/gen"
 )
 

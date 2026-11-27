@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 )
 
 // reportActivityObserver is the report coordinator's session-stop hook.

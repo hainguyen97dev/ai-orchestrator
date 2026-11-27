@@ -877,7 +877,7 @@ export async function installFakeAgent(page: Page, opts: FakeAgentOptions = {}):
 				[...state.eventSources]
 					.reverse()
 					.find((source) => source.url.includes("/api/v1/events") && source.readyState !== 2);
-			// The daemon's SSE `data`: the full CDC envelope (backend/internal/cdc/event.go).
+			// The daemon's SSE `data`: the full CDC envelope (backend/platform/eventbus/cdc/event.go).
 			const cdcFrame = (type: string, session: Session) =>
 				JSON.stringify({
 					seq: (state.cdcSeq += 1),

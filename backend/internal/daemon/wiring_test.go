@@ -17,13 +17,13 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/runtimeselect"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/tmux"
 	telemetryadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/telemetry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
 

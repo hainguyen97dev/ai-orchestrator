@@ -184,7 +184,7 @@
   {"glob": "backend/internal/runfile/*", "area": "daemon-process"},
   {"glob": "backend/internal/httpd/*", "area": "api-data-contracts"},
   {"glob": "backend/platform/persistence/*", "area": "api-data-contracts"},
-  {"glob": "backend/internal/cdc/*", "area": "api-data-contracts"},
+  {"glob": "backend/platform/eventbus/cdc/*", "area": "api-data-contracts"},
   {"glob": "backend/internal/sharedkernel/domain/*", "area": "api-data-contracts"},
   {"glob": "backend/internal/sharedkernel/ports/*", "area": "api-data-contracts"},
   {"glob": "backend/internal/reqid/*", "area": "api-data-contracts"},

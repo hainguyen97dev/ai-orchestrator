@@ -29,7 +29,7 @@ sql:
               pointer: true
           - column: "change_log.event_type"
             go_type:
-              import: "github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
+              import: "github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
               type: "EventType"
           - column: "pr.session_id"
             go_type:

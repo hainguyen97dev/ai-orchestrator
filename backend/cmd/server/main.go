@@ -1,6 +1,5 @@
-// Command backend is a compatibility wrapper for the Agent Orchestrator daemon.
-// The user-facing CLI lives at cmd/ao; keep this wrapper so existing `go run .`
-// development workflows continue to start the daemon while scripts migrate.
+// Command server starts the Agent Orchestrator daemon (`go run ./cmd/server`).
+// The user-facing CLI lives at cmd/ao; the packaged app runs `ao daemon`.
 package main
 
 import (

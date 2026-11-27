@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/clienttz"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
@@ -23,6 +22,7 @@ import (
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
 	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/review"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 )
 
 // APIDeps bundles every service the API layer's controllers depend on.

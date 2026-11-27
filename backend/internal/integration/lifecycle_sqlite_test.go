@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/codexops"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
@@ -25,6 +24,7 @@ import (
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
