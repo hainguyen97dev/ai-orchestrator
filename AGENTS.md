@@ -4,6 +4,14 @@ Operational guidance for coding agents working in this repository. Keep changes 
 
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) before choosing an issue or starting work.
 
+## Fork direction
+
+- Read [`docs/fork/README.md`](docs/fork/README.md) (goal, decisions D1–D7, specs, out of scope) before any feature task. Plans live in [`docs/superpowers/plans/`](docs/superpowers/plans/); start from the roadmap `2026-11-26-00-roadmap.md`.
+- Scope cleanup (roadmap §6) is mandatory before opening a PR: revert or remove files outside the task's **Files** list, or justify each one under "Out-of-plan files" in the PR.
+- Hotspots run one PR at a time (roadmap §4): `storage/sqlite/migrations/*` + `shippedMigrations`, `openapi.yaml` / `schema.ts` / `specgen/build.go`, `daemon/daemon.go`, `httpd/api.go`.
+- `ProjectConfig.Worker`, `Orchestrator`, and `Reviewers` are harness overrides, **not** PO/BA/SA roles. Roles come from `RoleProfile` (see [`CONTEXT.md`](CONTEXT.md)).
+- Vendor tracking or sign-in (PostHog, Sentry, remote telemetry, Cloud/WorkOS auth) follows roadmap §6a: disable it when it sits in a file the task already edits and can become a no-op without an API change (note it under "De-vendor" in the PR); otherwise log it in [`docs/fork/devendor-log.md`](docs/fork/devendor-log.md). Never add new tracking or sign-in code.
+
 ## Repo layout
 
 - `backend/`: Go rewrite of Agent Orchestrator with the Cobra `ao` CLI, loopback HTTP daemon, services, SQLite storage, lifecycle/reaper, runtime/workspace/agent/tracker adapters, terminal mux, and tests.
