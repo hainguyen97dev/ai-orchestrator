@@ -1,0 +1,28 @@
+name: Import-only
+
+# Move PRs (label `import-only`) may touch hundreds of packages only if every
+# changed line is an import/module path rewrite. See docs/fork/README.md "Dời code".
+# Separate from CI so adding or removing the label does not restart the whole CI.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  import-only:
+    if: contains(github.event.pull_request.labels.*.name, 'import-only')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check diff is import-only
+        run: node scripts/check-import-only-diff.mjs origin/${{ github.base_ref }}

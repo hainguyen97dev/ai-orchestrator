@@ -1,92 +1,134 @@
 #!/usr/bin/env node
-// Proves a "move" PR only moves code: every changed line must be a Go import
-// spec, the go.mod module line, or a non-Go line carrying the module path.
-// Renames (git -M50%) pass; their edited lines are still checked; generated files are skipped.
-// Usage: node scripts/check-import-only-diff.mjs <baseRef>
+// Proves a "move" PR only moves code. Every changed line must pair with a line
+// on the other side of the same hunk that is identical once (a) the module
+// path is normalized and (b) directories this diff renames are mapped old→new.
+// That admits import rewrites, module-path strings and gofmt reordering, and
+// nothing else. Blank lines pass. Generated files are skipped by path. New,
+// deleted and binary files fail. Usage: node scripts/check-import-only-diff.mjs <baseRef>
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const MODULE_PATHS = [
   'github.com/aoagents/agent-orchestrator',
   'github.com/hainguyen97dev/ai-orchestrator',
 ];
 
-const GO_IMPORT_SPEC = /^\s*(?:import\s+)?(?:[\w.]+\s+)?"[^"]+"\s*$/;
+const GENERATED = [/^backend\/platform\/persistence\/sqlite\/gen\//, /^backend\/internal\/storage\/sqlite\/gen\//, /^frontend\/src\/api\/schema\.ts$/];
+export const isGeneratedPath = (path) => GENERATED.some((re) => re.test(path));
 
-export function classifyHunkLine(line, file) {
-  const body = line.slice(1);
-  if (body.trim() === '') return 'ok';
-  if (file.endsWith('.go')) return GO_IMPORT_SPEC.test(body) ? 'ok' : 'violation';
-  if (file.endsWith('go.mod')) return /^module\s+\S+\s*$/.test(body) ? 'ok' : 'violation';
-  return MODULE_PATHS.some((p) => body.includes(p)) ? 'ok' : 'violation';
-}
+const IMPORT_SPEC = /^\s*(?:import\s+)?(?:[A-Za-z_]\w*\s+|[_.]\s+)?"[^"\s]+"\s*$/;
 
-const normalize = (body) => MODULE_PATHS.reduce((s, p) => s.split(p).join('<module>'), body);
+const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// A changed line that carries a module path passes when the opposite side of
-// the same hunk has a line identical to it once module paths are normalized.
-function dropModuleOnlyPairs(hunk) {
-  const counts = new Map();
-  for (const { line } of hunk) {
-    const key = line[0] + normalize(line.slice(1));
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+// Directories moved by this diff, relative to backend/, from its rename headers.
+export function dirRenames(text) {
+  const map = new Map();
+  let from = null;
+  for (const line of text.split('\n')) {
+    if (line.startsWith('rename from ')) from = line.slice(12);
+    else if (line.startsWith('rename to ') && from) {
+      const strip = (p) => dirname(p.replace(/^backend\//, ''));
+      const [a, b] = [strip(from), strip(line.slice(10))];
+      if (a !== b && a !== '.') map.set(a, b);
+      from = null;
+    }
   }
-  return hunk.filter(({ line }) => {
-    if (!MODULE_PATHS.some((p) => line.includes(p))) return true;
-    const other = (line[0] === '+' ? '-' : '+') + normalize(line.slice(1));
-    return !counts.get(other);
-  });
+  return map;
 }
 
-export function checkDiff(text, { isGenerated }) {
+function normalizer(renames) {
+  const moved = [...renames].sort((x, y) => y[0].length - x[0].length)
+    .map(([a, b]) => [new RegExp(`(?<![\\w.-])${escape(a)}(?=[/"'\`\\s\\]),:*]|$)`, 'g'), b]);
+  const module = (s) => MODULE_PATHS.reduce((acc, p) => acc.split(p).join('<module>'), s);
+  return {
+    minus: (s) => moved.reduce((acc, [re, b]) => acc.replace(re, b), module(s)),
+    plus: (s) => module(s),
+  };
+}
+
+function unpaired(hunk, norm) {
+  const plusKeys = new Map();
+  hunk.forEach((h, i) => {
+    if (h.line[0] !== '+') return;
+    const k = norm.plus(h.line.slice(1));
+    plusKeys.set(k, [...(plusKeys.get(k) ?? []), i]);
+  });
+  const paired = new Set();
+  hunk.forEach((h, i) => {
+    if (h.line[0] !== '-') return;
+    const slots = plusKeys.get(norm.minus(h.line.slice(1)));
+    if (slots?.length) {
+      paired.add(i);
+      paired.add(slots.shift());
+    }
+  });
+  return hunk.filter((h, i) => !paired.has(i) && h.line.slice(1).trim() !== '');
+}
+
+export function checkDiff(text, { isGenerated = isGeneratedPath } = {}) {
+  const norm = normalizer(dirRenames(text));
   const violations = [];
   let file = null;
   let skip = false;
+  let inHeader = false;
   let hunk = [];
+  let fileImports = [];
+  // Within a hunk any line may pair. Import specs left over may pair with an
+  // import spec in another hunk of the same file (gofmt re-sorts the block).
   const flush = () => {
-    for (const { file: f, line } of dropModuleOnlyPairs(hunk)) violations.push(`${f}: ${line}`);
+    for (const h of unpaired(hunk, norm)) {
+      if (IMPORT_SPEC.test(h.line.slice(1))) fileImports.push(h);
+      else violations.push(`${h.file}: ${h.line}`);
+    }
     hunk = [];
   };
+  const flushFile = () => {
+    flush();
+    for (const h of unpaired(fileImports, norm)) violations.push(`${h.file}: ${h.line}`);
+    fileImports = [];
+  };
   for (const line of text.split('\n')) {
-    if (line.startsWith('diff --git ') || line.startsWith('@@')) flush();
     if (line.startsWith('diff --git ')) {
+      flushFile();
       file = line.split(' b/').pop();
       skip = isGenerated(file);
+      inHeader = true;
       continue;
     }
     if (file === null || skip) continue;
-    if (line.startsWith('new file mode') || line.startsWith('deleted file mode')) {
-      violations.push(`${file}: ${line.startsWith('new') ? 'new file' : 'deleted file'}`);
-      skip = true;
+    if (line.startsWith('@@')) {
+      flush();
+      inHeader = false;
       continue;
     }
-    if (line.startsWith('+++') || line.startsWith('---')) continue;
-    if ((line.startsWith('+') || line.startsWith('-')) && classifyHunkLine(line, file) === 'violation') {
-      hunk.push({ file, line });
+    if (inHeader) {
+      const kind = line.startsWith('new file mode') ? 'new file'
+        : line.startsWith('deleted file mode') ? 'deleted file'
+        : line.startsWith('Binary files ') || line === 'GIT binary patch' ? 'binary change' : null;
+      if (kind) {
+        violations.push(`${file}: ${kind}`);
+        skip = true;
+      }
+      continue;
     }
+    if (line.startsWith('+') || line.startsWith('-')) hunk.push({ file, line });
   }
-  flush();
+  flushFile();
   return violations;
 }
 
-function isGeneratedOnDisk(path) {
-  if (path.endsWith('frontend/src/api/schema.ts')) return true;
-  if (!existsSync(path)) return false;
-  return /^\/\/ Code generated .* DO NOT EDIT\.$/m.test(readFileSync(path, 'utf8').split('\n').slice(0, 5).join('\n'));
-}
-
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const base = process.argv[2];
   if (!base) {
-    console.error('usage: check-import-only-diff.mjs <baseRef>');
+    console.error('usage: check-import-only-diff.mjs <baseRef> [headRef]');
     process.exit(2);
   }
-  const text = execFileSync('git', ['diff', '-M50%', '-l0', '--unified=0', `${base}...HEAD`], {
+  const text = execFileSync('git', ['diff', '-M50%', '-l0', '--unified=0', `${base}...${process.argv[3] ?? 'HEAD'}`], {
     encoding: 'utf8',
     maxBuffer: 1 << 30,
   });
-  const violations = checkDiff(text, { isGenerated: isGeneratedOnDisk });
+  const violations = checkDiff(text);
   for (const v of violations) console.log(v);
   console.log(violations.length === 0 ? 'import-only: ok' : `import-only: ${violations.length} violation(s)`);
   process.exit(violations.length === 0 ? 0 : 1);
