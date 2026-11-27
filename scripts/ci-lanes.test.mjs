@@ -42,7 +42,7 @@ test('enabled workflows only call enabled workflows and run on Ubuntu', () => {
     }
     assert.doesNotMatch(workflow, /macos-|windows-/i, `${name} references a paid native runner`);
   }
-  assert.deepEqual(files.sort(), ['agent-automerge.yml', 'ci.yml', 'cli-e2e.yml', 'frontend.yml', 'gitleaks.yml', 'go.yml']);
+  assert.deepEqual(files.sort(), ['ci.yml', 'cli-e2e.yml', 'frontend.yml', 'gitleaks.yml', 'go.yml']);
 });
 
 test('a docs-only PR runs no lanes', () => {
