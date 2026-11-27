@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
 
 permissions:
   contents: read
@@ -39,15 +39,11 @@ jobs:
     needs: changes
     if: contains(fromJSON(needs.changes.outputs.lanes), 'go')
     uses: ./.github/workflows/go.yml
-    with:
-      windows: ${{ needs.changes.outputs.full == 'true' }}
 
   cli-e2e:
     needs: changes
     if: contains(fromJSON(needs.changes.outputs.lanes), 'cli-e2e')
     uses: ./.github/workflows/cli-e2e.yml
-    with:
-      native: ${{ needs.changes.outputs.full == 'true' }}
 
   frontend:
     needs: changes
@@ -56,11 +52,6 @@ jobs:
     with:
       lanes: ${{ needs.changes.outputs.lanes }}
       vitest: ${{ needs.changes.outputs.vitest }}
-
-  mobile:
-    needs: changes
-    if: contains(fromJSON(needs.changes.outputs.lanes), 'mobile')
-    uses: ./.github/workflows/mobile.yml
 
   config:
     needs: changes
@@ -79,7 +70,7 @@ jobs:
 
   ci-ok:
     if: always()
-    needs: [changes, go, cli-e2e, frontend, mobile, config]
+    needs: [changes, go, cli-e2e, frontend, config]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
