@@ -90,8 +90,8 @@ For code entry points:
 - CLI commands: `backend/internal/cli/*.go`; follow nearby command/test patterns before adding a new style.
 - HTTP controllers and DTOs: `backend/internal/httpd/controllers/`.
 - Service read/write boundaries: `backend/internal/service/`.
-- Domain vocabulary: `backend/internal/domain/`.
-- Port contracts: `backend/internal/ports/`.
+- Domain vocabulary: `backend/internal/sharedkernel/domain/`.
+- Port contracts: `backend/internal/sharedkernel/ports/`.
 - SQLite queries/migrations/store: `backend/internal/storage/sqlite/`.
 - Generated sqlc code: `backend/internal/storage/sqlite/gen/`.
 
