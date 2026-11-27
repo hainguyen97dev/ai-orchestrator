@@ -37,7 +37,10 @@ function findReleaseMutationViolations(workflows: WorkflowSource[]) {
 
 describe("desktop release workflows", () => {
   const workflowsDirectory = path.join(repositoryRoot, ".github", "workflows");
-  const artifactBuilder = path.join(workflowsDirectory, "build-artifacts.yml");
+  // The private fork parks release-only workflows outside .github/workflows so
+  // GitHub never runs them; keep checking their contents where they now live.
+  const disabledWorkflowsDirectory = path.join(repositoryRoot, ".github", "workflows-disabled");
+  const artifactBuilder = path.join(disabledWorkflowsDirectory, "build-artifacts.yml");
 
   async function readWorkflows() {
     const names = (await readdir(workflowsDirectory)).filter((name) =>
@@ -180,7 +183,7 @@ run: |
 
   it("builds the Linux arm64 host package natively in every release build", async () => {
     const builder = await readFile(artifactBuilder, "utf8");
-    const host = await readFile(path.join(workflowsDirectory, "linux-arm64-host.yml"), "utf8");
+    const host = await readFile(path.join(disabledWorkflowsDirectory, "linux-arm64-host.yml"), "utf8");
 
     expect(builder).toContain("uses: ./.github/workflows/linux-arm64-host.yml");
     expect(builder).toContain("needs: [build, host-linux-arm64]");
