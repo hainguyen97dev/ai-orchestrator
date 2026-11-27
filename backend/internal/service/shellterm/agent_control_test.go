@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 )
 
 func agentControlFixture() (*Service, *fakeShellRuntime) {

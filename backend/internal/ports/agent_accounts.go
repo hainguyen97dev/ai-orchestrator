@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 // Agent account errors the API maps to client responses.

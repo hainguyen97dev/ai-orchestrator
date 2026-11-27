@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/cdc"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/cdc"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 
 func TestUsageBindingAndSourceIdempotency(t *testing.T) {

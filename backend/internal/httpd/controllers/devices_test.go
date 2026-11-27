@@ -16,12 +16,12 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/devices"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/controllers"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devices"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 type hubOnlyProvider struct{ hub string }

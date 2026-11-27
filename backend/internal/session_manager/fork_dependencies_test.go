@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 func writeTestFile(t *testing.T, path, body string) {

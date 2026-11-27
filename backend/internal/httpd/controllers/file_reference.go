@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apispec"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/envelope"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	sessionsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 )
 
 type fileReferenceResolver interface {

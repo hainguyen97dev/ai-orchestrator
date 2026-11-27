@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // DefaultTickInterval is the cadence used when Config.Tick is zero. It mirrors

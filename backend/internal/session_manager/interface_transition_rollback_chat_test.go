@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	claudeagent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	browsersvc "github.com/aoagents/agent-orchestrator/backend/internal/service/browser"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	claudeagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/browser"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 
 type failingEpochLifecycle struct {

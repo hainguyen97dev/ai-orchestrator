@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/providerkeys"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/providerkeys"
 )
 
 func stubGeminiHome(t *testing.T) string {

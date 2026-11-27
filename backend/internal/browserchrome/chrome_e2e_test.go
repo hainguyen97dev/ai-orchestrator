@@ -16,7 +16,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/browserruntime"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
 )
 
 // TestChromeE2E drives the real AO Browser Bridge extension in a real Chrome.

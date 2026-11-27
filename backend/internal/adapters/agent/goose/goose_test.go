@@ -15,10 +15,10 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/binaryutil"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hooksjson"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hooksjson"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 func TestManifestIDIsGoose(t *testing.T) {

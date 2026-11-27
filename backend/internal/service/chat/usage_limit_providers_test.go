@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	chatsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 )
 
 // Adapter wire tests cover each provider's native error normalization. These

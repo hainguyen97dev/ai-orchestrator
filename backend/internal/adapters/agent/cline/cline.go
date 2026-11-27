@@ -25,11 +25,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/agentbase"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/binaryutil"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 // Plugin is the Cline agent adapter. It is safe for concurrent use; the binary

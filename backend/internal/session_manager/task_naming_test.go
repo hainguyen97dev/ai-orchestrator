@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	agentregistry "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/registry"
-	chatregistry "github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/registry"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	agentregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
+	chatregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/registry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 
 type taskNamingLauncher struct {

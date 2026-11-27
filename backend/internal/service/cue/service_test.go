@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/cue"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/cue"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 )
 
 // fakeStore is an in-memory cue.Store for service tests. It keeps stored

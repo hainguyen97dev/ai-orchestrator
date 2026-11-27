@@ -7,9 +7,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // startupBinaryProbeTimeout bounds the first-render prerequisite check. It

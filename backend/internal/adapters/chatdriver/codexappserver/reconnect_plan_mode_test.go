@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 func TestCodexReconnectStatesPlanModeOnTheNextTurn(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/binaryutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
 )
 
 func versionProbeFixture(t *testing.T) string {

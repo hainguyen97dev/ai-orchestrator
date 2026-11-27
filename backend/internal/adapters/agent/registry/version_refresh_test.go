@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	agentregistry "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/registry"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	agentregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // Exercise every shipped adapter through its real native restore builder. No

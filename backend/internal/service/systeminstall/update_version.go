@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hermes"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hermes"
 )
 
 var (

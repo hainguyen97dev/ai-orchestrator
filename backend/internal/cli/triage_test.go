@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/daemonmeta"
-	"github.com/aoagents/agent-orchestrator/backend/internal/runfile"
-	"github.com/aoagents/agent-orchestrator/backend/internal/skillassets"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/daemonmeta"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
 )
 
 func triageTestDeps(t *testing.T) (Deps, *bytes.Buffer, string) {

@@ -16,14 +16,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/opencodev2"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/terminalui"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/process"
-	"github.com/aoagents/agent-orchestrator/backend/internal/providerkeys"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencodev2"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/providerkeys"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 )
 
 const loginLifetime = 15 * time.Minute

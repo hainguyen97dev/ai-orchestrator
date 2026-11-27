@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/importcopy"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/importcopy"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 const (

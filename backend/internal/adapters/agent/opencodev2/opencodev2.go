@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/agentbase"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/opencode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 // Plugin is the OpenCode 2 TUI agent adapter.

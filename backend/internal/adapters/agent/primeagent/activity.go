@@ -3,7 +3,7 @@ package primeagent
 import (
 	"encoding/json"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 // DeriveActivityState maps the normalized events emitted by the AO-managed

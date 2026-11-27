@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/crush"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/crush"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 func TestCrushFirstOpenExcludesUnignoredNativeDatabaseFromTransfer(t *testing.T) {

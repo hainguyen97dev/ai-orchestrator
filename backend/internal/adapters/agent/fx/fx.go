@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/agentbase"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 const adapterID = "fx"

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"syscall"
 
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 func previewCommand(name string, args ...string) *exec.Cmd {

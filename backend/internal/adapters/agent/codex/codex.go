@@ -21,15 +21,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/agentbase"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/authprobe"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/binaryutil"
-	"github.com/aoagents/agent-orchestrator/backend/internal/agentlaunch"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
-	"github.com/aoagents/agent-orchestrator/backend/pkg/agentruntime"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agentbase"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/authprobe"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/agentruntime"
 )
 
 // Plugin is the Codex agent adapter. It is safe for concurrent use; the binary

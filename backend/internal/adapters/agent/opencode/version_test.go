@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/binaryutil"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 func versionBinary(t *testing.T, script string) string {

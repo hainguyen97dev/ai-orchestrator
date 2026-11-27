@@ -18,7 +18,7 @@ import (
 
 	"github.com/google/uuid"
 
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 const lidHelperVersion = 5

@@ -10,10 +10,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apispec"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/envelope"
-	shelltermsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
+	shelltermsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 )
 
 // ShellTerminalService is the controller-facing standalone shell terminal

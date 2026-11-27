@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	chatsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/chat"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/store"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/store"
 )
 
 // Projection of the provider signal AO used to drop: reasoning streams, plans,

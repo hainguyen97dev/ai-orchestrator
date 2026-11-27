@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/shellterm"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/systemcheck"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systemcheck"
 )
 
 type fakeSystemChecker struct {

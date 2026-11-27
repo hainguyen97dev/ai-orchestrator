@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // captureChatFault reports a Chat failure that never reaches an HTTP response

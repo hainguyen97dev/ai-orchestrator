@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 const verifyTimeout = 10 * time.Second

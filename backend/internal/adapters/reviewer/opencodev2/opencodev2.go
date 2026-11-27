@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	workeragent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/opencodev2"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/reviewer/agentrestore"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	workeragent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencodev2"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/agentrestore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 const configContentPrefix = "OPENCODE_CONFIG_CONTENT="

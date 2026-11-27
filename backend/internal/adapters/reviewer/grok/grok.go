@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	workergrok "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/grok"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	workergrok "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/grok"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // HostTrustWarning documents that Grok relies on its normal interactive

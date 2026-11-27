@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	codexagent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/codex"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	codexagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // authenticationWithAccount decides readiness by the saved account new

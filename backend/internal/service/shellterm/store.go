@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 // ShellTerminalRecord is one persisted shell terminal row. It carries only what

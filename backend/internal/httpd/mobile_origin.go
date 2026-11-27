@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/envelope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 )
 
 const hostUpdatePath = "/api/v1/remote-host/update"

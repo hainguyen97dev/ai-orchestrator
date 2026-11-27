@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/caller"
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/processalive"
-	"github.com/aoagents/agent-orchestrator/backend/internal/runfile"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/caller"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/processalive"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
 )
 
 // NewDaemonClient calls the daemon the run file names, as the ao CLI does.

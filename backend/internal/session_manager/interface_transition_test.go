@@ -16,13 +16,13 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	agyagent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/agy"
+	agyagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/agy"
 
-	codexagent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/codex"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/lifecycle"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
+	codexagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 
 type transitionStore struct {

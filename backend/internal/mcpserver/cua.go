@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 )
 
 // maxMCPImageBytes bounds one screenshot sent inline.

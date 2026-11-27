@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/sessionsearch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
 )
 
 // BenchmarkCorpus is a fixed fixture corpus with fixed queries and expected top

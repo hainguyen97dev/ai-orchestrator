@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	chatsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/chat"
-	reportsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/report"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	reportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/report"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 
 // An asynchronous spawn puts the session on screen before its controller

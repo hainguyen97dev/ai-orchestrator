@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 // ErrSCMHeadChanged indicates that the pull request advanced beyond the head

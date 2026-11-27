@@ -21,9 +21,9 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/aoagents/agent-orchestrator/backend/internal/telemetrymeta"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/telemetrymeta"
 )
 
 const (

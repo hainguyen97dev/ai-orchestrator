@@ -14,12 +14,12 @@ import (
 
 	"github.com/google/uuid"
 
-	codexagent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/codex"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/backgroundtasks"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/codexappserver/codexproto"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/commanddetail"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	codexagent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/backgroundtasks"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/codexappserver/codexproto"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/commanddetail"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // eventBuffer bounds the normalized event stream. Deltas are dropped when a

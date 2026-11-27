@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/envelope"
-	"github.com/aoagents/agent-orchestrator/backend/internal/observe/sentryobs"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
 
 	"github.com/getsentry/sentry-go"
 )

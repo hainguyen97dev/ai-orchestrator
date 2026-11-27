@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd"
-	reportsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/report"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
+	reportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/report"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 
 // TestReportRoundTrip pins the intentionally hand-mirrored CLI DTO to the real

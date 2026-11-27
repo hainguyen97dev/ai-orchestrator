@@ -3,8 +3,8 @@ package shellterm
 import (
 	"context"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // AuthTerminalObservation stays inside the daemon. In particular, Output must

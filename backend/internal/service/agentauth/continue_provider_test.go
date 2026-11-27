@@ -10,7 +10,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 )
 
 func TestContinueProviderLoginWritesNativeConfigAndGlobalEnv(t *testing.T) {

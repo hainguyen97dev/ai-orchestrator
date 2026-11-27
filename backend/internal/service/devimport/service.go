@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	engine "github.com/aoagents/agent-orchestrator/backend/internal/devimport"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
+	engine "github.com/hainguyen97dev/ai-orchestrator/backend/internal/devimport"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 )
 
 // Store is the live target store used by the daemon.

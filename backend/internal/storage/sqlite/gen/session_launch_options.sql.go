@@ -8,7 +8,7 @@ package gen
 import (
 	"context"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 const getSessionLaunchOptions = `-- name: GetSessionLaunchOptions :one

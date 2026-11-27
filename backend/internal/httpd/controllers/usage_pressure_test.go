@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/procmem"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/procmem"
 )
 
 type fakePressure struct {

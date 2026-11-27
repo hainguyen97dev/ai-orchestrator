@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/sessionsearch"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 
 // The tests in this file each pin a bug the real-data end-to-end run found.

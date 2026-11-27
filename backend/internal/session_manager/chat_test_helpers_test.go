@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	chatsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/chat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 )
 
 // integrationChatLauncher is the test-side equivalent of daemon.chatLauncher.

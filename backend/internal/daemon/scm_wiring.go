@@ -6,16 +6,16 @@ import (
 	"log/slog"
 	"sync"
 
-	scmgithub "github.com/aoagents/agent-orchestrator/backend/internal/adapters/scm/github"
-	scmgitlab "github.com/aoagents/agent-orchestrator/backend/internal/adapters/scm/gitlab"
-	scmmulti "github.com/aoagents/agent-orchestrator/backend/internal/adapters/scm/multi"
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/lifecycle"
-	scmobserve "github.com/aoagents/agent-orchestrator/backend/internal/observe/scm"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	reviewsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/review"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
+	scmgithub "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/github"
+	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/gitlab"
+	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
+	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/scm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/review"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 )
 
 // startSCMObserver wires the provider-neutral SCM observer with both GitHub

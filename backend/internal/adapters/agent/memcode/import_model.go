@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/terminalui"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
 )
 
 const memcodeWorkspaceConfig = ".memcode/config.json"

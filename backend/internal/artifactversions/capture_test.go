@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	sessionsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/session"
-	"github.com/aoagents/agent-orchestrator/backend/internal/sessionartifacts"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
 )
 
 type harness struct {

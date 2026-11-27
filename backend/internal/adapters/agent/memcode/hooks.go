@@ -13,12 +13,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hooksjson"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hookutil"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/providerenv"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/sessionid"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hooksjson"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/providerenv"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionid"
 )
 
 var generationComponent = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)

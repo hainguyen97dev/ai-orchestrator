@@ -4,8 +4,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/terminalui"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/terminalui"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // Copilot deliberately implements only TerminalSurfaceInspector, which AO

@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hookutil"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // The Stakpak TUI has no permission flag. It reads per-workspace tool

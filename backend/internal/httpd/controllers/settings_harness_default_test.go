@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	settingssvc "github.com/aoagents/agent-orchestrator/backend/internal/service/settings"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	settingssvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/settings"
 )
 
 type harnessDefaultSettingsService struct {

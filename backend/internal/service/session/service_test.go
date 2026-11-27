@@ -19,14 +19,14 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/envelope"
-	"github.com/aoagents/agent-orchestrator/backend/internal/observe/ownership"
-	"github.com/aoagents/agent-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	chatsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/chat"
-	sessionmanager "github.com/aoagents/agent-orchestrator/backend/internal/session_manager"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/ownership"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 )
 
 type fakeTelemetrySink struct{ events []ports.TelemetryEvent }

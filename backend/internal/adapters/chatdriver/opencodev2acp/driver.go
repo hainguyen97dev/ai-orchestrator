@@ -10,12 +10,12 @@ import (
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/opencodev2"
-	acpdriver "github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/acp"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/nativeacp"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/opencodeidentity"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencodev2"
+	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/nativeacp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/opencodeidentity"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // New launches `opencode acp` from the exact major-two binary resolved by the

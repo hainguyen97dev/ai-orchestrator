@@ -16,10 +16,10 @@ import (
 
 	_ "modernc.org/sqlite" // read-only native identity and collision checks
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/importcopy"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	aoprocess "github.com/aoagents/agent-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/importcopy"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 var _ ports.AgentImportedSessionPreparer = (*Plugin)(nil)

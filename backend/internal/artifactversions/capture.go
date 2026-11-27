@@ -20,10 +20,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/attachmentstore"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	previewutil "github.com/aoagents/agent-orchestrator/backend/internal/preview"
-	"github.com/aoagents/agent-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
 )
 
 const (

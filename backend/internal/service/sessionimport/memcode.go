@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/memcode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/memcode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 var memcodeImportID = regexp.MustCompile(`^sess_([0-9a-f]{8}|[0-9a-f]{16})$`)

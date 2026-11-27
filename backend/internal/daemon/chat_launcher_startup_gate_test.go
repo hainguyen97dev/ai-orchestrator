@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	sessionmanager "github.com/aoagents/agent-orchestrator/backend/internal/session_manager"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 )
 
 func TestFreshChatStartWaitsForPersistentHostReconcile(t *testing.T) {

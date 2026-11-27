@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // Kilo Code continuation for imported chats. Unlike the file-per-conversation

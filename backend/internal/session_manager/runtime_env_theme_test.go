@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/termtheme"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/termtheme"
 )
 
 // Every agent gets the terminal appearance hints, not only adapters that ask

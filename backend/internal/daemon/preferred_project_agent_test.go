@@ -5,11 +5,11 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters"
-	agentregistry "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/registry"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	agentsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/agent"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters"
+	agentregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
+	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
 )
 
 type mutablePreferredAgent struct {

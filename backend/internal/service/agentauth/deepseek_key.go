@@ -17,9 +17,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/deepseekharness"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/processalive"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/deepseekharness"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/processalive"
 )
 
 // DeepSeek Harness serializes writers of its credential store with an

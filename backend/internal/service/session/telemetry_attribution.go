@@ -3,9 +3,9 @@ package session
 import (
 	"context"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/deliverytelemetry"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/deliverytelemetry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // createdByStore persists created_by for ao.sessions.ended. It is optional so

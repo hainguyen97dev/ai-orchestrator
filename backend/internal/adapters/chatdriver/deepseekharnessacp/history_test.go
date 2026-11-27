@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/deepseekharness"
-	acpdriver "github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/acp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/deepseekharness"
+	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
 )
 
 func replayEvent(seq int64, kind, data, op string) deepseekharness.NativeHistoryEvent {

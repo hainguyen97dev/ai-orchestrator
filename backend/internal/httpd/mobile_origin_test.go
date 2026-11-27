@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/controllers"
-	"github.com/aoagents/agent-orchestrator/backend/internal/mobilebridge"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 )
 
 // The real pairing service runs with counted collaborators: no LAN exposure,

@@ -9,16 +9,16 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/kimi"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/omp"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/opencode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/claudeacp"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/kimiacp"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/ompacp"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kimi"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/omp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/claudeacp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/kimiacp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/ompacp"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/persistenthost"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/ports"
 )
 
 // Opt-in account-backed verification, like TestLiveOpenCodeACP. CI sends no

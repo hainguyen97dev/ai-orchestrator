@@ -14,7 +14,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/mcpserver"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mcpserver"
 )
 
 func newRenderCommand(ctx *commandContext) *cobra.Command {

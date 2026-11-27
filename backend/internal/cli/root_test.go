@@ -19,10 +19,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/daemonmeta"
-	"github.com/aoagents/agent-orchestrator/backend/internal/datadirlock"
-	"github.com/aoagents/agent-orchestrator/backend/internal/runfile"
-	"github.com/aoagents/agent-orchestrator/backend/internal/telemetrymeta"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/daemonmeta"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/datadirlock"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/telemetrymeta"
 )
 
 func TestRootHelpDoesNotShowDaemon(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 func TestChatHandoffTurnsCreditEachProviderAndKeepRequestsSentThroughAO(t *testing.T) {

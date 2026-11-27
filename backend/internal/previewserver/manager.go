@@ -23,8 +23,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/agentlaunch"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/domain"
 )
 
 const (
