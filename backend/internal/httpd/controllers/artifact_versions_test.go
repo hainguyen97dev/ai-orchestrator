@@ -24,7 +24,7 @@ import (
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
 
 // fakeArtifactVersions holds versions in memory; RecordSave appends the file's

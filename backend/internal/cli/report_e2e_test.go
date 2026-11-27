@@ -13,7 +13,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	reportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/report"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // TestReportRoundTrip pins the intentionally hand-mirrored CLI DTO to the real

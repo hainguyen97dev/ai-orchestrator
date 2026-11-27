@@ -95,8 +95,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/terminal"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // usageReconcileTick is the safety-net interval for the usage pipeline

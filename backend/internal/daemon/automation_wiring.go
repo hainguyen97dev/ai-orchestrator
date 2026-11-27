@@ -8,7 +8,7 @@ import (
 	automationsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/automation"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // startAutomations repairs crash-interrupted durable state before launching the

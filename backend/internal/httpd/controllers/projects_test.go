@@ -32,7 +32,7 @@ import (
 
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
 
 // emptyGetManager returns a GetResult that sets neither Project nor Degraded —

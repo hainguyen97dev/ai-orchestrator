@@ -6,7 +6,7 @@ import (
 
 	settingssvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/settings"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // settingsStore adapts the SQLite store to the settings service's Store.

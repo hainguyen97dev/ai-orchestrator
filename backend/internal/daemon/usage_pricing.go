@@ -12,7 +12,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing/catalogsync"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 type usagePricingRuntimeConfig struct {

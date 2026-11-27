@@ -13,8 +13,8 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionfork"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/store"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/store"
 )
 
 // A text-handoff fork's agent gets the copied conversation as standing

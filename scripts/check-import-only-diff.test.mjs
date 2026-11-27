@@ -40,7 +40,7 @@ test('checkDiff reports violations with file and ignores generated files and pur
   const text = [
     diff('backend/a.go', [`-\t"${OLD}/internal/domain"`, `+\t"${NEW}/internal/domain"`]),
     diff('backend/b.go', ['-\treturn 1', '+\treturn 2']),
-    diff('backend/internal/storage/sqlite/gen/models.go', ['+\tFoo int']),
+    diff('backend/platform/persistence/sqlite/gen/models.go', ['+\tFoo int']),
     'diff --git a/backend/c.go b/backend/d.go\nsimilarity index 100%\nrename from backend/c.go\nrename to backend/d.go\n',
   ].join('');
   const violations = checkDiff(text, { isGenerated: (p) => p.includes('/gen/') });

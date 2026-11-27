@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	sqlitestore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/store"
+	sqlitestore "github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/store"
 )
 
 const (

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // The index must stay small relative to the text it describes. AO already stores

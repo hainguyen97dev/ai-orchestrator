@@ -8,7 +8,7 @@ import (
 	trackerintake "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/trackerintake"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // startTrackerIntake starts the intake observer when cfg.TrackerIntake is on.

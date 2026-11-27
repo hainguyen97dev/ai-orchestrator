@@ -15,7 +15,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/datadirlock"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/legacyimport"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 type importOptions struct {

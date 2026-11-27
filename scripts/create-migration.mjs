@@ -2,7 +2,7 @@ import { realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export function createMigration(name, directory = fileURLToPath(new URL("../backend/internal/storage/sqlite/migrations/", import.meta.url))) {
+export function createMigration(name, directory = fileURLToPath(new URL("../backend/platform/persistence/sqlite/migrations/", import.meta.url))) {
 	if (typeof name !== "string" || !/^[a-z][a-z0-9_]*$/.test(name)) {
 		throw new Error("Migration name must use lowercase letters, numbers and underscores, starting with a letter.");
 	}

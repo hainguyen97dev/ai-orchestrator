@@ -9,7 +9,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // sessionSearchSweepInterval is how often the indexer looks for new session

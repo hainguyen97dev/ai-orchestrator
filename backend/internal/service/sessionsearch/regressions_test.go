@@ -9,7 +9,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // The tests in this file each pin a bug the real-data end-to-end run found.

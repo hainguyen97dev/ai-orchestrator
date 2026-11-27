@@ -16,7 +16,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/procmem"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
 
 // The session's tmux panes lead pids 10 and 11. Its terminal Claude is 20; the

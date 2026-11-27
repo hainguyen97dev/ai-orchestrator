@@ -44,7 +44,7 @@ graph TB
     subgraph Data["Data Layer"]
         Domain[internal/sharedkernel/domain]
         Ports[internal/sharedkernel/ports]
-        Storage[internal/storage/sqlite]
+        Storage[platform/persistence/sqlite]
         CDC[internal/cdc]
     end
 
@@ -412,7 +412,7 @@ graph TD
 
 ---
 
-### `internal/storage/sqlite`
+### `platform/persistence/sqlite`
 
 **Purpose:** SQLite setup, migrations, queries, and store implementations.
 

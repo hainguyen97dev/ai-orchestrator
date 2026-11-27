@@ -11,8 +11,8 @@ import (
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	sqlite "github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/store"
+	sqlite "github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/store"
 )
 
 type receiptConversation struct {

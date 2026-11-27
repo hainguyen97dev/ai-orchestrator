@@ -142,7 +142,7 @@ npm run migration:create -- add_reports
 
 The command creates a Goose SQL template with a UTC `YYYYMMDDHHMMSSsss` ID.
 Fill in its SQL and append the generated ID and filename to `shippedMigrations`
-in `backend/internal/storage/sqlite/migrate_burned_versions_test.go`.
+in `backend/platform/persistence/sqlite/migrate_burned_versions_test.go`.
 Keep existing migration IDs, filenames, and SQL unchanged.
 
 ```bash
@@ -264,7 +264,7 @@ go run ./cmd/ao --help
 | Symptom                              | Likely cause                               | Fix                                                                                                                                                                                                                                                                               |
 | ------------------------------------ | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `go: go.mod requires go >= 1.27`     | Wrong Go version                           | `go version`; install Go 1.27.4+ from [go.dev](https://go.dev/dl/)                                                                                                                                                                                                                                    |
-| `sqlc generate` produces errors      | Query SQL syntax or schema migration issue | Check `backend/internal/storage/sqlite/queries/` for SQL syntax, placeholder counts, and referenced columns/tables; if you changed the schema, add a new migration in `backend/internal/storage/sqlite/migrations/` instead of editing an existing one, then rerun `npm run sqlc` |
+| `sqlc generate` produces errors      | Query SQL syntax or schema migration issue | Check `backend/platform/persistence/sqlite/queries/` for SQL syntax, placeholder counts, and referenced columns/tables; if you changed the schema, add a new migration in `backend/platform/persistence/sqlite/migrations/` instead of editing an existing one, then rerun `npm run sqlc` |
 | `openapi.yaml` is stale              | Changed DTOs without regenerating          | Run `npm run api` from repo root                                                                                                                                                                                                                                                  |
 | `golangci-lint` failures             | Linter version mismatch                    | Install v2.14.0 or use `npm run lint` from root                                                                                                                                                                                                                                   |
 | Tests fail with "connection refused" | Test tries real daemon                     | Tests should use `httptest`; check for `go test ./...` without a live daemon                                                                                                                                                                                                      |
@@ -285,7 +285,7 @@ and commit the generated storage changes together with their SQL/config source:
 
 ```bash
 npm run sqlc
-git diff --exit-code -- backend/internal/storage/sqlite/gen
+git diff --exit-code -- backend/platform/persistence/sqlite/gen
 ```
 
 The diff check should pass after committing the regenerated files. Do not edit

@@ -36,7 +36,7 @@ test("CLI creates a migration relative to its script, not the working directory"
 	const directory = mkdtempSync(join(tmpdir(), "ao-migration-cli-"));
 	t.after(() => rmSync(directory, { recursive: true, force: true }));
 	mkdirSync(join(directory, "scripts"));
-	const migrations = join(directory, "backend/internal/storage/sqlite/migrations");
+	const migrations = join(directory, "backend/platform/persistence/sqlite/migrations");
 	mkdirSync(migrations, { recursive: true });
 	copyFileSync(new URL("./create-migration.mjs", import.meta.url), join(directory, "scripts/create-migration.mjs"));
 

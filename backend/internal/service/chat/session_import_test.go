@@ -14,7 +14,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionimport"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
 
 func TestImportedResumeRejectsEmptyNativeReplay(t *testing.T) {

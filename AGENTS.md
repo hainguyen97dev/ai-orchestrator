@@ -29,7 +29,7 @@ From the repo root unless noted:
 ```bash
 npm run lint                         # backend go test ./... + golangci-lint v2.14.0
 npm run frontend:typecheck           # frontend TypeScript check
-npm run sqlc                         # regenerate backend/internal/storage/sqlite/gen from queries/schema
+npm run sqlc                         # regenerate backend/platform/persistence/sqlite/gen from queries/schema
 npm run api                          # regenerate OpenAPI spec + frontend TS types (see API contract changes below)
 npx @redwoodjs/agent-ci run --all    # local workflow validation; requires Docker socket
 ```
@@ -92,8 +92,8 @@ For code entry points:
 - Service read/write boundaries: `backend/internal/service/`.
 - Domain vocabulary: `backend/internal/sharedkernel/domain/`.
 - Port contracts: `backend/internal/sharedkernel/ports/`.
-- SQLite queries/migrations/store: `backend/internal/storage/sqlite/`.
-- Generated sqlc code: `backend/internal/storage/sqlite/gen/`.
+- SQLite queries/migrations/store: `backend/platform/persistence/sqlite/`.
+- Generated sqlc code: `backend/platform/persistence/sqlite/gen/`.
 
 ## Distribution
 
@@ -126,7 +126,7 @@ For code entry points:
 - Do not force-delete dirty registered worktrees.
 - Do not modify already-merged SQLite migrations. Add a new migration instead.
 - Create new SQLite migrations with `npm run migration:create -- <snake_case_name>` (UTC `YYYYMMDDHHMMSSsss` IDs); append the generated ID and filename to `shippedMigrations` in `migrate_burned_versions_test.go`.
-- Do not hand-edit `backend/internal/storage/sqlite/gen/*`; change `backend/internal/storage/sqlite/queries/*` or migrations and run `npm run sqlc`.
+- Do not hand-edit `backend/platform/persistence/sqlite/gen/*`; change `backend/platform/persistence/sqlite/queries/*` or migrations and run `npm run sqlc`.
 - SQLite change events come from DB triggers into `change_log`; do not add parallel manual CDC emission from store methods unless the architecture changes explicitly.
 - Keep generated OpenAPI/API DTO drift in mind: controller response shapes live in `backend/internal/httpd/controllers/dto.go` and tests may assert CLI/HTTP wire compatibility.
 - Do not add network calls to tests unless the package already has an integration/e2e pattern for them. Prefer `httptest`, fakes, and injected dependencies.

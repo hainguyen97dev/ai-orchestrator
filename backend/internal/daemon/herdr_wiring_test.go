@@ -16,7 +16,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/fx/herdr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/tmux"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/storage/sqlite/sqlitetest"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )
 
 func TestWiringLifecycleOwnsHerdrSocket(t *testing.T) {
