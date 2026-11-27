@@ -1,38 +1,48 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
-import { LANES, TESTED_BASES, outputs, pickLanes } from './ci-lanes.mjs';
+import { LANES, outputs, pickLanes } from './ci-lanes.mjs';
 
 const pr = (paths, extra = {}) => ({
   event: 'pull_request',
   files: paths.map(path => (typeof path === 'string' ? { status: 'modified', filename: path } : path)),
   ...extra,
 });
-const everyLane = Object.keys(LANES).filter(lane => lane !== 'mac-native');
+const everyLane = Object.keys(LANES);
 
 test('a push to main runs every lane in full', () => {
-  assert.deepEqual(pickLanes({ event: 'push' }), { lanes: Object.keys(LANES), full: true, macos: true, vitest: 'all' });
+  assert.deepEqual(pickLanes({ event: 'push' }), { lanes: Object.keys(LANES), full: true, macos: false, vitest: 'all' });
 });
 
-test('drafts and stacked PRs run no lanes, even with ci:full', () => {
+test('draft PRs run no lanes, even with ci:full', () => {
   const none = { lanes: [], full: false, macos: false, vitest: '' };
   assert.deepEqual(pickLanes(pr(['backend/a.go'], { draft: true, labels: ['ci:full'] })), none);
-  assert.deepEqual(pickLanes(pr(['backend/a.go'], { base: 'feat/parent' })), none);
+});
+
+test('stacked PRs in the same repository run affected lanes', () => {
+  assert.deepEqual(pickLanes(pr(['.github/workflows/ci.yml'], { base: 'feat/pipeline-foundation' })).lanes, everyLane);
 });
 
 test('a PR into stable runs every lane in full, whatever it changes', () => {
-  const full = { lanes: Object.keys(LANES), full: true, macos: true, vitest: 'all' };
+  const full = { lanes: Object.keys(LANES), full: true, macos: false, vitest: 'all' };
   assert.deepEqual(pickLanes(pr(['backend/a.go'], { base: 'stable' })), full);
   assert.deepEqual(pickLanes(pr(['README.md'], { base: 'stable' })), full);
   assert.deepEqual(pickLanes(pr(['backend/a.go'], { base: 'stable', fork: true })), full);
   assert.deepEqual(pickLanes(pr(['backend/a.go'], { base: 'stable', draft: true })).lanes, []);
 });
 
-test('CI retarget re-runs a PR that moves to any tested base', () => {
-  const workflow = readFileSync(new URL('../.github/workflows/ci-retarget.yml', import.meta.url), 'utf8');
-  assert.deepEqual(TESTED_BASES, ['main', 'stable']);
-  assert.ok(workflow.includes(`contains(fromJSON('${JSON.stringify(TESTED_BASES)}'), github.base_ref)`));
+test('enabled workflows only call enabled workflows and run on Ubuntu', () => {
+  const dir = new URL('../.github/workflows/', import.meta.url);
+  const files = readdirSync(dir).filter(name => name.endsWith('.yml'));
+  for (const name of files) {
+    const workflow = readFileSync(new URL(name, dir), 'utf8');
+    for (const match of workflow.matchAll(/uses: \.\/\.github\/workflows\/([a-z0-9-]+\.yml)/g)) {
+      assert.ok(files.includes(match[1]), `${name} calls missing ${match[1]}`);
+    }
+    assert.doesNotMatch(workflow, /macos-|windows-/i, `${name} references a paid native runner`);
+  }
+  assert.deepEqual(files.sort(), ['ci.yml', 'cli-e2e.yml', 'frontend.yml', 'gitleaks.yml', 'go.yml']);
 });
 
 test('a docs-only PR runs no lanes', () => {
@@ -63,18 +73,10 @@ test('files backend tests and Go CI read from outside backend/ run the Go lane',
   assert.ok(pickLanes(pr(['frontend/scripts/prepare-cloudflared.mjs'])).lanes.includes('go'));
 });
 
-test('packages/shared reaches the frontend and mobile, with all vitest files', () => {
+test('packages/shared reaches the frontend, with all vitest files', () => {
   const pick = pickLanes(pr(['packages/shared/theme/palette.ts']));
-  assert.deepEqual(pick.lanes, ['frontend', 'boundary', 'mobile']);
+  assert.deepEqual(pick.lanes, ['frontend', 'boundary']);
   assert.equal(pick.vitest, 'all');
-});
-
-test('the desktop harness marks and the daemon harness list reach the mobile parity test', () => {
-  assert.ok(pickLanes(pr(['frontend/src/renderer/assets/agents/codex.svg'])).lanes.includes('mobile'));
-  assert.ok(pickLanes(pr(['frontend/src/renderer/components/AgentAvatar.tsx'])).lanes.includes('mobile'));
-  assert.ok(pickLanes(pr(['backend/internal/domain/harness.go'])).lanes.includes('mobile'));
-  assert.ok(!pickLanes(pr(['frontend/src/renderer/components/AgentAvatarStack.tsx'])).lanes.includes('mobile'));
-  assert.ok(!pickLanes(pr(['backend/internal/domain/session.go'])).lanes.includes('mobile'));
 });
 
 test('the renderer typechecks against cloud-client types', () => {
@@ -82,25 +84,17 @@ test('the renderer typechecks against cloud-client types', () => {
   assert.deepEqual(pickLanes(pr(['contracts/cloud/openapi.yaml'])).lanes, ['cloud']);
 });
 
-test('a workflow edit runs every lane except native macOS', () => {
+test('a workflow edit runs every enabled lane', () => {
   const pick = pickLanes(pr(['.github/workflows/ci.yml']));
   assert.deepEqual(pick.lanes, everyLane);
   assert.equal(pick.vitest, 'all');
   assert.equal(pick.macos, false);
 });
 
-test('labels select native coverage', () => {
-  assert.deepEqual(pickLanes(pr(['frontend/src/main/a.ts'], { labels: ['ci:macos'] })).lanes, ['frontend', 'boundary', 'mac-native']);
+test('ci:full selects every enabled lane', () => {
   const full = pickLanes(pr(['README.md'], { labels: ['ci:full'] }));
   assert.deepEqual(full.lanes, Object.keys(LANES));
   assert.equal(full.full, true);
-});
-
-test('native helper paths start the macOS jobs without a label', () => {
-  const pick = pickLanes(pr(['frontend/native/wake-helper/WakePolicy.swift']));
-  assert.deepEqual(pick.lanes, ['mac-native']);
-  assert.equal(pick.macos, true);
-  assert.ok(pickLanes(pr(['frontend/assets/dmg/background.png'])).lanes.includes('mac-native'));
 });
 
 test('a rename counts its old path', () => {

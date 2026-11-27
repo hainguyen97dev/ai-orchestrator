@@ -11,19 +11,16 @@ export const LANES = {
   boundary: [FRONTEND, /^backend\/internal\/httpd\//],
   cloud: [/^packages\/cloud-client\//, /^contracts\/cloud\//],
   'product-ui': [/^packages\/product-ui\//],
-  // The app copies the desktop's harness marks; its parity test reads them and the daemon's harness list.
-  mobile: [/^packages\/(mobile|shared)\//, /^frontend\/src\/renderer\/(assets\/agents\/|components\/AgentAvatar\.tsx$)/, /^backend\/internal\/domain\/harness\.go$/],
-  'mac-native': [/^frontend\/native\//, /^frontend\/scripts\/build-(mac|update|wake|dictation)/, /^frontend\/assets\/(icon\.icns$|dmg\/)/],
   config: [/^\.github\//, /^scripts\//],
 };
 
-export const FRONTEND_WORKFLOW_LANES = ['frontend', 'docs', 'boundary', 'cloud', 'product-ui', 'mac-native'];
+export const FRONTEND_WORKFLOW_LANES = ['frontend', 'docs', 'boundary', 'cloud', 'product-ui'];
 
 const EVERY_LANE = /^(\.github\/(workflows|actions)\/|scripts\/ci-lanes\.mjs$)/;
 const ALL_VITEST = /^(frontend\/(package(-lock)?\.json|vite[^/]*\.ts|vitest[^/]*\.ts|tsconfig[^/]*\.json|src\/renderer\/test\/|scripts\/)|packages\/(product-ui|shared)\/)/;
 const FILE_LIMIT = 3000;
 
-// A PR into any other branch is stacked: it is tested when it moves to one of these.
+// Fork PRs into other branches cannot be re-tested after retargeting.
 export const TESTED_BASES = ['main', 'stable'];
 
 export function pickLanes({ event, draft = false, base = 'main', fork = false, labels = [], files = [] }) {
@@ -31,7 +28,7 @@ export function pickLanes({ event, draft = false, base = 'main', fork = false, l
   if (stacked && !draft && fork) {
     throw new Error(`This fork PR targets ${base}. CI cannot re-run it when it moves to main, so ci-ok stays red: target main and push again.`);
   }
-  if (event === 'pull_request' && (draft || stacked)) {
+  if (event === 'pull_request' && draft) {
     return { lanes: [], full: false, macos: false, vitest: '' };
   }
   // Nothing re-tests stable after a merge, so its release and hotfix PRs get what a push to main gets.
@@ -39,8 +36,8 @@ export function pickLanes({ event, draft = false, base = 'main', fork = false, l
   const paths = files.flatMap(file => [file.filename, file.previous_filename].filter(Boolean));
   const every = full || files.length >= FILE_LIMIT || paths.some(path => EVERY_LANE.test(path));
   const hit = lane => paths.some(path => LANES[lane].some(rule => rule.test(path)));
-  const macos = full || labels.includes('ci:macos') || hit('mac-native');
-  const lanes = Object.keys(LANES).filter(lane => (lane === 'mac-native' ? macos : every || hit(lane)));
+  const macos = false;
+  const lanes = Object.keys(LANES).filter(lane => every || hit(lane));
   return { lanes, full, macos, vitest: vitestTarget(lanes, every || paths.some(path => ALL_VITEST.test(path)), files) };
 }
 

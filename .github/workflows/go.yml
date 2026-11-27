@@ -2,10 +2,6 @@ name: Go
 
 on:
   workflow_call:
-    inputs:
-      windows:
-        type: boolean
-        required: true
 
 permissions:
   contents: read
@@ -73,84 +69,6 @@ jobs:
 
       - name: Test SQLite, chat, session manager and SQLite store
         run: ../.github/scripts/go-test-parallel.sh 4 ./internal/storage/sqlite ./internal/service/chat ./internal/session_manager ./internal/storage/sqlite/store
-
-  # The suite above only ever runs on Linux, so the packages whose behaviour is
-  # genuinely platform-specific have never been exercised on Windows: worktree
-  # teardown renames and unlinks directories, and Windows is the platform where
-  # an open handle makes both fail. Scoped to those packages rather than the
-  # whole suite to keep the matrix cheap.
-  windows-workspace:
-    if: inputs.windows
-    runs-on: windows-latest
-    timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
-
-      # Scoped to teardown and kill by name rather than running these packages
-      # whole: running them on Windows for the first time surfaced ten
-      # pre-existing failures (agent switching, handoff artifacts, spawn PATH
-      # and branch namespacing) that have nothing to do with worktree teardown.
-      # Widening this is worth doing, but as its own change with its own fixes.
-      - name: Test SQLite filesystem path identity
-        run: go test -race -count=1 -run 'Test(OpenPreservesDataDirectoryCharacters|FragmentPathsKeepDatabasesIsolated|OpenRefusesToHideLegacyDatabase|OpenPrefersExistingIntendedDatabase|DatabaseURIPreservesWindowsPaths)$' ./internal/storage/sqlite
-
-      - name: Test MiniMax Windows auth, native history and restore
-        run: go test -race -count=1 -run '^Test(AuthStatus|LocalAuth|NativeHistory|History)' ./internal/adapters/agent/minimaxcode
-
-      - name: Test data-dir lock (LockFileEx)
-        run: go test -race -count=1 ./internal/datadirlock/
-
-      - name: Test workspace teardown and session kill
-        run: go test -race -count=1 -v -run 'Destroy|Discard|Sweep|Kill|RunPostCreate|TaskNaming|RenameTaskBranch' ./internal/adapters/workspace/... ./internal/session_manager/
-
-      - name: Test Windows Chat environment precedence
-        run: go test -race -count=1 ./internal/adapters/chatdriver/processenv/ ./internal/agentlaunch/
-
-      - name: Test Docker Agent Windows admission and native config
-        run: go test -race -count=1 -run '^(TestProbeChecksPlatformWithoutRequiringDaemonConfig|TestContextualConfigValidation)$' ./internal/adapters/chatdriver/dockeragentacp/
-
-      - name: Test Windows background task log redirects
-        run: go test -race -count=1 -run '^(TestStdoutFile|TestRedirectedOutput)' ./internal/adapters/chatdriver/backgroundtasks/
-
-      - name: Test Windows shell terminal start grid (pty-host --size)
-        run: go test -race -count=3 -v -run '^(TestConPTYStartsAtRequestedGrid|TestHostStartGrid|TestPtyHostArgsCarryInitialGrid|TestPtyHostArgsCarryHostOptions)$' ./internal/adapters/runtime/conpty/
-
-      - name: Test Windows Cue shell readiness and command delivery
-        run: go test -race -count=1 -timeout=10m -run '^TestCue' ./internal/service/shellterm
-
-      - name: Test Windows Chat host launch and provider cleanup
-        run: go test -race -count=1 -run '^(TestHostExecutable|TestCommandConfigRoundTrip|TestCommandConfigRejectsIncompleteLaunch|TestWindowsProviderJobReapsGrandchild|TestWindowsHostDescriptorReadAndRemovalDoNotBlockEachOther|TestWindowsHostDescriptorReadsPastMaxPath|TestExtendedLengthPathMatchesOS)$' ./internal/adapters/chatdriver/persistenthost/
-
-      - name: Test Windows Chat hibernate and native resume
-        run: go test -race -count=1 -run '^(TestPersistentClaudeACPHibernateAndNativeResume|TestCodexHibernateStopsAppServerAndNativeResumesThread)$' ./internal/adapters/chatdriver/acp/ ./internal/adapters/chatdriver/codexappserver/
-
-      - name: Test Windows background agent commands have no console
-        run: go test -race -count=1 -run '^TestBackgroundCommandHasNoConsole$' ./internal/adapters/agent/pi ./internal/adapters/agent/omp ./internal/adapters/agent/primeagent
-      - name: Test Windows subprocess commands
-        run: go test -race -count=1 -run 'Cloudflared|Tunnel|Command' ./internal/mobilebridge/ ./internal/process/ ./internal/adapters/systemexec/
-
-      - name: Test Windows PowerShell installers
-        run: go test -race -count=1 -v -run '^TestRunInstallScriptPowerShell' ./internal/adapters/systemexec/
-
-      - name: Test Mastra native history and Windows lock liveness
-        run: go test -race -count=1 -timeout=10m ./internal/adapters/agent/mastracode
-
-      - name: Test native Goose identity
-        run: go test -race -count=1 -timeout=10m ./internal/adapters/agent/binaryutil ./internal/adapters/agent/goose
-
-      - name: Test OpenCode Windows npm shim version probe
-        run: go test -race -count=1 -run '^TestResolveBinaryForMajorAcceptsSlowShim$' ./internal/adapters/agent/opencode
-
-      - name: Test Goose readiness and inventory
-        run: go test -race -count=1 -timeout=10m -run '^Test(FindInstalledBinary|WarmReadinessAndFindInstalled|PresslyGoose|Refresh|Probe|ReadinessCoordinator)' ./internal/service/agent
 
   lint:
     runs-on: ubuntu-latest
