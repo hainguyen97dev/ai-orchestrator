@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft, edited, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -66,7 +66,25 @@ jobs:
           node-version: 24
 
       - name: Test CI scripts
-        run: node --test scripts/ci-lanes.test.mjs scripts/ci-sharding.test.mjs scripts/create-migration.test.mjs
+        run: node --test scripts/ci-lanes.test.mjs scripts/ci-sharding.test.mjs scripts/create-migration.test.mjs scripts/check-import-only-diff.test.mjs
+
+  # Move PRs (label import-only) may touch hundreds of packages only if every
+  # changed line is an import path. See docs/fork/README.md "Dời code".
+  import-only:
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'import-only')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check diff is import-only
+        run: node scripts/check-import-only-diff.mjs origin/${{ github.base_ref }}
 
   ci-ok:
     if: always()
