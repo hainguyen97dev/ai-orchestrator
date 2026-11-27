@@ -1,53 +1,76 @@
 # Hướng fork `hainguyen97dev/ai-orchestrator`
 
-Fork này biến Agent Orchestrator thành workspace cho một người đi hết vòng tri thức dự án → DDD → code trên branch → test → review → giao kết quả. Mỗi bước chọn được agent, model, tool (builtin/MCP/shell) và theo dõi được trong Mission Control. Đọc file này trước khi làm task tính năng; plan thực thi nằm ở [`docs/superpowers/plans/`](../superpowers/plans/), bắt đầu từ [roadmap](../superpowers/plans/2026-11-26-00-roadmap.md).
+Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering Platform**: business domain là trung tâm, tri thức nghiệp vụ nằm trong Obsidian vault có nguồn và phiên bản, context engineering chọn đúng tri thức cho từng agent, workflow điều phối có trạng thái và phục hồi được, agent chỉ thực thi trong phạm vi được giao, provider là tài nguyên thay thế được. Sản phẩm là **app desktop Electron** chạy local.
+
+Đọc file này trước mọi task. Thứ tự đọc tiếp:
+
+1. [Thiết kế đã duyệt](../superpowers/specs/2026-11-27-ddd-platform-restructure-design.md) — hướng, layout đích, quy tắc dời code, lane, phase P0–P9. **Nguồn chuẩn**; khi tài liệu khác lệch thì theo file này.
+2. [Đánh giá + bảng map AO → bounded context](./ddd-spec/16-assessment-and-build-plan.md) — số đo, map package AO → thư mục đích.
+3. [Bộ đặc tả DDD v0.1](./ddd-spec/README.md) — vision, glossary, context map, event storming, aggregate, invariant, knowledge, context engineering, workflow, agent, provider, kiến trúc.
+4. [`CONTEXT.md`](../../CONTEXT.md) — glossary rút gọn.
+
+## Trạng thái (2026-11-27)
+
+- P0 xong: chỉ còn `main`, không worktree phụ, không session/script chạy nền.
+- Chưa có plan cho phase nào. Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge.
+- Phase kế tiếp: **P1** (bảng map tính năng ↔ code ↔ bounded context + cổng nhận) và **P3a** (dời khung). Smoke tự động dựng trên harness stub `backend/e2e` là việc đầu của P3a.
 
 ## Quyết định đã chốt
 
-Bản sao từ [roadmap §1](../superpowers/plans/2026-11-26-00-roadmap.md#1-quyết-định-đã-chốt-mặc-định-đổi-được). Roadmap là nguồn chuẩn; khi hai bản lệch nhau thì theo roadmap.
+| ID | Quyết định |
+|---|---|
+| K1 | Phương án C: AO làm substrate; dời dần từng cụm vào layout bounded context; context mới xây sạch theo 4 tầng DDD; không copy từ `ai-orchestra`. |
+| K2 | Layout trong `backend/`: `cmd/{server,ao}`, `internal/<bc>`, `internal/sharedkernel` (tạm), `platform/*`, `integrations/*`. Frontend giữ `frontend/` (Electron). |
+| K3 | Lưu trữ SQLite + FTS5. Không PostgreSQL/pgvector/Neo4j. Embedding sau khi có bộ đánh giá retrieval. |
+| K4 | Thuật ngữ theo spec: Workflow Definition / Workflow Run / Node / Node Execution / Agent Run. "Flow" không dùng nữa. |
+| K5 | Cắt: mobile/LAN, device, cloud/sharing/WorkOS, importer ngoài Claude + Codex, telemetry gửi ra ngoài (PostHog, Sentry). Telemetry local giữ. |
+| K6 | Vault theo định dạng Obsidian (Markdown + frontmatter + wikilink). Dữ liệu thật/fixture CR roaming làm ở P4. |
+| K7 | Module path mới `github.com/hainguyen97dev/ai-orchestrator/backend`, đổi trong một PR thuần cơ học ở P3a. |
+| K8 | Lát dọc nghiệm thu: CR "mua hộ roaming không cần đăng nhập". Mỗi phase đẩy lát này đi thêm một bước. |
+| K9 | Agent: mỗi task/node chọn harness, model, effort, account. Account hiện có: Claude `pro`, Codex `plus`. |
 
-| ID | Quyết định | Giá trị |
-|---|---|---|
-| D1 | Mức tự động khi giao kết quả | 3 mức: `manual` / `auto-pr` / `auto-merge-when-gates-pass`. Dogfood dùng `auto-merge-when-gates-pass` cho PR rủi ro thấp (roadmap §7). |
-| D2 | Pipeline | Tuyến tính trước, dựa trên `backend/internal/domain/pipeline.go` (commit `a7a41a1`). Graph/join làm ở A3b, chỉ thêm, không thay. |
-| D3 | Cắt tính năng | Cloud/sharing: ẨN. Device: ẨN. Importer: chỉ Claude + Codex. Mobile: giữ, ngoài đường găng. Automation: GIỮ. Telemetry/Sentry: TẮT. Chỉ xoá code sau khi phân tích phụ thuộc (đợt P). |
-| D4 | Tool | Gồm builtin, MCP và shell. Thứ tự: node → role → project; tầng dưới chỉ được thu hẹp. Adapter phải báo đúng mức `enforced` / `best-effort` / `none`. |
-| D5 | Scope cleanup | Xong task phải dọn file ngoài kế hoạch hoặc lệch mục tiêu (roadmap §6). Về sau thành node `scope-check` trong Flow. |
-| D6 | Agent | Mỗi task/node chọn harness, model, effort, permissions, account. Account hiện có: Claude `pro` (`device-claude`), Codex `plus` (`device-codex`). |
-| D7 | Tracking + sign-in của nhà phát hành | Tắt rồi xoá: PostHog, Sentry, telemetry gửi ra ngoài, Cloud sign-in (WorkOS còn sót, control plane). Telemetry **local** (usage, metrics trong SQLite) giữ lại vì Mission Control/A9 cần. Làm ở đợt DV; quy tắc thường trực ở roadmap §6a, ghi nhận vào [devendor-log.md](./devendor-log.md). |
+## Quy tắc thường trực
 
-## Specs
+**Lane và song song** (chi tiết: §6 thiết kế)
+- Một lane = một nhóm thư mục bounded context + một worktree + một session sống lâu; session chỉ sửa file trong lane.
+- Tối đa 2 lane code + 1 lane docs/review cùng lúc. Lane L0 (dời khung) chạy **một mình**.
+- Không chạy wave/autoscale nhiều session tự động.
 
-Bản sao trong repo của workspace `feature-surgery/`. Worker trong worktree chỉ đọc bản này.
+**Hotspot** — mỗi lúc chỉ 1 PR mở đụng tới; lane gom thay đổi hotspot vào một PR cuối:
+- migration SQLite + `shippedMigrations`
+- `openapi.yaml`, `frontend/src/api/schema.ts`, `specgen/build.go`
+- wiring daemon (`daemon/daemon.go`, `httpd/api.go`; sau P3a là `cmd/server`)
 
-- [Danh mục và đánh giá tính năng](./specs/feature-inventory.md)
-- [Danh mục 16 nhóm 1DevTool và quyết định cho AO](./specs/1devtool-capability-register.md)
-- [Plan tích hợp theo lát A0–A8](./specs/ao-feature-integration-plan.md)
-- [Các phương án cắt và phạm vi ảnh hưởng](./specs/pruning-decisions.md)
-- [Workflow/Pipeline và Mission Control](./specs/workflow-mission-control.md)
-- [Workflow tri thức dự án → DDD → code → testing](./specs/project-knowledge-ddd-workflow.md)
-- [Bản vẽ phương án workflow và Mission Control](./specs/workflow-blueprint.md)
-- [Flow Builder: dựng flow, gán role và tri thức, rồi Run](./specs/flow-builder.md)
-- [State machine ví dụ: CMS Permission Review](./specs/cms-permission-flow-state-machine.md)
-- [Mô hình role, skill, năng lực và tri thức dự án](./specs/role-skill-knowledge-model.md)
-- [Settings cho Role, Skill và Project Knowledge](./specs/settings-role-skill-project-knowledge.md)
+PR đụng hotspot: merge PR trước, rebase, chạy lại `npm run sqlc && npm run api`, không sửa tay file generated.
 
-Link sang vault nghiên cứu 1DevTool được giữ dạng text `(workspace: 1devtool-research/...)` vì vault nằm ngoài repo.
+**Dời code** (chi tiết: §5.2, §5.4 thiết kế)
+- PR dời chỉ dời: `git mv` + sửa import, không đổi logic.
+- PR đụng nhiều package chỉ hợp lệ khi diff toàn là import/package path.
+- Context mới không import package AO trực tiếp; đi qua ACL `internal/<bc>/infrastructure/acl`.
 
-## Plans
+**Scope cleanup trước khi mở PR**
+1. `git diff --name-status origin/main...HEAD` so với danh sách file của task.
+2. File thêm (A) ngoài phạm vi → `git rm`; file sửa (M) ngoài phạm vi → `git checkout origin/main -- <file>`; cần thật → ghi lý do ở mục "Out-of-plan files" của PR.
+3. File generated chỉ hợp lệ khi source tương ứng cũng có trong diff.
+4. Chạy lại test vùng bị ảnh hưởng.
 
-- [00 Roadmap](../superpowers/plans/2026-11-26-00-roadmap.md): lane, giới hạn worker, hotspot (§4), quy trình task (§5), Scope cleanup (§6), de-vendor (§6a), policy merge (§7).
-- [01 A0 Foundation](../superpowers/plans/2026-11-26-01-a0-foundation.md)
-- [02 T1 ToolProfile + MCP backend](../superpowers/plans/2026-11-26-02-t1-tool-profiles.md)
-- [03 UI-S Skill UI](../superpowers/plans/2026-11-26-03-ui-skill.md)
-- [04 Chạy bằng ai-orchestra](../superpowers/plans/2026-11-26-04-run-with-ai-orchestra.md)
+**De-vendor** — code PostHog, Sentry, `AO_TELEMETRY_*` gửi ra ngoài, `AO_SENTRY_DSN`, `AO_CLOUD_CONTROL_PLANE_URL`, WorkOS/AuthKit, `cloud-client`:
+- Nằm trong file task đang sửa và tắt được bằng no-op không đổi API → tắt, ghi mục "De-vendor" trong PR.
+- Ngoài phạm vi → ghi một dòng vào [devendor-log.md](./devendor-log.md); lane L1 xử lý.
+- Không bao giờ thêm code tracking hoặc sign-in mới.
+
+**Merge**
+- Cần chủ sản phẩm duyệt: migration, `httpd/auth*`, xoá tính năng, đổi API contract đã merge, `.github/workflows`, PR dời khung (P3a).
+- Còn lại: CI xanh + reviewer chéo approve + scope cleanup sạch.
+
+## Tài liệu tham khảo cũ
+
+[`specs/`](./specs/) là bản chép `feature-surgery/` theo hướng "Flow + Mission Control" trước đây. Giữ làm **đầu vào ý tưởng** cho P6 (workflow engine) và P7 (Workflow Studio, Mission Control); thuật ngữ trong đó đã đổi theo K4 và không còn là quyết định.
 
 ## Ngoài phạm vi
 
-Không thiết kế hay code cho các mục sau, kể cả khi tài liệu cũ ở workspace (ví dụ `docs/02-architecture` về multi-tenancy/RBAC) có nhắc tới:
-
-- Multi-tenancy.
-- RBAC tổ chức.
-- Cloud (sharing, control plane, sign-in).
-- Device.
+- Multi-tenancy, RBAC tổ chức, marketplace, microservice.
+- Cloud (sharing, control plane, sign-in), mobile/LAN, device.
+- Web app thay Electron.
 - IDE client, HTTP client, DB client, Docker client tích hợp sẵn.
+- Tự deploy production, tự huấn luyện model.
