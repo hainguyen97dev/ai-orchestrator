@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )

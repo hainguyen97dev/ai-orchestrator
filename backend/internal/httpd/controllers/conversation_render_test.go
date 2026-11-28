@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"

@@ -7,7 +7,7 @@
 
 /**
  * Directories that are one document on macOS. Keep this in step with
- * bundleSuffixes in backend/internal/sessionartifacts.
+ * bundleSuffixes in backend/internal/artifact/sessionartifacts.
  */
 export const BUNDLE_SUFFIXES = [".icon", ".app", ".bundle", ".xcassets"] as const;
 

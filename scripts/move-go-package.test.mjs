@@ -31,7 +31,7 @@ test('longer source wins and no chained rewrite', () => {
 });
 
 test('does not touch a lookalike prefix or a suffix match', () => {
-  const moves = [['internal/observe/artifacts', 'internal/artifact/observe/artifacts']];
+  const moves = [['internal/artifact/observe/artifacts', 'internal/artifact/observe/artifacts']];
   assert.equal(rewrite('"x/internal/observe/artifactsx"', moves), '"x/internal/observe/artifactsx"');
   assert.equal(rewrite('"x/otherinternal/observe/artifacts"', moves), '"x/otherinternal/observe/artifacts"');
 });

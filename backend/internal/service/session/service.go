@@ -15,6 +15,7 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/deliverytelemetry"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/ownership"
@@ -22,7 +23,6 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/reqid"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/telemetrymeta"

@@ -20,9 +20,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

@@ -38,7 +38,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/systemexec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/telemetry/policyauthority"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/autoreview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserstream"

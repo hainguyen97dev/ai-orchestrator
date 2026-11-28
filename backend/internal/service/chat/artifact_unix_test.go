@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 )
 
 // A FIFO reported as a page must not hang the report.

@@ -40,7 +40,7 @@
     "uiRoutes": [],
     "tables": [] },
   { "id": "F-09", "name": "Artifact", "bc": "artifact", "ui": "—", "action": "Giữ",
-    "packages": ["internal/artifactversions", "internal/sessionartifacts", "internal/attachmentstore", "internal/observe/artifacts"],
+    "packages": ["internal/artifact/artifactversions", "internal/artifact/sessionartifacts", "internal/artifact/attachmentstore", "internal/artifact/observe/artifacts"],
     "httpPrefixes": ["/api/v1/kept-artifacts", "/api/v1/attachment-uploads", "/api/v1/sessions/{sessionId}/artifact"],
     "uiRoutes": ["_shell.artifacts.tsx"],
     "tables": ["kept_artifacts", "kept_artifact_sessions", "session_artifacts", "session_artifact_versions"] },
