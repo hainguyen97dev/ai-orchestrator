@@ -68,6 +68,9 @@ jobs:
       - name: Test CI scripts
         run: node --test scripts/ci-lanes.test.mjs scripts/ci-sharding.test.mjs scripts/create-migration.test.mjs scripts/check-import-only-diff.test.mjs scripts/ddd-spec/check-consistency.test.mjs
 
+      - name: Check DDD spec consistency
+        run: node scripts/ddd-spec/check-consistency.mjs
+
   ci-ok:
     if: always()
     needs: [changes, go, cli-e2e, frontend, config]

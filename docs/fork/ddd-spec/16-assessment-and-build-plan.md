@@ -21,10 +21,10 @@ Nguồn đo: `ai-orchestra` @ `10028ef170` (cùng tree với `ai-orchestrator` c
 
 | # | Đặc tả nói | Thực tế | Đề xuất |
 |---|---|---|---|
-| S1 | Go + React + **PostgreSQL**, pgvector, PG FTS (14) | AO là app desktop Electron + daemon Go + **SQLite** (sqlc, 269 migration) | Giữ SQLite. FTS5 thay PG FTS; embedding để sau (10 đã nói MVP không cần). Local-first một người dùng không cần Postgres. |
+| S1 | Go + React + **PostgreSQL**, pgvector, PG FTS (14) | AO là app desktop Electron + daemon Go + **SQLite** (sqlc, 269 migration) | Giữ SQLite. FTS5 thay PG FTS; embedding để sau (10 đã nói MVP không cần). Local-first một người dùng không cần Postgres. **Đã xử lý ở P2** (14 v0.2). |
 | S2 | Layout greenfield `internal/domainmodel, knowledge, …` (14) | AO đã có kiến trúc hexagonal: `domain/ ports/ adapters/ service/ storage/ httpd/` | Context mới đặt theo layout DDD của spec; AO cũ coi là một khối (xem §4). |
-| S3 | `WorkflowDefinition/WorkflowRun` (01) | Fork đã dùng `Flow/FlowRun/Gate/RoleProfile/KnowledgeSnapshot` (`CONTEXT.md`), có code `domain/pipeline.go` | Chọn **một** bộ thuật ngữ, cập nhật 01 và CONTEXT.md cùng lúc. |
-| S4 | `AgentRun`, `ProviderProfile`, `Workspace` là aggregate mới (06) | AO đã có `Session` (agent+worktree+harness), `agent_account`, `usage_limit` | `AgentRun` = tham chiếu tới AO Session qua anti-corruption layer, không viết runtime mới. `ProviderProfile` bọc `agent_account`. |
+| S3 | `WorkflowDefinition/WorkflowRun` (01) | Fork đã dùng `Flow/FlowRun/Gate/RoleProfile/KnowledgeSnapshot` (`CONTEXT.md`), có code `domain/pipeline.go` | Chọn **một** bộ thuật ngữ, cập nhật 01 và CONTEXT.md cùng lúc. **Đã xử lý ở P2**: bộ của spec, từ bỏ ghi ở 01 §Thuật ngữ bỏ. |
+| S4 | `AgentRun`, `ProviderProfile`, `Workspace` là aggregate mới (06) | AO đã có `Session` (agent+worktree+harness), `agent_account`, `usage_limit` | `AgentRun` = tham chiếu tới AO Session qua anti-corruption layer, không viết runtime mới. `ProviderProfile` bọc `agent_account`. **Đã xử lý ở P2** (06 v0.2). |
 | S5 | Task Board, Agent Office, Terminals là UI mới (14) | AO đã có board, session view, TUI/Chat, terminal | Tái dùng, chỉ gắn vào điều hướng mới. |
 | S6 | "Chưa audit repo" (README) | Nay đã đo (§2) | Cập nhật 02 bằng bảng §3 của file này. |
 

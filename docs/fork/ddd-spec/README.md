@@ -1,6 +1,6 @@
 # Domain-Driven AI Engineering Platform
 
-Bộ đặc tả thiết kế v0.1 — mở thư mục này bằng Obsidian hoặc IDE.
+Bộ đặc tả thiết kế v0.1 (01, 04, 05, 06, 14 đã lên v0.2 ở P2; `node scripts/ddd-spec/check-consistency.mjs` giữ chúng khớp nhau và khớp `CONTEXT.md`) — mở thư mục này bằng Obsidian hoặc IDE.
 
 ## Mục lục
 
