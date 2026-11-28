@@ -52,3 +52,8 @@ test('history and measurement docs are not rewritten', () => {
     'docs/fork/ddd-spec/16-assessment-and-build-plan.md', 'docs/fork/ddd-spec/17-feature-code-map.md']) assert.equal(isHistorical(f), true, f);
   for (const f of ['docs/documentation-map.md', 'backend/internal/daemon/daemon.go', 'scripts/feature-map/clusters.json']) assert.equal(isHistorical(f), false, f);
 });
+
+test('rewrites a path followed by an HTML tag (mermaid labels)', () => {
+  assert.equal(rewrite('P[internal/service/project<br/>CRUD]', [['internal/service/project', 'internal/identity/project']]),
+    'P[internal/identity/project<br/>CRUD]');
+});
