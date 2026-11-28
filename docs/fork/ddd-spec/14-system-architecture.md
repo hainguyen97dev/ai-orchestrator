@@ -1,6 +1,6 @@
 ---
 status: draft
-version: 0.1
+version: 0.2
 ---
 
 # System Architecture
@@ -8,24 +8,29 @@ version: 0.1
 ```mermaid
 graph TD
  UI[Domain / Knowledge / Workflow Studio] --> API[Application API]
- API --> D[Domain & Knowledge]
- API --> W[Workflow Engine]
+ API --> D[Domain Modeling & Knowledge]
+ API --> W[Workflow]
  W --> C[Context Engineering]
- W --> A[Agent Runtime]
+ W --> X[Execution]
  C --> D
- A --> P[Provider Control Plane]
- A --> S[Sandbox / Workspace]
+ X --> P[Provider]
+ X --> S[Workspace]
  P --> B[Budget / Secrets]
  D --> V[Obsidian Vault / Git]
- W --> DB[(PostgreSQL)]
+ W --> DB[(SQLite)]
+ W -. ACL .-> AO[AO Substrate]
 ```
 
-Đề xuất Modular Monolith, có worker riêng khi cần. Go + React/TypeScript + PostgreSQL là lựa chọn sơ bộ, phải đối chiếu stack repository hiện tại trước khi quyết định rewrite. FTS trước pgvector; typed graph bằng relational tables; chưa cần Neo4j/Kafka.
+Modular monolith trong một daemon Go. Frontend là Electron + React/TypeScript. Lưu trữ dùng SQLite: query viết bằng sqlc, migration dùng goose và nằm ở `backend/platform/persistence/sqlite/migrations`. Tìm kiếm dùng FTS5; embedding để sau, khi đã có bộ câu hỏi đánh giá retrieval ([[10-context-engineering]]). Typed graph dựng bằng bảng quan hệ, chưa cần Neo4j hay Kafka. Lý do chọn SQLite thay cho Postgres ở [[16-assessment-and-build-plan]] §S1.
 
-Module layout: internal/domainmodel, knowledge, context, workflow, agent, execution, provider, budget, workspace, quality, artifact, identity; integrations/obsidian, git, claude, codex, gemini; platform/persistence, eventbus, sandbox, secrets, observability.
+AO Substrate chạy chung tiến trình với các context mới. Context mới gọi nó qua ACL ([[04-bounded-context-map]]) và phát event theo chuẩn event v1 ([[05-event-storming]]).
 
-API hướng resource: /projects, /domains, /knowledge/documents, /knowledge/proposals, /workflows, /workflow-runs, /agents, /provider-profiles. Command endpoints cho publish, approve, cancel, resume; idempotency key và optimistic concurrency.
+Module layout: internal/domainmodel, internal/knowledge, internal/context, internal/workflow, internal/budget, internal/agent, internal/execution, internal/workspace, internal/provider, internal/quality, internal/artifact, internal/identity, internal/task, internal/skill, internal/notification, internal/audit; integrations/obsidian, git, claude, codex, gemini; platform/persistence, eventbus, sandbox, secrets, observability.
 
-UI: Domain Studio, Knowledge Studio, Workflow Studio, Agent Office, Task Board, Unified Terminal, Diff Review, Provider Center, Analytics. UI không trực tiếp đọc secrets.
+API hướng resource: /projects, /domains, /knowledge/documents, /knowledge/proposals, /workflows, /workflow-runs, /agents, /provider-profiles. Publish, approve, cancel, resume dùng command endpoint, có idempotency key và optimistic concurrency.
 
-Security: threat model prompt injection, malicious repo, tool escalation, secret leakage, cross-project retrieval, supply chain. RBAC, sandbox, audit, data egress controls, backup/restore. Observability: correlation ID, run trace, node duration, cost/task, provider errors; redact sensitive data.
+UI: Domain Studio, Knowledge Studio, Workflow Studio, Agent Office, Task Board, Unified Terminal, Diff Review, Provider Center, Analytics. UI không đọc trực tiếp secret.
+
+Security: threat model gồm prompt injection, malicious repo, tool escalation, secret leakage, cross-project retrieval, supply chain. Biện pháp: RBAC, sandbox, audit, data egress controls, backup/restore.
+
+Observability: correlation ID, run trace, node duration, cost/task, provider errors; redact sensitive data.
