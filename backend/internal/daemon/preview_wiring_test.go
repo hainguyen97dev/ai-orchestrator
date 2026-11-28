@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/previewserver"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/previewserver"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

@@ -16,7 +16,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browserruntime"
 )
 
 // TestChromeE2E drives the real AO Browser Bridge extension in a real Chrome.
@@ -25,7 +25,7 @@ import (
 //	AO_CHROME_E2E_ENDPOINT=<data>/browser-chrome/endpoint.json \
 //	AO_CHROME_E2E_HOST=<path to the ao binary the host wrapper runs> \
 //	AO_CHROME_E2E_CDP=http://127.0.0.1:9333 \
-//	go test ./internal/browserchrome -run TestChromeE2E -v
+//	go test ./internal/quality/browserchrome -run TestChromeE2E -v
 //
 // Chrome must run with the extension loaded, --use-mock-keychain (or macOS asks
 // for the login password on every launch and pages stall until it is answered)

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/gitworktree"
-	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/browser"
+	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browser"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )

@@ -26,7 +26,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
-	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )

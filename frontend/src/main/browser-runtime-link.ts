@@ -30,7 +30,7 @@ type BrowserRuntimePing = {
 	type: "ping";
 };
 
-// The daemon's answer to the hello (backend/internal/browserruntime/broker.go).
+// The daemon's answer to the hello (backend/internal/quality/browserruntime/broker.go).
 type BrowserRuntimeHelloReply =
 	| { type: "hello-ok" }
 	| { type: "hello-rejected"; error?: BrowserRuntimeCommandError };
@@ -72,7 +72,7 @@ type BrowserRuntimeLinkOptions = {
 
 /**
  * The recovery decision's vocabulary, derived from the broker's stable error code
- * (backend/internal/browserruntime/broker.go). Only a rejected token is
+ * (backend/internal/quality/browserruntime/broker.go). Only a rejected token is
  * unrecoverable by retrying; a protocol mismatch resolves once the app and the
  * daemon are upgraded together, so it keeps its own code.
  */

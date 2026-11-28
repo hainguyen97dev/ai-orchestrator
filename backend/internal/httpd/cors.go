@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 )
 
 // corsMiddleware grants cross-origin read access to the allowlisted browser

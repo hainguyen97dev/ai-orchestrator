@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import manifest from "./manifest.json";
 import { HOST_NAME } from "./protocol";
 
-// Must equal backend/internal/browserchrome.ExtensionID: the native host
+// Must equal backend/internal/quality/browserchrome.ExtensionID: the native host
 // manifest only admits this extension origin.
 const EXTENSION_ID = "eefgahhblbmjpccfcnpkhkadgcccnibg";
 

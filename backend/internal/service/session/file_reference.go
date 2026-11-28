@@ -7,7 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )

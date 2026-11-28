@@ -14,10 +14,10 @@ import (
 	"testing"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browserruntime"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"

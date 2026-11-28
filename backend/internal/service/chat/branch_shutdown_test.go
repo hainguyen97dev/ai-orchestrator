@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/browser"
+	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browser"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

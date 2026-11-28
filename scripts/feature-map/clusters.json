@@ -85,7 +85,7 @@
     "uiRoutes": [],
     "tables": ["telemetry_event", "telemetry_lifetime_sessions", "session_telemetry"] },
   { "id": "F-18", "name": "Browser, computer use", "bc": "quality (UI test)", "ui": "—", "action": "Giữ bản lõi, ngoài đường găng",
-    "packages": ["internal/browserchrome", "internal/browserruntime", "internal/browserstream", "internal/service/browser", "internal/service/computeruse", "internal/adapters/cuadriver/...", "internal/preview", "internal/previewserver"],
+    "packages": ["internal/quality/browserchrome", "internal/quality/browserruntime", "internal/quality/browserstream", "internal/quality/browser", "internal/quality/computeruse", "internal/quality/cuadriver/...", "internal/quality/preview", "internal/quality/previewserver"],
     "httpPrefixes": ["/api/v1/browser", "/api/v1/computer-use", "/api/v1/sessions/{sessionId}/agent-browser", "/api/v1/sessions/{sessionId}/preview"],
     "uiRoutes": [],
     "tables": [] },

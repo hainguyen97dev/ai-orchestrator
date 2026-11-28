@@ -16,7 +16,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devices"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/computeruse"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/computeruse"
 	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionimport"
