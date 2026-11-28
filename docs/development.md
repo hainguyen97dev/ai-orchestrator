@@ -38,7 +38,6 @@ agent-orchestrator/
     src/                # Renderer, main, preload
     e2e/                # Playwright end-to-end tests
   packages/
-    mobile/             # React Native (Expo) mobile companion app
     ao/                 # Legacy npm CLI package (frozen)
   docs/                 # Architecture, ADRs, CLI docs, status
   CONTRIBUTING.md       # Contribution guide
@@ -209,13 +208,6 @@ Or from repo root:
 ```bash
 npm run frontend:typecheck
 ```
-
-## Mobile companion app
-
-The mobile companion app is still being wired into the contributor docs. Do not
-assume `packages/mobile/README.md` is a complete setup guide on this branch.
-Until a tracked guide lands, use the desktop/backend workflow above and check
-open issues/PRs for current mobile-specific setup notes.
 
 ## Running end-to-end
 

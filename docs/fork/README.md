@@ -20,7 +20,8 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 - P3b đợt 2 (2026-11-28): F-07 → `internal/task/{tracker,observe/trackerintake}`, F-18 → `internal/quality/{browser,computeruse,browserchrome,browserruntime,browserstream,cuadriver,preview,previewserver}`, F-03 → `internal/provider/{agentaccounts,agentauth,providerkeys,agentaccount}`. F-04 không dời (Budget là context mới; bọc ở P8). `pkg/agentcreds` giữ ở `pkg/`.
 - P3b đợt 3 (2026-11-28): F-05 → `internal/quality/{pr,prpreview,githubpat,review,service/review,autoreview,reviewgateway,observe/scm,scm,reviewer}`, F-01 → `internal/workspace/*` và `internal/execution/*`. F-19 không dời (không có BC đích). F-02 chờ L1.
 - L1 cắt F-15 device (2026-11-28): backend, CLI, API, prompt và tab Device đã xoá; thiết bị điện thoại đã ghép cặp (F-13) giữ lại.
-- Phase kế tiếp: đo lại F-14 cloud (lớn hơn 17 §3 ghi), rồi F-16 importer → F-13 mobile → F-17 telemetry remote; sau đó P3b đợt 4 (F-02).
+- L1 F-13 đợt A (2026-11-28): đã xoá `packages/mobile`. Awake giữ cho desktop; remote host sẽ cắt luôn (chủ sản phẩm quyết).
+- Phase kế tiếp: F-13 đợt B (remote host, LAN, push, `hostId`) → F-14 cloud (đợt C) → F-16 importer → F-17 telemetry remote; sau đó P3b đợt 4 (F-02).
 
 ## Quyết định đã chốt
 

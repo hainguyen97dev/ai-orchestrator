@@ -308,16 +308,6 @@ func fitted(_ image: CGImage, width: Int, height: Int, box: CGSize, threshold: U
     return context.makeImage()!
 }
 
-func tinted(_ image: CGImage, _ color: CGColor) -> CGImage {
-    let context = canvas(image.width, image.height)
-    let rect = CGRect(x: 0, y: 0, width: image.width, height: image.height)
-    context.draw(image, in: rect)
-    context.setBlendMode(.sourceIn)
-    context.setFillColor(color)
-    context.fill(rect)
-    return context.makeImage()!
-}
-
 func png(_ image: CGImage) -> Data {
     let data = NSMutableData()
     let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)!
@@ -392,35 +382,6 @@ func ictool(_ icon: URL = iconBundle, platform: String, rendition: String = "Def
     return load(output)
 }
 
-/// The glass-rendered mark alone on transparency, in the 1024 iOS layout.
-/// ictool always paints a tile, so render it on black and on white and solve
-/// for each pixel's alpha (difference matting); over black the colour is
-/// already premultiplied. Pixels near the tile edge are dropped so the
-/// tile's own rim highlight never leaks into the matte.
-func glassForeground() -> CGImage {
-    let size = 1024
-    let black = pixels(ictool(bundle(named: "black", fill: "srgb:0.00000,0.00000,0.00000,1.00000"), platform: "iOS", size: size))
-    let white = pixels(ictool(bundle(named: "white", fill: "srgb:1.00000,1.00000,1.00000,1.00000"), platform: "iOS", size: size))
-    var out = [UInt8](repeating: 0, count: size * size * 4)
-    for y in 96..<(size - 96) {
-        for x in 96..<(size - 96) {
-            let i = (y * size + x) * 4
-            let spread = (Int(white[i]) - Int(black[i]) + Int(white[i + 1]) - Int(black[i + 1]) + Int(white[i + 2]) - Int(black[i + 2])) / 3
-            let alpha = UInt8(max(0, min(255, 255 - spread)) * Int(black[i + 3]) / 255)
-            out[i] = min(black[i], alpha); out[i + 1] = min(black[i + 1], alpha); out[i + 2] = min(black[i + 2], alpha); out[i + 3] = alpha
-        }
-    }
-    return image(from: out, size, size)
-}
-
-/// An SVG drawn where Icon Composer places a layer, on a 1024 canvas.
-func placed(_ svg: String) -> CGImage {
-    let context = canvas(1024, 1024)
-    let side = 1024 * position.scale
-    draw(svg: svg, in: context, rect: CGRect(x: 512 - side / 2 + position.x, y: 512 - side / 2 + position.y, width: side, height: side))
-    return context.makeImage()!
-}
-
 func ico(_ images: [CGImage]) -> Data {
     var header = Data([0, 0, 1, 0, UInt8(images.count), 0])
     var body = Data()
@@ -442,11 +403,6 @@ write(Data(source.utf8), to: "assets/brand/ruto.svg")
 write(Data(rutoLayer.utf8), to: "assets/brand/AO.icon/Assets/ruto.svg")
 write(Data(batonLayer.utf8), to: "assets/brand/AO.icon/Assets/baton.svg")
 
-// Expo builds the iOS icon from its own copy of the bundle.
-let mobileIcon = root.appendingPathComponent("packages/mobile/assets/AO.icon")
-try? fm.removeItem(at: mobileIcon)
-try fm.copyItem(at: iconBundle, to: mobileIcon)
-print("wrote packages/mobile/assets/AO.icon")
 
 // macOS 26+: the compiled asset catalog the packaged app names in
 // CFBundleIconName. Compiled here, not at package time, because actool's
@@ -573,58 +529,3 @@ do {
 // MARK: - README
 
 writePNG(resized(ictool(platform: "macOS", size: 1024), 192, 192), "docs/assets/readme/logo.png")
-
-// MARK: - Mobile
-
-let foreground = glassForeground()
-let white = CGColor(gray: 1, alpha: 1)
-
-// iOS uses AO.icon; this full-bleed square (no rounding, no alpha) is Expo's
-// fallback icon. The system applies its own mask.
-do {
-    let context = canvas(1024, 1024, opaque: true)
-    draw(background(1024), in: context, rect: CGRect(x: 0, y: 0, width: 1024, height: 1024))
-    draw(foreground, in: context, rect: CGRect(x: 0, y: 0, width: 1024, height: 1024))
-    writePNG(context.makeImage()!, "packages/mobile/assets/icon.png")
-}
-
-// Android adaptive icon: 108 dp layers, masked to any shape that keeps a
-// centred 66 dp circle. Ruto is scaled down from the iOS layout until its
-// farthest pixel sits 32 dp from the centre.
-func farthest(_ image: CGImage) -> CGFloat {
-    let data = pixels(image)
-    var radius: CGFloat = 0
-    for y in 0..<image.height {
-        for x in 0..<image.width where data[(y * image.width + x) * 4 + 3] >= 128 {
-            radius = max(radius, hypot(CGFloat(x) + 0.5 - CGFloat(image.width) / 2, CGFloat(y) + 0.5 - CGFloat(image.height) / 2))
-        }
-    }
-    return radius
-}
-let adaptive = min(72.0 / 108.0, 32.0 / 108.0 * 1024 / max(farthest(foreground), farthest(placed(silhouette))))
-let adaptiveRect = CGRect(x: 512 - 512 * adaptive, y: 512 - 512 * adaptive, width: 1024 * adaptive, height: 1024 * adaptive)
-writePNG(background(1024), "packages/mobile/assets/android-icon-background.png")
-do {
-    let context = canvas(1024, 1024)
-    draw(foreground, in: context, rect: adaptiveRect)
-    writePNG(context.makeImage()!, "packages/mobile/assets/android-icon-foreground.png")
-}
-do {
-    let context = canvas(1024, 1024)
-    draw(tinted(placed(silhouette), white), in: context, rect: adaptiveRect)
-    writePNG(context.makeImage()!, "packages/mobile/assets/android-icon-monochrome.png")
-}
-
-// Android status bar: white silhouette on transparency, 96 px (xxxhdpi 24 dp).
-writePNG(fitted(tinted(placed(silhouette), white), width: 96, height: 96, box: CGSize(width: 84, height: 84)), "packages/mobile/assets/notification-icon.png")
-
-writePNG(fitted(foreground, width: 1024, height: 1024, box: CGSize(width: 760, height: 760)), "packages/mobile/assets/splash-icon.png")
-writePNG(resized(ictool(platform: "iOS", size: 1024), 256, 256), "packages/mobile/assets/favicon.png")
-// The flat artwork, like the desktop app's mascot: the glass render loses the
-// baton's edge and looks washed out on light themes. lib/ui.tsx MASCOT_ASPECT
-// is 200 / 256, and WAND_TIP_X/Y there locate the baton tip in this crop.
-do {
-    let context = canvas(1024, 1024)
-    draw(svg: source, in: context, rect: CGRect(x: 0, y: 0, width: 1024, height: 1024))
-    writePNG(fitted(context.makeImage()!, width: 256, height: 200, box: CGSize(width: 256, height: 200), threshold: 128), "packages/mobile/assets/mascot.png")
-}

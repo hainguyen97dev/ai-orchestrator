@@ -155,7 +155,6 @@
   {"glob": "backend/internal/notification/push/*", "area": "mobile-remote"},
   {"glob": "backend/internal/daemon/mobile_restore*", "area": "mobile-remote"},
   {"glob": "backend/internal/daemon/remote_host*", "area": "mobile-remote"},
-  {"glob": "packages/mobile/*", "area": "mobile-remote"},
   {"glob": "backend/internal/task/tracker/*", "area": "integrations"},
   {"glob": "backend/internal/service/linkpreview/*", "area": "integrations"},
   {"glob": "backend/internal/service/importer/*", "area": "integrations"},
@@ -487,7 +486,6 @@
   {"glob": "frontend/playwright.config.ts", "area": "testing-ci"},
   {"glob": "frontend/tsconfig.e2e.json", "area": "testing-ci"},
   {"glob": "frontend/vitest.config.ts", "area": "testing-ci"},
-  {"glob": "scripts/generate-mobile-store-screenshots*", "area": "testing-ci"},
   {"glob": "scripts/daemon-build.sh", "area": "daemon-process"},
   {"glob": "*", "area": "shared-infra"}
 ]
