@@ -49,7 +49,7 @@ Người sở hữu sản phẩm có thể gắn mỗi cụm một quyết đị
 
 ## Rủi ro theo ứng viên
 
-- **Device**: 3 commit mới thêm backend service/adapter, CLI, API, desktop và mobile. UI đang gate qua Developer Mode (`frontend/src/renderer/lib/devices-enabled.ts`, `backend/internal/devices/service.go:137`). Có thể ẩn khỏi bản gọn trước, nhưng xóa đòi cập nhật API/spec và mobile.
+- **Device** (đã cắt ở L1, 2026-11-28; các đường dẫn bên dưới là lịch sử, phần mobile bỏ theo F-13): 3 commit mới thêm backend service/adapter, CLI, API, desktop và mobile. UI đang gate qua Developer Mode (`frontend/src/renderer/lib/devices-enabled.ts`, `backend/internal/devices/service.go:137`). Có thể ẩn khỏi bản gọn trước, nhưng xóa đòi cập nhật API/spec và mobile.
 - **Cloud/sharing**: xuyên qua Sidebar, route, auth, artifacts và control plane. Tách edition có vẻ an toàn hơn xóa một lần; STATUS ghi Cloud availability là Conditional.
 - **Importers**: commit `8361029f9f` thay 216 file và thêm 11 nguồn. Có thể cắt theo provider, giữ interface/importer core. Cần bảo toàn session đã import.
 - **Account/quota**: không cắt, vì hiện đã dính launch, Chat continuation, usage limit, UI và session state; đây là nền cho tích hợp 1DevTool.
