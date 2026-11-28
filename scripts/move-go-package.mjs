@@ -28,6 +28,8 @@ const HISTORICAL = [
   /^docs\/superpowers\/plans\//,
   /^\.ao-rescue\//,
   /^docs\/fork\/ddd-spec\/1[67]-/,
+  // Path fixtures of this tool and of the import-only checker.
+  /^scripts\/(move-go-package|check-import-only-diff)(\.test)?\.mjs$/,
 ];
 export const isHistorical = (file) => HISTORICAL.some((re) => re.test(file));
 const EXTENSIONS = /\.(go|md|json|ya?ml|mjs|sql|tsx?)$/;
