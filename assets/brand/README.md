@@ -36,10 +36,6 @@ when the bundle changes, tracked by `Assets.car.sha256`.
 | `frontend/src/browser-extension/icons/icon-*.png` | AO Browser Bridge extension. |
 | `docs/assets/readme/logo.png` | Repository README header (192 px for a 96 pt slot). |
 
-Glass renders that need no tile (Android foreground, splash)
-come from rendering the bundle on a black and a white tile and solving for
-each pixel's alpha, so they carry the same glass shading as the app icon.
-
 ## Outside this repository
 
 These still show the previous artwork and need a manual update from the

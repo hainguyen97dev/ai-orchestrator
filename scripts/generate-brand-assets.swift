@@ -308,16 +308,6 @@ func fitted(_ image: CGImage, width: Int, height: Int, box: CGSize, threshold: U
     return context.makeImage()!
 }
 
-func tinted(_ image: CGImage, _ color: CGColor) -> CGImage {
-    let context = canvas(image.width, image.height)
-    let rect = CGRect(x: 0, y: 0, width: image.width, height: image.height)
-    context.draw(image, in: rect)
-    context.setBlendMode(.sourceIn)
-    context.setFillColor(color)
-    context.fill(rect)
-    return context.makeImage()!
-}
-
 func png(_ image: CGImage) -> Data {
     let data = NSMutableData()
     let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)!
@@ -390,35 +380,6 @@ func ictool(_ icon: URL = iconBundle, platform: String, rendition: String = "Def
     run(iconComposerTool, [icon.path, "--export-image", "--output-file", output.path, "--platform", platform,
                            "--rendition", rendition, "--width", "\(size)", "--height", "\(size)", "--scale", "1"])
     return load(output)
-}
-
-/// The glass-rendered mark alone on transparency, in the 1024 iOS layout.
-/// ictool always paints a tile, so render it on black and on white and solve
-/// for each pixel's alpha (difference matting); over black the colour is
-/// already premultiplied. Pixels near the tile edge are dropped so the
-/// tile's own rim highlight never leaks into the matte.
-func glassForeground() -> CGImage {
-    let size = 1024
-    let black = pixels(ictool(bundle(named: "black", fill: "srgb:0.00000,0.00000,0.00000,1.00000"), platform: "iOS", size: size))
-    let white = pixels(ictool(bundle(named: "white", fill: "srgb:1.00000,1.00000,1.00000,1.00000"), platform: "iOS", size: size))
-    var out = [UInt8](repeating: 0, count: size * size * 4)
-    for y in 96..<(size - 96) {
-        for x in 96..<(size - 96) {
-            let i = (y * size + x) * 4
-            let spread = (Int(white[i]) - Int(black[i]) + Int(white[i + 1]) - Int(black[i + 1]) + Int(white[i + 2]) - Int(black[i + 2])) / 3
-            let alpha = UInt8(max(0, min(255, 255 - spread)) * Int(black[i + 3]) / 255)
-            out[i] = min(black[i], alpha); out[i + 1] = min(black[i + 1], alpha); out[i + 2] = min(black[i + 2], alpha); out[i + 3] = alpha
-        }
-    }
-    return image(from: out, size, size)
-}
-
-/// An SVG drawn where Icon Composer places a layer, on a 1024 canvas.
-func placed(_ svg: String) -> CGImage {
-    let context = canvas(1024, 1024)
-    let side = 1024 * position.scale
-    draw(svg: svg, in: context, rect: CGRect(x: 512 - side / 2 + position.x, y: 512 - side / 2 + position.y, width: side, height: side))
-    return context.makeImage()!
 }
 
 func ico(_ images: [CGImage]) -> Data {

@@ -4,7 +4,7 @@ import path from "node:path";
 import ts from "typescript";
 import { expect, it } from "vitest";
 
-const BASELINE = 917;
+const BASELINE = 754;
 
 /** Source files the ratchet counts: app code, not tests or their doubles. */
 function isCountedFile(file: string): boolean {
@@ -29,11 +29,11 @@ it("counts bare Error constructions without counting comments, strings or subcla
 
 it("counts app code but not tests or test doubles", () => {
 	expect(isCountedFile("frontend/src/renderer/lib/api.ts")).toBe(true);
-	expect(isCountedFile("packages/mobile/lib/chat/savedConversations.ts")).toBe(true);
+	expect(isCountedFile("packages/shared/chat/savedConversations.ts")).toBe(true);
 	for (const file of [
 		"frontend/src/renderer/lib/api.test.ts",
 		"frontend/src/main/host.spec.tsx",
-		"packages/mobile/lib/chat/savedConversations.fakes.ts",
+		"packages/shared/chat/savedConversations.fakes.ts",
 		"frontend/src/__mocks__/electron.ts",
 		"frontend/src/renderer/fixtures/sessions.ts",
 		"frontend/src/README.md",
