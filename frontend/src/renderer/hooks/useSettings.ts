@@ -9,7 +9,7 @@
 import { type Query, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { components } from "../../api/schema";
 import { apiClient, apiErrorMessage } from "../lib/api-client";
-import { clientForHost } from "../lib/host-clients";
+import { clientForHost } from "../lib/local-daemon-client";
 import type { SessionMode } from "../types/workspace";
 
 /** `disabledModels` lists the models pickers leave out; empty or unset means every catalog model. */

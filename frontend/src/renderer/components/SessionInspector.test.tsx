@@ -14,7 +14,7 @@ import { InspectorSection } from "@aoagents/product-ui";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ActivityTimeline, PRSummaryCard, resetPRFocus, SessionInspector, type InspectorView } from "./SessionInspector";
 import { subscribeChatComposerText } from "../lib/chat-context-bus";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { sessionPRDisplaySummaries } from "../lib/pr-display";
 import { resetPRMergeMethods } from "./PRActions";
 import { ADDED_TO_CHAT_MS } from "./PRComments";
@@ -114,8 +114,8 @@ vi.mock("../hooks/useCloudCp", async (importOriginal) => {
   };
 });
 
-vi.mock("../lib/host-clients", async (importOriginal) => ({
-  ...await importOriginal<typeof import("../lib/host-clients")>(),
+vi.mock("../lib/local-daemon-client", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../lib/local-daemon-client")>(),
   clientForSessionHost: () => ({ GET: getMock, POST: postMock, PATCH: patchMock, PUT: putMock }),
   clientForHost: () => ({ GET: getMock, POST: postMock, PATCH: patchMock, PUT: putMock }),
 }));

@@ -35,39 +35,6 @@ Product commands use daemon HTTP routes. The offline `ao triage` diagnostic laun
 | `ao completion <shell>`       | Generate completions for `bash`, `zsh`, `fish`, or `powershell`.                                                                  |
 | `ao version` / `ao --version` | Print build metadata.                                                                                                             |
 | `ao daemon`                   | Run the daemon in the foreground (normally supervised by the desktop app or an OS service manager).                               |
-| `ao remote-host status/enable/disable` | Inspect or toggle this machine's authenticated remote listener through the local daemon. |
-| `ao remote-host link` | Add this machine to your AO account by signing in from another device; it then gets a fixed address. |
-
-For a self-hosted machine, use the [host setup command](../self-hosted-remote.md)
-to install the daemon with its Claude Chat runtime and start the OS user
-service. With `cloudflared` installed, setup `--tunnel` calls `ao remote-host
-enable --tunnel-only`: its authenticated listener binds only to loopback. At a
-terminal it then runs `ao remote-host link`; otherwise, or when the sign-in
-does not finish, it prints the host ID, address, and a one-time pairing code for
-**Settings → Remote hosts** on another desktop. Direct
-`ao remote-host enable --tunnel` keeps both LAN and Cloudflare access for users
-who deliberately want both. Check `ao remote-host status` when the HTTPS
-address is ready.
-Running `enable` again prints the current details and a new pairing code
-without rotating the password. `ao remote-host pair` prints another code,
-`ao remote-host devices` lists and revokes paired devices, and
-`ao remote-host require-device-credentials on` stops accepting the password. The LAN
-listener uses plain HTTP; do not publish its port directly to the internet.
-Cloudflare terminates tunnel TLS and can see its traffic. Until the machine is
-linked to an account, by `ao remote-host link` or a signed-in desktop adding
-it, it uses a quick tunnel whose address changes on restart; once linked, it
-moves to a fixed address.
-
-`ao remote-host link` prints a sign-in link and a QR code, then waits up to 5
-minutes. Open the link on any device, check that it shows the same code, and
-sign in: the machine joins that AO account, every device signed in to it lists
-the machine within about 30 seconds, and the machine keeps none of the sign-in.
-`--label` sets the name devices show (default: the name the account already
-has for the machine, else the hostname); `--no-qr` prints only the link. On a
-LAN-only listener it adds a Cloudflare tunnel, as `enable --tunnel` does. Run
-it again to move the machine to another account. An agent
-without a terminal runs it in the background and reads its output; see
-[Set up a VM as an agent](../self-hosted-remote.md#set-up-a-vm-as-an-agent).
 
 ### Report a problem
 

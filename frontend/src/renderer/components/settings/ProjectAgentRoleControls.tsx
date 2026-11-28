@@ -8,7 +8,7 @@ import { agentModelDisplayLabel, isConcreteModelID, modelChoiceLabel } from "../
 import { agentLabel } from "../../lib/agent-options";
 import { cloudModelVerdict, listsLocalModelsForCloud } from "../../lib/cloud-model-catalog";
 import { cloudCatalogAsAgentCatalog, useCloudModelCatalog } from "../../hooks/useCloudModelCatalog";
-import { LOCAL_HOST } from "../../lib/hosts";
+import { LOCAL_HOST } from "../../lib/session-keys";
 import { TaskModelSelection } from "../TaskModelControls";
 import { AgentModelCombobox } from "./AgentModelCombobox";
 import { EffortPicker } from "./EffortPicker";

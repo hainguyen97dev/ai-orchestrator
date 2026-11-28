@@ -33,7 +33,7 @@ import { useRemoteWorkspaces, useWorkspaceQuery } from "../hooks/useWorkspaceQue
 import type { WorkspaceSummary } from "../types/workspace";
 import { aoBridge } from "../lib/bridge";
 import { formatTimeCompact } from "../lib/format-time";
-import { LOCAL_HOST, parseRefKey, refKey, sessionUiKey, type HostId } from "../lib/hosts";
+import { LOCAL_HOST, parseRefKey, refKey, sessionUiKey, type HostId } from "../lib/session-keys";
 import {
 	createNotificationsTransport,
 	getCachedNotifications,
@@ -59,7 +59,7 @@ import { TooltipProvider } from "./ui/tooltip";
 import { useCloudNotifications } from "../hooks/useCloudNotifications";
 import { useCloudCp } from "../hooks/useCloudCp";
 import { useCloudOrg } from "../hooks/useCloudOrg";
-import { clearRemoteNotification, clearRemoteNotifications, connectRemoteNotificationStreams, fetchRemoteNotificationsPage, markRemoteNotificationsRead, remoteNotificationsQueryKey, useRemoteNotificationHosts } from "../hooks/useRemoteNotifications";
+import { clearRemoteNotification, clearRemoteNotifications, connectRemoteNotificationStreams, fetchRemoteNotificationsPage, markRemoteNotificationsRead, remoteNotificationsQueryKey, useRemoteNotificationHosts } from "../hooks/useNotificationHostCompatibility";
 import type { CloudCpNotification } from "../lib/cloud-cp/types";
 
 type SessionMeta = { projectId: string; projectName: string; sessionName: string };

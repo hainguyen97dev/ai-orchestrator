@@ -1,7 +1,6 @@
 package httpd
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,11 +19,6 @@ func TestRequestSurfaceMiddleware(t *testing.T) {
 		{"desktop renderer origin", func(r *http.Request) *http.Request { r.Header.Set("Origin", renderer); return r }, domain.RequestSurfaceDesktop},
 		{"native client", func(r *http.Request) *http.Request { return r }, domain.RequestSurfaceCLI},
 		{"unlisted origin is not desktop", func(r *http.Request) *http.Request { r.Header.Set("Origin", "http://localhost:3000"); return r }, domain.RequestSurfaceCLI},
-		{"phone install header", func(r *http.Request) *http.Request { r.Header.Set(InstallIDHeader, "phone-1"); return r }, domain.RequestSurfaceMobile},
-		{"authenticated LAN bearer", func(r *http.Request) *http.Request {
-			r.Header.Set("Origin", "http://localhost")
-			return r.WithContext(context.WithValue(r.Context(), lanBearerContextKey{}, true))
-		}, domain.RequestSurfaceMobile},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

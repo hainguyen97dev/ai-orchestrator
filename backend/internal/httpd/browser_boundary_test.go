@@ -12,7 +12,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -23,7 +22,6 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 	shelltermsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/terminal"
@@ -115,11 +113,8 @@ func TestBrowserBoundaryRejectsShellCreationAndMux(t *testing.T) {
 }
 
 func TestBrowserBoundaryAuthorizedClients(t *testing.T) {
-	for _, tc := range []struct {
-		name, origin string
-		mobile       bool
-	}{
-		{"desktop", "app://renderer", false}, {"development", "http://localhost:5173", false}, {"native CLI", "", false}, {"paired phone", "http://localhost", true},
+	for _, tc := range []struct{ name, origin string }{
+		{"desktop", "app://renderer"}, {"development", "http://localhost:5173"}, {"native CLI", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			shells := &boundaryShells{}
@@ -127,27 +122,12 @@ func TestBrowserBoundaryAuthorizedClients(t *testing.T) {
 			mgr := terminal.NewManager(source, nil, discardLogger())
 			defer mgr.Close()
 			var handler http.Handler = NewRouterWithControl(config.Config{AllowedOrigins: []string{"app://renderer", "http://localhost:5173"}}, discardLogger(), mgr, APIDeps{ShellTerminals: shells}, ControlDeps{})
-			var base string
-			if tc.mobile {
-				mobile := NewMobileLAN(handler, "boundary-host", 0, discardLogger(), nil)
-				mobile.SetPasswordHash(mobilebridge.HashPassword("test-password"))
-				port, err := mobile.StartLoopback(0)
-				if err != nil {
-					t.Fatal(err)
-				}
-				defer mobile.Stop(context.Background())
-				base = "http://127.0.0.1:" + strconv.Itoa(port)
-			} else {
-				srv := httptest.NewServer(handler)
-				defer srv.Close()
-				base = srv.URL
-			}
+			srv := httptest.NewServer(handler)
+			defer srv.Close()
+			base := srv.URL
 			headers := http.Header{}
 			if tc.origin != "" {
 				headers.Set("Origin", tc.origin)
-			}
-			if tc.mobile {
-				headers.Set("Authorization", "Bearer test-password")
 			}
 			req, _ := http.NewRequest(http.MethodPost, base+"/api/v1/shell-terminals", nil)
 			req.Header = headers.Clone()
@@ -225,52 +205,6 @@ func TestBrowserBoundaryCannotForgeNativeOrMobileTrust(t *testing.T) {
 				t.Fatalf("status=%d shells=%d", w.Code, shells.opened.Load())
 			}
 		})
-	}
-}
-
-func TestBrowserBoundaryMobileCredentialsAndPreviewCookie(t *testing.T) {
-	state := &authState{}
-	state.setHash(mobilebridge.HashPassword("test-password"))
-	shells := &boundaryShells{}
-	router := NewRouterWithControl(config.Config{AllowedOrigins: []string{"app://renderer"}}, discardLogger(), nil, APIDeps{ShellTerminals: shells}, ControlDeps{})
-	handler := authMiddleware(state, newLockout(time.Now), nil)(router)
-	for _, tc := range []struct {
-		name, token, cookie, origin string
-		want                        int
-	}{
-		{"missing", "", "", "http://localhost", 401},
-		{"wrong", "bad", "", "http://localhost", 401},
-		{"preview cookie", "", "test-password", "http://localhost", 401},
-		{"paired phone", "test-password", "", "http://localhost", 201},
-		{"authenticated hostile browser", "test-password", "", "http://hostile.localhost", 403},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/shell-terminals", nil)
-			req.Header.Set("Origin", tc.origin)
-			if tc.token != "" {
-				req.Header.Set("Authorization", "Bearer "+tc.token)
-			}
-			if tc.cookie != "" {
-				req.AddCookie(&http.Cookie{Name: authCookieName, Value: tc.cookie})
-			}
-			w := httptest.NewRecorder()
-			handler.ServeHTTP(w, req)
-			if w.Code != tc.want {
-				t.Fatalf("status=%d want=%d body=%s", w.Code, tc.want, w.Body.String())
-			}
-		})
-	}
-	if shells.opened.Load() != 1 {
-		t.Fatalf("shells=%d want=1", shells.opened.Load())
-	}
-	state.setHash(mobilebridge.HashPassword("rotated"))
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/shell-terminals", nil)
-	req.Header.Set("Authorization", "Bearer test-password")
-	req.Header.Set("Origin", "http://localhost")
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-	if w.Code != 401 {
-		t.Fatalf("retired credential: %d", w.Code)
 	}
 }
 
@@ -364,27 +298,5 @@ func TestBrowserBoundaryElectron(t *testing.T) {
 	}
 	if shells.opened.Load() != 1 || source.attached.Load() != 1 {
 		t.Fatalf("unexpected browser effects: shells=%d attachments=%d", shells.opened.Load(), source.attached.Load())
-	}
-}
-
-func TestBrowserBoundaryPreviewCookieGrantsOnlyPreviewBytes(t *testing.T) {
-	state := &authState{}
-	state.setHash(mobilebridge.HashPassword("preview-password"))
-	router := newTestRouter(config.Config{}, discardLogger(), nil)
-	handler := authMiddleware(state, newLockout(time.Now), nil)(router)
-	for _, path := range []string{"/api/v1/sessions/s1/preview/files/asset.js", "/api/v1/shell-terminals", "/mux"} {
-		req := httptest.NewRequest(http.MethodGet, path, nil)
-		req.Header.Set("Origin", "null")
-		req.Header.Set("Sec-Fetch-Site", "cross-site")
-		req.AddCookie(&http.Cookie{Name: authCookieName, Value: "preview-password"})
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, req)
-		want := http.StatusUnauthorized
-		if strings.HasSuffix(path, "asset.js") {
-			want = http.StatusNotImplemented
-		}
-		if w.Code != want {
-			t.Errorf("path=%s status=%d want=%d body=%s", path, w.Code, want, w.Body.String())
-		}
 	}
 }

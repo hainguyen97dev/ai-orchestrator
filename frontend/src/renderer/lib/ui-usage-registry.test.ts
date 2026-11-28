@@ -19,7 +19,7 @@ import {
 	UI_USAGE_EVENTS,
 	USAGE_SUMMARY_COUNTERS,
 } from "./ui-usage-registry";
-import { settingsSurface, surfaceOf, UI_SURFACES } from "./ui-surfaces";
+import { surfaceOf, UI_SURFACES } from "./ui-surfaces";
 
 const WINDOW_ID = "123e4567-e89b-42d3-a456-426614174000";
 
@@ -35,13 +35,6 @@ describe("surfaces", () => {
 		expect(surfaceOf(document.getElementById("inner"))).toBeUndefined();
 		expect(surfaceOf(document.getElementById("deep")!.firstChild)).toBe("cmdk");
 		expect(surfaceOf(null)).toBeUndefined();
-	});
-
-	it("maps settings pages to settings surfaces", () => {
-		expect(settingsSurface("harness")).toBe("settings_agents");
-		expect(settingsSurface("browserProfiles")).toBe("settings_browser");
-		expect(settingsSurface("remoteHosts")).toBe("settings_remote_hosts");
-		expect(settingsSurface("some-new-page")).toBe("settings_general");
 	});
 });
 

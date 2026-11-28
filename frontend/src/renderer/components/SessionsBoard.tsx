@@ -51,12 +51,11 @@ import { useUiStore } from "../stores/ui-store";
 import { DaemonStartupLoader } from "./DaemonStartupLoader";
 import { useBoardPresentation } from "../hooks/useBoardPresentation";
 import { useProjectOrchestratorAction } from "../hooks/useProjectOrchestratorAction";
-import { openRemoteOrchestrator } from "../lib/remote-orchestrator";
-import { labelForHost } from "../lib/host-clients";
-import { HostOfflineStatus, hostOfflineReasonKey } from "./HostOfflineStatus";
+import { openRemoteOrchestrator } from "../lib/local-daemon-client";
+import { labelForHost } from "../lib/local-daemon-client";
 import { cn } from "../lib/utils";
-import { useConnectedHosts } from "../hooks/useHostConnection";
-import { LOCAL_HOST, refKey, sessionUiKey } from "../lib/hosts";
+import { useConnectedHosts } from "../hooks/useLocalHostConnection";
+import { LOCAL_HOST, refKey, sessionUiKey } from "../lib/session-keys";
 import { useShellMaybe } from "../lib/shell-context";
 import { sessionNavigateTarget } from "../lib/navigate-to-session";
 import { ProjectTerminationFeedback } from "./SessionTopbarActions";
@@ -328,7 +327,6 @@ export function SessionsBoard({ projectId, hostId }: SessionsBoardProps) {
 	) : hostOffline ? (
 		<>
 			{search}
-			<HostOfflineStatus host={savedHost} label={hostLabel ?? ""} updatedAt={workspace ? remoteProjectQuery.dataUpdatedAt : undefined} />
 		</>
 	) : (
 		<>
@@ -398,13 +396,6 @@ export function SessionsBoard({ projectId, hostId }: SessionsBoardProps) {
 			) : null}
 				{!hostId && (presentation.workspaceStartupState === "error" || localWorkspaceQuery.isError) ? (
 					<p className="py-10 text-center text-xs text-passive">{t("shell.couldNotLoadSessions")}</p>
-				) : hostOffline && !workspace ? (
-					<div className="flex h-full min-h-0 items-center justify-center overflow-y-auto" data-testid="board-host-offline-empty">
-						<div className="flex w-full max-w-xl flex-col items-center px-4 pb-empty-offset-y text-center">
-							<h2 className="text-subtitle font-semibold tracking-tight text-foreground">{hostLabel}</h2>
-							<p className="mt-2 text-md-sm leading-relaxed text-muted-foreground">{t(hostOfflineReasonKey(savedHost))}</p>
-						</div>
-					</div>
 				) : hostId && !workspace ? null : showWelcome ? (
 				<BoardWelcome />
 				) : showProjectEmpty ? (

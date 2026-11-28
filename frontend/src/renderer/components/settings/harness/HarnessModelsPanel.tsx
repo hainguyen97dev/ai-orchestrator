@@ -6,7 +6,7 @@ import { agentModelsQueryOptions } from "../../../hooks/useAgentModelsQuery";
 import { useSettings, useUpdateHarnessDefault } from "../../../hooks/useSettings";
 import { acceptsLocalModelID, agentModelDisplayLabel, isConcreteModelID, splitClaudeModels } from "../../../lib/agent-model-choices";
 import { agentLabel, type AgentId } from "../../../lib/agent-options";
-import { LOCAL_HOST } from "../../../lib/hosts";
+import { LOCAL_HOST } from "../../../lib/session-keys";
 import { groupModelProviders } from "../../../lib/model-providers";
 import { collapseModelVariants, listsModelVariants } from "../../../lib/model-variants";
 import { cn } from "../../../lib/utils";

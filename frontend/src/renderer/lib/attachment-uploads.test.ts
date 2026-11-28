@@ -11,7 +11,7 @@ vi.mock("./api-client", () => ({
 	getApiBaseUrl: () => h.base,
 	reportingFetch: (request: Request) => h.fetch(request),
 }));
-vi.mock("./host-clients", () => ({
+vi.mock("./local-daemon-client", () => ({
 	baseUrlForHost: (hostId: string) => h.hosts.get(hostId),
 }));
 

@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import type { components } from "../../api/schema";
 import { apiClient } from "../lib/api-client";
-import { clientForHost } from "../lib/host-clients";
-import { LOCAL_HOST } from "../lib/hosts";
+import { clientForHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST } from "../lib/session-keys";
 
 export type SessionUsageSummary = components["schemas"]["CompactSessionUsageResponse"];
 

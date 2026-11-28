@@ -146,10 +146,4 @@ describe("agent authentication hooks", () => {
 		expect(error).toBeInstanceOf(Error);
 		expect(isApiError(error)).toBe(false);
 	});
-
-	it("uses the host client for remote hosts", async () => {
-		const request = vi.spyOn(aoBridge.agentLogin, "request");
-		await expect(startAgentUILogin("codex", "device_code", "", "remote-1")).rejects.toThrow("Host remote-1 is not connected");
-		expect(request).not.toHaveBeenCalled();
-	});
 });

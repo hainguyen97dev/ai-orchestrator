@@ -3,7 +3,7 @@ import { artifactContentUrl } from "./artifact-content-url";
 
 vi.mock("./api-client", () => ({ getApiBaseUrl: () => "http://127.0.0.1:3002" }));
 
-vi.mock("./host-clients", () => ({ baseUrlForHost: (id: string) => id === "remote" ? "http://127.0.0.1:4050" : undefined }));
+vi.mock("./local-daemon-client", () => ({ baseUrlForHost: (id: string) => id === "remote" ? "http://127.0.0.1:4050" : undefined }));
 
 const previewUrl = "http://ao-preview-artifact.s1.localhost:3002/chart.png?raw=true";
 const directUrl = "http://127.0.0.1:3002/api/v1/sessions/s1/artifact-files/chart.png?raw=true";

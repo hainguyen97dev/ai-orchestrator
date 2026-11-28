@@ -13,7 +13,7 @@ import { reportPlanRefusal, reportUpgradeViewed } from "../../lib/cloud-telemetr
 import { useUiStore } from "../../stores/ui-store";
 import type { WorkspaceSession } from "../../types/workspace";
 import type { ChatDraftExcerptReference } from "../../lib/chat-drafts";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import type { ChatConfigOption, ChatModel, TurnSettings } from "../../types/conversation";
 import type { AgentSwitchProps, PickerSource } from "./AgentSwitchPicker";
 import { cloudSessionsQueryKey, sharedCloudWorkspacesQueryKey } from "../../hooks/useWorkspaceQuery";

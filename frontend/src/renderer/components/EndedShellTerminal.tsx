@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { RotateCcw } from "@/components/app-icons";
 import { useReopenShellTerminal, type ShellTerminal } from "../hooks/useShellTerminals";
 import { apiErrorCode, apiErrorMessage } from "../lib/api-client";
-import type { HostId } from "../lib/hosts";
+import type { HostId } from "../lib/session-keys";
 import { Button } from "./ui/button";
 
 const restoring = new Map<string, Promise<unknown>>();

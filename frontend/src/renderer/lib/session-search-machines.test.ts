@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LOCAL_HOST } from "./hosts";
+import { LOCAL_HOST } from "./session-keys";
 import {
 	boundMachineResult,
 	classifyMachineSearchFailure,

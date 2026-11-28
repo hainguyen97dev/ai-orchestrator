@@ -1,8 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { getApiBaseUrl } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
-import { sessionUiKey } from "../lib/hosts";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { sessionUiKey } from "../lib/session-keys";
 import { attachmentURL } from "../components/chat/messageAttachments";
 import { isPotentialWorkspaceFileLink, isWebLink, workspaceFilePath } from "../lib/external-link-policy";
 import { isAbsoluteFileReference, normalizeWorkspaceFileReference } from "../lib/workspace-file-path";

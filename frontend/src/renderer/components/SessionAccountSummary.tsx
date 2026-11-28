@@ -6,7 +6,7 @@ import { cloudAgentAccountName, CLOUD_ACCOUNT_SWITCH_HARNESSES, useCloudAgentAcc
 import { useCloudMeUserId } from "../hooks/useCloudMeUserId";
 import { useCloudOffering } from "../hooks/useCloudOffering";
 import { interfaceTransitionIsActive, type SessionInterfaceTransition, useSessionInterfaceTransitionStatus } from "../hooks/useSessionInterfaceTransition";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import type { WorkspaceSession } from "../types/workspace";
 import type { AccountChoice } from "./chat/AgentSwitchPicker";
 import { ConfirmDialog } from "./ConfirmDialog";

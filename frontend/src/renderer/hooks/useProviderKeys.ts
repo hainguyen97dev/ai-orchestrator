@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { components } from "../../api/schema";
 import { apiErrorException } from "../lib/api-error-exception";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 
 export type ProviderKey = components["schemas"]["ProviderKey"];
 export type ProviderKeyCheck = components["schemas"]["ProviderKeyCheck"];

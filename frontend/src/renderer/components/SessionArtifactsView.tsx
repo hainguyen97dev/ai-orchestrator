@@ -21,7 +21,7 @@ import { fileMediaKind } from "../lib/file-media";
 import { isMacPlatform, isWindowsPlatform } from "../lib/platform";
 import { artifactChangeError, canChangeSessionArtifacts, findHostShareLink, type ArtifactRow } from "../lib/artifacts";
 import { isArchivedSession } from "../lib/standalone-archive";
-import { LOCAL_HOST, sessionUiKey } from "../lib/hosts";
+import { LOCAL_HOST, sessionUiKey } from "../lib/session-keys";
 import { cn } from "../lib/utils";
 import type { SessionArtifact, WorkspaceSession } from "../types/workspace";
 import { AppBrowserLinkContext } from "./AppLink";

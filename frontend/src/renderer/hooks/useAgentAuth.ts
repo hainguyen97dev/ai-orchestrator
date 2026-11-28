@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AgentCheckError } from "../lib/agent-check-error";
 import type { components } from "../../api/schema";
 import { apiErrorCode, apiErrorDetails } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { aoBridge } from "../lib/bridge";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import type { AgentLoginMenuAction, AgentLoginRequest } from "../../main/agent-login-ipc";
 import { shellTerminalsQueryKeyForHost, type ShellTerminal } from "./useShellTerminals";
 

@@ -1511,23 +1511,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/endpoints": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the ways this daemon can currently be reached */
-        get: operations["getEndpoints"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/events": {
         parameters: {
             query?: never;
@@ -1606,23 +1589,6 @@ export interface paths {
         };
         /** Report whether a GitHub token is stored and the GitHub username AO is signed in as */
         get: operations["getGitHubStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/identity": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Identify the daemon so a client can confirm which machine answered */
-        get: operations["getIdentity"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1743,244 +1709,6 @@ export interface paths {
         };
         /** Fetch link-preview metadata (Open Graph) for an external URL */
         get: operations["getLinkPreview"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/browser-control": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Allow or deny paired-device access to the desktop browser */
-        post: operations["setMobileBrowserRemoteAccess"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/devices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the devices that can reach this host, with their live status */
-        get: operations["listMobileDevices"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/devices/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove a device: revoke its token and stop its notifications */
-        delete: operations["removeMobileDevice"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/disable": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Disable the Connect Mobile LAN bridge */
-        post: operations["disableMobile"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/enable": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Enable the Connect Mobile LAN bridge and issue a fresh password */
-        post: operations["enableMobile"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/enable-lan-only": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Enable the authenticated LAN bridge without a managed public tunnel */
-        post: operations["enableMobileLANOnly"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/enable-tunnel-only": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Enable the authenticated listener on loopback for a managed tunnel */
-        post: operations["enableMobileTunnelOnly"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/keep-awake": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Keep this Mac from idle-sleeping while Connect Mobile is on */
-        post: operations["setMobileKeepAwake"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/pairing-code": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Make a one-time code a new device exchanges for its own token */
-        post: operations["createMobilePairingCode"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/regenerate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoke every device: rotate the pairing password, remove all device tokens and unlink the account */
-        post: operations["regenerateMobile"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/remote-access": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Look for a connector again and start it, without rotating the password */
-        post: operations["startMobileRemoteAccess"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/require-device-credentials": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refuse or accept the pairing password on the remote listener */
-        post: operations["setMobileRequireDeviceCredentials"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/secure-pairing": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Turn TLS-over-Tailscale secure pairing on or off */
-        post: operations["setMobileSecurePairing"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/mobile/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Check whether Connect Mobile's LAN bridge is enabled */
-        get: operations["getMobileStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2485,126 +2213,6 @@ export interface paths {
         put?: never;
         /** Close, reopen, mark ready, or convert a pull request to draft */
         post: operations["changePRState"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/push/devices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register (upsert) a phone's Expo push token */
-        post: operations["registerPushDevice"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/push/devices/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unregister a phone's Expo push token, leaving it paired */
-        delete: operations["unregisterPushDevice"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/push/pairings/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unpair this phone from the daemon, removing it from the roster */
-        delete: operations["unpairPushDevice"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/remote-host/account-token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Issue a host-scoped account credential using the pairing password or a device token */
-        post: operations["issueRemoteHostAccountToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/remote-host/devices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Exchange a one-time pairing code, or the pairing password, for this device's own token */
-        post: operations["pairRemoteHostDevice"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/remote-host/update": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Report this host's version and the state of its last self-hosted update */
-        get: operations["getRemoteHostUpdate"];
-        put?: never;
-        /** Install the newest release of this self-hosted host's channel and restart it */
-        post: operations["startRemoteHostUpdate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/remote-host/update/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Ask a host that runs the desktop app which version it installs next */
-        post: operations["checkRemoteHostUpdate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5245,7 +4853,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Report the desktop telemetry identity and opt-out so a paired phone can adopt it */
+        /** Report the desktop telemetry identity and opt-out to the local Electron process */
         get: operations["getTelemetryIdentity"];
         put?: never;
         post?: never;
@@ -6598,16 +6206,6 @@ export interface components {
         ControllersInterruptConversationRequest: {
             turnId?: string;
         };
-        ControllersKeepAwakeStatus: {
-            active: boolean;
-            enabled: boolean;
-            hasBattery: boolean;
-            lidActive?: boolean;
-            lidClosed?: boolean;
-            lidReason?: string;
-            lidSupported?: boolean;
-            supported: boolean;
-        };
         ControllersKeptArtifactsView: {
             artifactFiles: components["schemas"]["SessionArtifact"][];
             /**
@@ -6626,24 +6224,6 @@ export interface components {
         };
         ControllersListKeptArtifactsResponse: {
             sets: components["schemas"]["ControllersKeptArtifactsView"][];
-        };
-        ControllersPairDeviceRequest: {
-            /** @description Name shown in the host's device list. */
-            name?: string;
-            /** @description The device's platform, such as ios, android, darwin, win32 or linux. */
-            platform?: string;
-        };
-        ControllersPairDeviceResponse: {
-            /** @enum {string} */
-            credential: "pairing-code" | "password";
-            deviceId: string;
-            hostId: string;
-            token: string;
-        };
-        ControllersPairingCodeResponse: {
-            code: string;
-            /** Format: date-time */
-            expiresAt: string;
         };
         ControllersPaneBox: {
             /**
@@ -6741,17 +6321,6 @@ export interface components {
             /** @description The tab's label. */
             title: string;
         };
-        ControllersRemoteHostAccountTokenResponse: {
-            hostId: string;
-            hostKey: string;
-            token: string;
-        };
-        ControllersRemoteHostUpdateCheckResponse: {
-            version: string;
-        };
-        ControllersRemoteHostUpdateRequest: {
-            version?: string;
-        };
         ControllersReplaceAgentAccountAPIKeyRequest: {
             apiKey: string;
         };
@@ -6779,14 +6348,6 @@ export interface components {
             reviewId: string;
             /** @description The worker session this reviewer reviews, not the reviewer's own identity. */
             sessionId: string;
-        };
-        ControllersSecurePairingStatus: {
-            active: boolean;
-            available: boolean;
-            enabled: boolean;
-            host: string;
-            port: number;
-            reason: string;
         };
         ControllersSessionForkOptionsResponse: {
             allowed: boolean;
@@ -6890,16 +6451,6 @@ export interface components {
             workspaceCleanupReportOnly?: boolean;
             /** @description Whether the session has a recorded workspace that workspace reads can use. */
             workspacePublished: boolean;
-        };
-        ControllersSetKeepAwakeRequest: {
-            enabled: boolean;
-            lidClosed?: null | boolean;
-        };
-        ControllersSetRequireDeviceCredentialsRequest: {
-            enabled: boolean;
-        };
-        ControllersSetSecurePairingRequest: {
-            enabled: boolean;
         };
         ControllersSetSessionAutoReviewRequest: {
             enabled: boolean;
@@ -7466,9 +7017,6 @@ export interface components {
             retainedContent?: null | number[];
             text: string;
         };
-        EndpointsResponse: {
-            endpoints: components["schemas"]["MobileEndpoint"][];
-        };
         EnsureAgentReadinessRequest: {
             agentIds?: string[];
             /** @enum {string} */
@@ -7571,10 +7119,6 @@ export interface components {
         HarnessDefault: {
             disabledModels?: string[];
         };
-        IdentityResponse: {
-            apiVersion: number;
-            hostId: string;
-        };
         ImportReport: {
             dryRun: boolean;
             notes?: string[];
@@ -7653,7 +7197,7 @@ export interface components {
              * @description Fixed install target this job ran (or is running) for.
              * @enum {string}
              */
-            target: "tmux" | "gh" | "claude" | "claude-code" | "codex" | "cursor" | "opencode" | "opencode-v2" | "aider" | "copilot" | "grok" | "kimi" | "pi" | "amp" | "auggie" | "droid" | "crush" | "cline" | "goose" | "qwen" | "gemini" | "continue" | "devin" | "kiro" | "kilocode" | "vibe" | "muse" | "agy" | "autohand" | "kimchi" | "prime-agent" | "omp" | "fx" | "unreal-agent" | "codewhale" | "mimo-code" | "minimax-code" | "deepseek-harness" | "openhands" | "command-code" | "mastra-code" | "docker-agent" | "memcode" | "hermes" | "stakpak" | "open-interpreter" | "tau" | "cloudflared" | "cua-driver";
+            target: "tmux" | "gh" | "claude" | "claude-code" | "codex" | "cursor" | "opencode" | "opencode-v2" | "aider" | "copilot" | "grok" | "kimi" | "pi" | "amp" | "auggie" | "droid" | "crush" | "cline" | "goose" | "qwen" | "gemini" | "continue" | "devin" | "kiro" | "kilocode" | "vibe" | "muse" | "agy" | "autohand" | "kimchi" | "prime-agent" | "omp" | "fx" | "unreal-agent" | "codewhale" | "mimo-code" | "minimax-code" | "deepseek-harness" | "openhands" | "command-code" | "mastra-code" | "docker-agent" | "memcode" | "hermes" | "stakpak" | "open-interpreter" | "tau" | "cua-driver";
             /** Format: date-time */
             updatedAt?: null | string;
             /** @description While waiting_for_idle, the sessions the update still waits for and why. */
@@ -7915,68 +7459,6 @@ export interface components {
             stateChangedAt: string;
             /** @enum {string} */
             status: "merged" | "enqueued" | "pending";
-        };
-        MobileDeviceResponse: {
-            /** Format: date-time */
-            createdAt: string;
-            deviceName?: string;
-            /** @description What DELETE /api/v1/mobile/devices/{id} takes. */
-            id: string;
-            /** @description The phone's install id, or empty for a device that never registered for notifications. */
-            installId: string;
-            /**
-             * @description device: holds its own token. password: a phone that still uses the pairing password, so removing it only stops its notifications. account: every device signed in to the linked account; they share one token.
-             * @enum {string}
-             */
-            kind: "device" | "password" | "account";
-            /** Format: date-time */
-            lastSeenAt: string;
-            /** @description True when the device is connected, or the phone's app is open and polling. */
-            live: boolean;
-            /** @description True when this device has a push token registered. */
-            notificationsEnabled: boolean;
-            platform?: string;
-            token?: string;
-        };
-        MobileDevicesResponse: {
-            devices: components["schemas"]["MobileDeviceResponse"][];
-        };
-        MobileEndpoint: {
-            host: string;
-            kind: string;
-            port: number;
-            secure: boolean;
-        };
-        MobileStatusResponse: {
-            accountLinkRefused: boolean;
-            accountLinked: boolean;
-            browserRemoteAccess: boolean;
-            enabled: boolean;
-            endpoints: components["schemas"]["MobileEndpoint"][];
-            host: string;
-            hostId: string;
-            keepAwake: components["schemas"]["ControllersKeepAwakeStatus"];
-            loopbackOnly: boolean;
-            noPublicTunnel: boolean;
-            password: string;
-            /** Format: date-time */
-            passwordLastUsedAt?: null | string;
-            port: number;
-            requireDeviceCredentials: boolean;
-            securePairing: components["schemas"]["ControllersSecurePairingStatus"];
-            tailscaleHost: string;
-            tunnel: components["schemas"]["MobileTunnelStatus"];
-            warning: string;
-        };
-        MobileTunnelStatus: {
-            fixed: boolean;
-            hostname: string;
-            installing: boolean;
-            lastError: string;
-            location: string;
-            ready: boolean;
-            running: boolean;
-            supported: boolean;
         };
         NotificationEnvelope: {
             notification: components["schemas"]["NotificationResponse"];
@@ -8271,18 +7753,6 @@ export interface components {
             path: string;
             renderId: string;
         };
-        PushDeviceEnvelope: {
-            device: components["schemas"]["PushDeviceResponse"];
-        };
-        PushDeviceResponse: {
-            /** Format: date-time */
-            createdAt: string;
-            deviceName?: string;
-            /** Format: date-time */
-            lastSeenAt: string;
-            platform?: string;
-            token?: string;
-        };
         PutGitHubPATRequest: {
             expiresIn?: number;
             pat: string;
@@ -8304,32 +7774,8 @@ export interface components {
             /** @description The requested paths, relative to the artifact directory. */
             registered: string[];
         };
-        RegisterPushDeviceRequest: {
-            /** @description Human-friendly device label. */
-            deviceName?: string;
-            /** @description This phone's label for the host; used in OS push notification titles. */
-            hostName?: string;
-            /** @description Stable per-install device id, keying the registry so a rotated push token updates the same row. Optional: older app builds omit it and the daemon synthesizes one. */
-            installId?: string;
-            /**
-             * @description Device platform.
-             * @enum {string}
-             */
-            platform?: "ios" | "android";
-            /** @description Expo push token, e.g. ExponentPushToken[...]. Optional: omitted when the phone has no push token yet. */
-            token?: string;
-        };
         ReloadConversationMCPServersResponse: {
             servers: components["schemas"]["ConversationMCPServerPayload"][];
-        };
-        RemoteHostUpdateResponse: {
-            error?: string;
-            /** @enum {string} */
-            method?: "service" | "app";
-            /** @enum {string} */
-            state: "idle" | "updating" | "failed";
-            supported: boolean;
-            version: string;
         };
         RemoveProjectResult: {
             projectId: string;
@@ -9098,9 +8544,6 @@ export interface components {
             sessionId: string;
             state: string;
         };
-        SetBrowserRemoteAccessRequest: {
-            enabled: boolean;
-        };
         SetChatViewRequest: {
             active: boolean;
             viewId: string;
@@ -9701,10 +9144,6 @@ export interface components {
         };
         UnavailableChatAgentsResponse: {
             agents: components["schemas"]["UnavailableChatAgent"][];
-        };
-        UnregisterPushDeviceResponse: {
-            deleted: boolean;
-            token: string;
         };
         UpdateAccountHandoffRequest: {
             enabled: null | boolean;
@@ -15388,35 +14827,6 @@ export interface operations {
             };
         };
     };
-    getEndpoints: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EndpointsResponse"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
     streamEvents: {
         parameters: {
             query?: {
@@ -15661,35 +15071,6 @@ export interface operations {
             };
             /** @description Internal Server Error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    getIdentity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IdentityResponse"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16010,591 +15391,6 @@ export interface operations {
             };
             /** @description Bad Gateway */
             502: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    setMobileBrowserRemoteAccess: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetBrowserRemoteAccessRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    listMobileDevices: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileDevicesResponse"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    removeMobileDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The row's id from the device list. */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    disableMobile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    enableMobile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    enableMobileLANOnly: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    enableMobileTunnelOnly: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    setMobileKeepAwake: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ControllersSetKeepAwakeRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    createMobilePairingCode: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ControllersPairingCodeResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    regenerateMobile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    startMobileRemoteAccess: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    setMobileRequireDeviceCredentials: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ControllersSetRequireDeviceCredentialsRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    setMobileSecurePairing: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ControllersSetSecurePairingRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    getMobileStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MobileStatusResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -18640,362 +17436,6 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    registerPushDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterPushDeviceRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PushDeviceEnvelope"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    unregisterPushDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Expo push token (URL-encoded) identifying the device. */
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnregisterPushDeviceResponse"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    unpairPushDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The phone's install id, or its push token for older builds. */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    issueRemoteHostAccountToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ControllersRemoteHostAccountTokenResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    pairRemoteHostDevice: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ControllersPairDeviceRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ControllersPairDeviceResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    getRemoteHostUpdate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RemoteHostUpdateResponse"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    startRemoteHostUpdate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ControllersRemoteHostUpdateRequest"];
-            };
-        };
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RemoteHostUpdateResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Not Implemented */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    checkRemoteHostUpdate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ControllersRemoteHostUpdateCheckResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -29390,8 +27830,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Install target identifier: tmux, gh, claude, codex, opencode, opencode-v2, copilot, cloudflared, or cua-driver. */
-                target: "tmux" | "gh" | "claude" | "codex" | "opencode" | "opencode-v2" | "copilot" | "cloudflared" | "cua-driver";
+                /** @description Install target identifier: tmux, gh, claude, codex, opencode, opencode-v2, copilot, or cua-driver. */
+                target: "tmux" | "gh" | "claude" | "codex" | "opencode" | "opencode-v2" | "copilot" | "cua-driver";
             };
             cookie?: never;
         };
@@ -29440,8 +27880,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Install target identifier: tmux, gh, claude, codex, opencode, opencode-v2, copilot, cloudflared, or cua-driver. */
-                target: "tmux" | "gh" | "claude" | "codex" | "opencode" | "opencode-v2" | "copilot" | "cloudflared" | "cua-driver";
+                /** @description Install target identifier: tmux, gh, claude, codex, opencode, opencode-v2, copilot, or cua-driver. */
+                target: "tmux" | "gh" | "claude" | "codex" | "opencode" | "opencode-v2" | "copilot" | "cua-driver";
             };
             cookie?: never;
         };

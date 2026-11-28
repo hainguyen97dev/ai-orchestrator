@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MACHINE_SEARCH_GATHER_MS, MACHINE_SEARCH_TIMEOUT_MS, type MachineSearchAnswer } from "../lib/session-search-machines";
 import { useMachineSearchRows, type MachineSearchRowsInput } from "./useMachineSearchRows";
 import type { SessionSearchResponse } from "./usePaletteSessionSearch";
-import type { RemoteMachineSearch } from "./useRemoteMachineSearch";
+type RemoteMachineSearch = { query: string; answers: MachineSearchAnswer[]; settled: boolean };
 
 function hit(sessionId: string, namedForQuery = false) {
 	return { sessionId, projectId: "p", harness: "codex", kind: "user" as const, seq: 1, snippet: sessionId, rank: 0, createdAt: "2026-10-01T00:00:00Z", ...(namedForQuery ? { namedForQuery } : {}) };

@@ -3,7 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 import type { components } from "../../api/schema";
 import { appI18n } from "../i18n";
 import { sortedPRs, type WorkspaceSession } from "../types/workspace";
-import { clientForSessionHost } from "./host-clients";
+import { clientForSessionHost } from "./local-daemon-client";
 import { usesPreviewWorkspaceData as usePreviewData } from "./preview-mode";
 
 export type PRReviewState = components["schemas"]["PRReviewState"];

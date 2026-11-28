@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useWorkspaceScope } from "../hooks/useWorkspaceQuery";
 import { spawnOrchestrator } from "../lib/spawn-orchestrator";
-import { openRemoteOrchestrator } from "../lib/remote-orchestrator";
+import { openRemoteOrchestrator } from "../lib/local-daemon-client";
 import { apiErrorCode } from "../lib/api-client";
 import { useUiStore } from "../stores/ui-store";
 import { hasConfiguredOrchestratorAgent, isOrchestratorSession } from "../types/workspace";

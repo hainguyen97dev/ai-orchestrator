@@ -1,9 +1,9 @@
 import { useTelemetrySurface } from "../lib/ui-usage-telemetry";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { useConnectedHosts } from "../hooks/useHostConnection";
+import { useConnectedHosts } from "../hooks/useLocalHostConnection";
 import { useRemoteHostWorkspacesQuery, useWorkspaceQuery } from "../hooks/useWorkspaceQuery";
-import { LOCAL_HOST, refKey } from "../lib/hosts";
+import { LOCAL_HOST, refKey } from "../lib/session-keys";
 import { sessionNavigateTarget } from "../lib/navigate-to-session";
 import { recordManualWorkerOpen } from "../lib/session-management-telemetry";
 import { isArchivedSession } from "../lib/standalone-archive";

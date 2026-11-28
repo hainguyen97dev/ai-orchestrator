@@ -1,6 +1,6 @@
 import { apiErrorException } from "../lib/api-error-exception";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { usesPreviewWorkspaceData as usePreviewData } from "../lib/preview-mode";
 import { sessionScmSummaryQueryKey, type SessionPRSummary } from "./useSessionScmSummary";
 

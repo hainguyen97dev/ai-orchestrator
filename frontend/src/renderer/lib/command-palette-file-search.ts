@@ -2,7 +2,7 @@ import { apiErrorException } from "./api-error-exception";
 import type { CloudCpClient } from "./cloud-cp";
 import { CloudCpError } from "./cloud-cp/errors";
 import { apiClient } from "./api-client";
-import { clientForSessionHost } from "./host-clients";
+import { clientForSessionHost } from "./local-daemon-client";
 import { cloudWorkspaceReviewSearchQueryOptions } from "../hooks/useCloudWorkspaceReview";
 import { sessionWorkspaceSearchQueryOptions } from "../hooks/useSessionWorkspaceFiles";
 import type { WorkspaceFileSearchItem, WorkspaceFileSearchTarget } from "./command-palette";

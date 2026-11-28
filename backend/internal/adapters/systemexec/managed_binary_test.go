@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
@@ -52,8 +51,7 @@ func tarGz(t *testing.T, name string, body []byte) []byte {
 	return buf.Bytes()
 }
 
-// The daemon resolves the connector at mobilebridge.ManagedCloudflaredPath; a
-// download that lands anywhere else would never be found.
+// Managed downloads land in the daemon-owned bin directory.
 func TestInstallManagedBinaryLandsAnExecutableAtTheManagedPath(t *testing.T) {
 	t.Parallel()
 	binary := []byte("#!/bin/sh\necho cloudflared version 2026.10.3\n")
@@ -76,7 +74,7 @@ func TestInstallManagedBinaryLandsAnExecutableAtTheManagedPath(t *testing.T) {
 			if err != nil {
 				t.Fatalf("InstallManagedBinary() error = %v", err)
 			}
-			if want := mobilebridge.ManagedCloudflaredPath(dataDir); got != want {
+			if want := filepath.Join(dataDir, "bin", cloudflaredName()); got != want {
 				t.Fatalf("path = %q, want %q", got, want)
 			}
 			body, err := os.ReadFile(got)
@@ -105,7 +103,7 @@ func TestInstallManagedBinaryRefusesAChecksumMismatch(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "checksum mismatch") {
 		t.Fatalf("error = %v, want checksum mismatch", err)
 	}
-	if _, statErr := os.Stat(mobilebridge.ManagedCloudflaredPath(dataDir)); !os.IsNotExist(statErr) {
+	if _, statErr := os.Stat(filepath.Join(dataDir, "bin", cloudflaredName())); !os.IsNotExist(statErr) {
 		t.Fatalf("managed path exists after a mismatch: %v", statErr)
 	}
 	assertOnlyManagedBinary(t, filepath.Join(dataDir, "bin"), "")

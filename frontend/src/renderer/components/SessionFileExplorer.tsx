@@ -45,7 +45,7 @@ import { WorkspaceReviewPane } from "./diffs/WorkspaceReviewPane";
 import { ReviewChangesMenu } from "./diffs/ReviewChangesMenu";
 import { ReviewBranchMenu } from "./diffs/ReviewBranchMenu";
 import { markFileViewerPerformance } from "../lib/file-viewer-performance";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { isSvgPath } from "../lib/image-files";
 import type { ProjectKind } from "../types/workspace";
 

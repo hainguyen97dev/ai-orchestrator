@@ -8,7 +8,7 @@ import { agentLabel, type AgentId } from "../../../lib/agent-options";
 import { apiErrorCode } from "../../../lib/api-client";
 import { disposeAgentLogin, retainAgentLoginDisposal, runAgentLoginTask } from "../../../lib/agent-login-lifecycle";
 import { aoBridge } from "../../../lib/bridge";
-import { LOCAL_HOST } from "../../../lib/hosts";
+import { LOCAL_HOST } from "../../../lib/session-keys";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { SettingsOptionMenu } from "../SettingsOptionMenu";

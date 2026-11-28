@@ -64,7 +64,7 @@ import { RestoreUnavailableDialog } from "./RestoreUnavailableDialog";
 import { rememberPaneTerminalGrid } from "../lib/terminal-grid-hint";
 import { Button } from "./ui/button";
 import { EndedShellTerminal } from "./EndedShellTerminal";
-import type { HostId } from "../lib/hosts";
+import type { HostId } from "../lib/session-keys";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { captureRendererException } from "../lib/telemetry";
 

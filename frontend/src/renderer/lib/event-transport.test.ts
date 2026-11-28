@@ -42,7 +42,7 @@ vi.mock("./api-client", () => ({
 	hasTrustedApiBaseUrl: hasTrustedApiBaseUrlMock,
 	subscribeApiBaseUrl: subscribeApiBaseUrlMock,
 }));
-vi.mock("./host-clients", () => ({
+vi.mock("./local-daemon-client", () => ({
 	connectedHosts: connectedHostsMock,
 	baseUrlForHost: baseUrlForHostMock,
 	subscribeConnectedHosts: subscribeConnectedHostsMock,
@@ -104,10 +104,6 @@ function fakeQueryClient(openChats: Array<[string, string]> = []) {
 	} as unknown as Parameters<typeof createEventTransport>[0];
 }
 
-const remoteLivePage = (sessionId: string) => ({
-	params: { path: { sessionId }, query: { beforeSequence: undefined, limit: 30, outputLimit: 512 } },
-});
-
 function cdcSources() {
 	// The local stream has no path prefix; remote hosts are mounted under /<host>/.
 	return EventSourceStub.instances.filter((source) => /^http:\/\/127\.0\.0\.1:\d+\/api\/v1\/events\?after=latest$/.test(source.url));
@@ -139,228 +135,11 @@ afterEach(() => {
 });
 
 describe("createEventTransport", () => {
-	it("polls while probing every host, then stops after a delivered stream frame", async () => {
-		vi.useFakeTimers();
-		try {
-			connectedHostsMock.mockReturnValue(["tunnel", "direct"]);
-			baseUrlForHostMock.mockImplementation((hostId) => `http://127.0.0.1:4000/${hostId}`);
-			const client = fakeQueryClient([["tunnel", "open-chat"]]);
-			const disconnect = createEventTransport(client).connect();
-			expect(EventSourceStub.instances.map((source) => source.url)).toContain("http://127.0.0.1:4000/tunnel/api/v1/events?after=latest");
-			expect(EventSourceStub.instances.map((source) => source.url)).toContain("http://127.0.0.1:4000/direct/api/v1/events?after=latest");
-			vi.mocked(client.invalidateQueries).mockClear();
-			await vi.advanceTimersByTimeAsync(2_000);
-			expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "tunnel"] }, { cancelRefetch: false });
-			expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["reviewer-conversation", "tunnel"] }, { cancelRefetch: false });
-			expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-conversation", "tunnel"] }, { cancelRefetch: false });
-			// Without a stream, the open chat's live page is part of the poll.
-			expect(remoteGetMock).toHaveBeenCalledWith("/api/v1/sessions/{sessionId}/conversation", remoteLivePage("open-chat"));
-			expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "direct"] }, { cancelRefetch: false });
-			EventSourceStub.instances.find((source) => source.url.includes("/direct/"))!.emit("cursor", "0");
-			vi.mocked(client.invalidateQueries).mockClear();
-			await vi.advanceTimersByTimeAsync(2_000);
-			expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "direct"] }, { cancelRefetch: false });
-			connectedHostsMock.mockReturnValue(["direct"]);
-			(subscribeConnectedHostsMock.mock.calls[0][0] as () => void)();
-			vi.mocked(client.invalidateQueries).mockClear();
-			await vi.advanceTimersByTimeAsync(2_000);
-			expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "tunnel"] }, { cancelRefetch: false });
-			disconnect();
-		} finally { vi.useRealTimers(); }
-	});
 
-	it("streams each connected remote host and refreshes only its live conversation page", async () => {
-		const client = fakeQueryClient([["box-a", "same"]]);
-		connectedHostsMock.mockReturnValue(["box-a", "box-b"]);
-		baseUrlForHostMock.mockImplementation((hostId) => `http://127.0.0.1:4000/${hostId}`);
-		const disconnect = createEventTransport(client).connect();
-		const remoteA = EventSourceStub.instances.find((source) => source.url.includes("/box-a/"))!;
-		const remoteB = EventSourceStub.instances.find((source) => source.url.includes("/box-b/"))!;
-		expect(remoteA.url).toBe("http://127.0.0.1:4000/box-a/api/v1/events?after=latest");
-		expect(remoteB.url).toBe("http://127.0.0.1:4000/box-b/api/v1/events?after=latest");
-		await Promise.resolve();
-		// The first frame proves the stream is live, which refreshes everything once.
-		remoteA.emit("cursor", "0");
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["remote-conversation", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["reviewer-conversation", "box-a"] }, { cancelRefetch: false });
-		await Promise.resolve();
-		vi.mocked(client.invalidateQueries).mockClear();
 
-		remoteA.emit("session_updated", JSON.stringify({ sessionId: "same", payload: { conversationId: "remote-conversation" } }));
-		remoteA.emit("session_updated", JSON.stringify({ sessionId: "closed", payload: { conversationId: "closed-conversation" } }));
-		remoteA.emit("review_run_updated", JSON.stringify({ sessionId: "same", payload: { reviewId: "review-1", conversationId: "review-conversation" } }));
-		// Conversation events refresh only the open chat, not the host's lists.
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["reviewer-conversation", "box-a", "review-1"] }, { cancelRefetch: false });
-		await vi.waitFor(() => expect(remoteGetMock).toHaveBeenCalledWith("/api/v1/sessions/{sessionId}/conversation", remoteLivePage("same")));
-		expect(remoteGetMock).not.toHaveBeenCalledWith("/api/v1/sessions/{sessionId}/conversation", remoteLivePage("closed"));
-		remoteA.emit("pr_updated", JSON.stringify({ sessionId: "same", payload: { id: "pr-1" } }));
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["project-config", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["session-usage", "detail", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["session-reviews", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["session-interface-transition", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "box-b"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["project-config", "box-b"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["session-usage", "detail", "box-b"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["session-reviews", "box-b"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["reviewer-conversation", "box-b", "review-1"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["session-interface-transition", "box-b"] }, { cancelRefetch: false });
 
-		connectedHostsMock.mockReturnValue(["box-b"]);
-		const hostsChanged = subscribeConnectedHostsMock.mock.calls[0][0] as () => void;
-		hostsChanged();
-		expect(remoteA.closed).toBe(true);
-		expect(remoteB.closed).toBe(false);
-		disconnect();
-		expect(remoteB.closed).toBe(true);
-		expect(unsubscribeConnectedHostsMock).toHaveBeenCalledOnce();
-	});
 
-	it("coalesces a burst of remote conversation events into one catch-up fetch", async () => {
-		connectedHostsMock.mockReturnValue(["box-a"]);
-		baseUrlForHostMock.mockReturnValue("http://127.0.0.1:4000/box-a");
-		const replies: Array<(value: unknown) => void> = [];
-		remoteGetMock.mockImplementation(() => new Promise((resolve) => replies.push(resolve)));
-		const disconnect = createEventTransport(fakeQueryClient([["box-a", "same"]])).connect();
-		const remote = EventSourceStub.instances.find((source) => source.url.includes("/box-a/"))!;
-		const event = JSON.stringify({ sessionId: "same", payload: { conversationId: "remote-conversation" } });
-		for (let i = 0; i < 10; i += 1) remote.emit("session_updated", event);
-		expect(remoteGetMock).toHaveBeenCalledOnce();
-		replies[0]({ data: { conversationId: "remote-conversation", sessionId: "same", mode: "chat", controller: "idle", latestSequence: 0, messages: [], activities: [] } });
-		await vi.waitFor(() => expect(remoteGetMock).toHaveBeenCalledTimes(2));
-		replies[1]({ data: { conversationId: "remote-conversation", sessionId: "same", mode: "chat", controller: "idle", latestSequence: 0, messages: [], activities: [] } });
-		await vi.waitFor(() => expect(remoteGetMock).toHaveBeenCalledTimes(2));
-		disconnect();
-	});
 
-	it("rate limits id-only remote session updates and refreshes a chat that is not ready", async () => {
-		vi.useFakeTimers();
-		try {
-			connectedHostsMock.mockReturnValue(["box-a"]);
-			baseUrlForHostMock.mockReturnValue("http://127.0.0.1:4000/box-a");
-			const client = fakeQueryClient([["box-a", "waking"]]);
-			const disconnect = createEventTransport(client).connect();
-			const remote = EventSourceStub.instances.find((source) => source.url.includes("/box-a/"))!;
-			remote.emit("cursor", "0");
-			await vi.advanceTimersByTimeAsync(0);
-			vi.mocked(client.invalidateQueries).mockClear();
-			remoteGetMock.mockClear();
-			const idOnly = JSON.stringify({ type: "session_updated", sessionId: "waking", payload: { id: "waking" } });
-			remote.emit("session_updated", idOnly);
-			remote.emit("session_updated", idOnly);
-			// The stream opening refreshed the lists just now, so the id-only updates wait.
-			expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "box-a"] }, { cancelRefetch: false });
-			// The chat has no ready controller in the cache, so it reads its page.
-			expect(remoteGetMock).toHaveBeenCalledWith("/api/v1/sessions/{sessionId}/conversation", remoteLivePage("waking"));
-			await vi.advanceTimersByTimeAsync(5_000);
-			const listRefreshes = vi.mocked(client.invalidateQueries).mock.calls.filter(([filters]) => JSON.stringify(filters) === JSON.stringify({ queryKey: ["remote-workspaces", "box-a"] }));
-			expect(listRefreshes).toHaveLength(1);
-			disconnect();
-		} finally { vi.useRealTimers(); }
-	});
-
-	it("refetches only the affected host when its live stream drops", async () => {
-		connectedHostsMock.mockReturnValue(["box-a", "box-b"]);
-		baseUrlForHostMock.mockImplementation((hostId) => `http://127.0.0.1:4000/${hostId}`);
-		const client = fakeQueryClient();
-		const disconnect = createEventTransport(client).connect();
-		const remoteA = EventSourceStub.instances.find((source) => source.url.includes("/box-a/"))!;
-		remoteA.onopen?.();
-		await Promise.resolve();
-		vi.mocked(client.invalidateQueries).mockClear();
-
-		remoteA.onerror?.();
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "box-a"] }, { cancelRefetch: false });
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["remote-workspaces", "box-b"] }, { cancelRefetch: false });
-		await Promise.resolve();
-		vi.mocked(client.invalidateQueries).mockClear();
-		remoteA.onerror?.();
-		expect(client.invalidateQueries).not.toHaveBeenCalled();
-		disconnect();
-	});
-
-	it("reopens a dropped host stream and stops polling once it delivers again", async () => {
-		vi.useFakeTimers();
-		try {
-			connectedHostsMock.mockReturnValue(["box-a"]);
-			baseUrlForHostMock.mockReturnValue("http://127.0.0.1:4000/box-a");
-			const client = fakeQueryClient();
-			const disconnect = createEventTransport(client).connect();
-			const streams = () => EventSourceStub.instances.filter((source) => source.url.includes("/box-a/"));
-			const listPolled = async () => {
-				// A refresh still settling queues one catch-up; let it land first.
-				await vi.advanceTimersByTimeAsync(0);
-				vi.mocked(client.invalidateQueries).mockClear();
-				await vi.advanceTimersByTimeAsync(2_000);
-				return vi.mocked(client.invalidateQueries).mock.calls.some(([filters]) => JSON.stringify(filters) === JSON.stringify({ queryKey: ["remote-workspaces", "box-a"] }));
-			};
-			streams()[0].emit("cursor", "0");
-			expect(await listPolled()).toBe(false);
-
-			// The host stays connected, so nothing else would ever reopen the stream.
-			streams()[0].onerror?.();
-			expect(await listPolled()).toBe(true);
-			await vi.advanceTimersByTimeAsync(5_000);
-			expect(streams()).toHaveLength(2);
-			streams()[1].emit("cursor", "0");
-			expect(await listPolled()).toBe(false);
-
-			// A host that leaves cancels the pending reopen.
-			streams()[1].onerror?.();
-			connectedHostsMock.mockReturnValue([]);
-			(subscribeConnectedHostsMock.mock.calls[0][0] as () => void)();
-			await vi.advanceTimersByTimeAsync(120_000);
-			expect(streams()).toHaveLength(2);
-			disconnect();
-		} finally { vi.useRealTimers(); }
-	});
-
-	it("clears an open chat's failed read when its host returns, with no event to prompt one", async () => {
-		const refreshFailed = ["remote-conversation-refresh-error", "box-a", "same"];
-		connectedHostsMock.mockReturnValue(["box-a"]);
-		baseUrlForHostMock.mockReturnValue("http://127.0.0.1:4000/box-a");
-		const client = fakeQueryClient([["box-a", "same"]]);
-		const disconnect = createEventTransport(client).connect();
-		const hostsChanged = subscribeConnectedHostsMock.mock.calls[0][0] as () => void;
-		const stream = () => EventSourceStub.instances.filter((source) => source.url.includes("/box-a/")).at(-1)!;
-		remoteGetMock.mockRejectedValueOnce(new Error("host away"));
-		stream().emit("session_updated", JSON.stringify({ sessionId: "same", payload: { conversationId: "remote-conversation" } }));
-		await vi.waitFor(() => expect(client.setQueryData).toHaveBeenCalledWith(refreshFailed, true));
-
-		connectedHostsMock.mockReturnValue([]);
-		hostsChanged();
-		connectedHostsMock.mockReturnValue(["box-a"]);
-		hostsChanged();
-		vi.mocked(client.setQueryData).mockClear();
-		// The stream answers at once, so the fallback poll never ticks.
-		stream().emit("cursor", "0");
-		await vi.waitFor(() => expect(client.setQueryData).toHaveBeenCalledWith(refreshFailed, false));
-		disconnect();
-	});
-
-	it("rebinds a host stream when its reachable address changes", async () => {
-		connectedHostsMock.mockReturnValue(["box-a"]);
-		baseUrlForHostMock.mockReturnValue("http://127.0.0.1:4000/old");
-		const client = fakeQueryClient();
-		const disconnect = createEventTransport(client).connect();
-		const oldSource = EventSourceStub.instances.find((source) => source.url.includes("/old/"))!;
-
-		baseUrlForHostMock.mockReturnValue("http://127.0.0.1:5000/new");
-		const hostsChanged = subscribeConnectedHostsMock.mock.calls[0][0] as () => void;
-		hostsChanged();
-		const newSource = EventSourceStub.instances.find((source) => source.url.includes("/new/"))!;
-		expect(oldSource.closed).toBe(true);
-		expect(newSource.url).toBe("http://127.0.0.1:5000/new/api/v1/events?after=latest");
-		await Promise.resolve();
-		vi.mocked(client.invalidateQueries).mockClear();
-
-		oldSource.emit("review_run_updated", JSON.stringify({ payload: { reviewId: "old" } }));
-		expect(client.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ["reviewer-conversation", "box-a", "old"] }, { cancelRefetch: false });
-		newSource.emit("review_run_updated", JSON.stringify({ payload: { reviewId: "new" } }));
-		expect(client.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["reviewer-conversation", "box-a", "new"] }, { cancelRefetch: false });
-		disconnect();
-	});
 
 	it("ignores every stream callback after disposal", async () => {
 		vi.useFakeTimers();

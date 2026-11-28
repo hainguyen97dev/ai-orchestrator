@@ -17,8 +17,8 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorMessage: (error: unknown) => error instanceof Error ? error.message : "Request failed",
 }));
 
-vi.mock("../lib/host-clients", async (importOriginal) => ({
-	...await importOriginal<typeof import("../lib/host-clients")>(),
+vi.mock("../lib/local-daemon-client", async (importOriginal) => ({
+	...await importOriginal<typeof import("../lib/local-daemon-client")>(),
 	clientForSessionHost: (hostId?: string) => {
 		hostsAsked.push(hostId);
 		return { GET: getMock, PUT: putMock };

@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { components } from "../../api/schema";
 import { interfaceTransitionPollDelay } from "../../../../packages/shared/session/interface-transition-poll";
 import { apiErrorCode, apiErrorMessage, hasTrustedApiBaseUrl } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { CloudCpAuthError, type CloudCpInterfaceTransition } from "../lib/cloud-cp";
 import { conversationQueryKey } from "./useConversation";
 import { useCloudCp } from "./useCloudCp";

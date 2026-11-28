@@ -24,7 +24,7 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorMessage: () => "request failed",
 	hasTrustedApiBaseUrl: () => true,
 }));
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost: clientForSessionHostMock }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost: clientForSessionHostMock }));
 
 // Keep these hook tests focused on the local daemon path. The real Cloud
 // readiness hooks subscribe to settings/auth queries and can trigger an

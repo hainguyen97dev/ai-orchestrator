@@ -1,6 +1,6 @@
 import type { components } from "../../api/schema";
 import type { CloudCpSession } from "../lib/cloud-cp";
-import { LOCAL_HOST, refKey } from "../lib/hosts";
+import { LOCAL_HOST, refKey } from "../lib/session-keys";
 import type { WorkspaceSession, WorkspaceSummary } from "../types/workspace";
 import { hasOptimisticRenames, renamedTitle } from "./optimistic-renames";
 

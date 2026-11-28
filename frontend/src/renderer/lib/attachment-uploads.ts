@@ -1,7 +1,7 @@
 import { AoError } from "../../../../packages/shared/telemetry/ao-error";
 import { getApiBaseUrl, reportingFetch } from "./api-client";
-import { baseUrlForHost } from "./host-clients";
-import { LOCAL_HOST, type HostId } from "./hosts";
+import { baseUrlForHost } from "./local-daemon-client";
+import { LOCAL_HOST, type HostId } from "./session-keys";
 
 /**
  * Files up to this size travel inline, as base64 in a JSON body, which is also

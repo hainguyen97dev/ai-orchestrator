@@ -6,7 +6,7 @@ import { advisoryInUse, isWaitingForIdleJob, versionLabel, type HarnessInUse, ty
 import { IdleUpdateStatus } from "./HarnessSessionsDialog";
 import type { TerminalSessionState } from "../../../hooks/useTerminalSession";
 import { aoBridge } from "../../../lib/bridge";
-import { labelForHost } from "../../../lib/host-clients";
+import { labelForHost } from "../../../lib/local-daemon-client";
 import { MiddleTruncatedText } from "../../MiddleTruncatedText";
 import { Button } from "../../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";

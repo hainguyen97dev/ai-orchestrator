@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FINISHED_TASK_TABS_KEPT, failedTaskKey, rememberedFileDisplayMode, sidebarIsVisible, sidebarOccupiesLayout, useUiStore } from "./ui-store";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { previewDocumentThemeStyle } from "../lib/theme";
 import { aoBridge } from "../lib/bridge";
 
@@ -237,8 +237,6 @@ describe("global settings deep links", () => {
 			focusAgentId: "codex",
 		});
 
-		useUiStore.getState().openGlobalSettings("mobile");
-		expect(useUiStore.getState().settingsModal).toEqual({ scope: "global", section: "mobile" });
 	});
 
 	it("preserves project settings only for explicit recovery navigation", () => {
@@ -365,35 +363,6 @@ describe("Cloud review persistence", () => {
 		expect(useUiStore.getState().inspectorSessions["sess-2"]).toBeUndefined();
 		store.setCloudReviewRepository("sess-1", "");
 		expect(useUiStore.getState().inspectorSessions["sess-1"].cloudReviewRepository).toBe("");
-	});
-});
-
-describe("remoteHosts flag", () => {
-	beforeEach(() => {
-		window.localStorage.clear();
-		vi.resetModules();
-		useUiStore.setState({ remoteHosts: false });
-	});
-
-	it("is on by default behind developer mode", async () => {
-		expect((await bootStore()).getState().remoteHosts).toBe(true);
-	});
-
-	it("persists the switch so the choice survives a restart", () => {
-		useUiStore.getState().setRemoteHosts(true);
-		expect(useUiStore.getState().remoteHosts).toBe(true);
-		expect(window.localStorage.getItem("ao.remoteHosts")).toBe("true");
-		useUiStore.getState().setRemoteHosts(false);
-	});
-
-	it("reads a stored choice back at startup", async () => {
-		window.localStorage.setItem("ao.remoteHosts", "true");
-		expect((await bootStore()).getState().remoteHosts).toBe(true);
-	});
-
-	it("honors an explicit opt-out", async () => {
-		window.localStorage.setItem("ao.remoteHosts", "false");
-		expect((await bootStore()).getState().remoteHosts).toBe(false);
 	});
 });
 

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { postMock } = vi.hoisted(() => ({ postMock: vi.fn() }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForSessionHost: () => ({ GET: vi.fn(async () => ({ data: { shellTerminals: [] } })), POST: postMock }),
 }));
 vi.mock("../stores/terminal-shell-store", () => ({

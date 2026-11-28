@@ -47,9 +47,9 @@ import { useRememberProjectPermissions } from "../../hooks/useRememberProjectPer
 import { useLatestCallback } from "../../hooks/useStable";
 import { useSessionBrowserLink } from "../../hooks/useSessionBrowserLink";
 import { subscribeSessionSearchReveal, takeSessionSearchReveal, type SessionSearchReveal } from "../../lib/session-search-reveal";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { readChatLastModel, rememberChatLastModel } from "../../lib/chat-last-model";
-import { clientForSessionHost } from "../../lib/host-clients";
+import { clientForSessionHost } from "../../lib/local-daemon-client";
 import type { ShellTerminal } from "../../hooks/useShellTerminals";
 import { useSessionLinkNavigation } from "../../lib/use-session-link-navigation";
 import type { Theme } from "../../stores/ui-store";

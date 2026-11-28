@@ -107,6 +107,5 @@ func terminalMuxRequestAllowed(r *http.Request, allowed map[string]struct{}) boo
 	if _, ok := allowed[origin]; ok {
 		return true
 	}
-	// This compatibility Origin comes from React Native, not a browser grant.
-	return origin == "http://localhost" && authenticatedLANBearer(r)
+	return false
 }

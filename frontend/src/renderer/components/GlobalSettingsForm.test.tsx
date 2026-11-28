@@ -257,7 +257,7 @@ beforeEach(async () => {
 		saving: false,
 		saveError: false,
 	});
-	useUiStore.setState({ developerMode: false, remoteHosts: false, diagnostics: false, windowTranslucency: false, chatSendKeyMode: "enter", navigationGestures: false });
+	useUiStore.setState({ developerMode: false, diagnostics: false, windowTranslucency: false, chatSendKeyMode: "enter", navigationGestures: false });
 	useTelemetryPolicyStore.setState({ view: { eventsEnabled: false, consentGeneration: "generation-off", updatedAt: "2026-08-28T10:15:30.000Z", acknowledged: true, state: "applied", environmentVeto: false, durabilitySupported: true }, loaded: true, saving: false, saveError: false });
 	useAnalyticsOptOutStore.setState({ optedOut: false, loaded: false, saving: false, loadError: false, saveError: false });
 	document.documentElement.lang = "en";
@@ -304,13 +304,6 @@ describe("GlobalSettingsForm", () => {
 		expect(await screen.findByTestId("harness-settings-section")).toBeInTheDocument();
 		// Headings that repeat the page title are now hidden by SettingsSection, not this flag.
 		expect(harnessSettingsSectionMock).toHaveBeenCalledWith({ focusAgentId: "cursor", titleHidden: false });
-	});
-
-	it("keeps Browser in its dedicated settings page", async () => {
-		renderForm("general");
-		expect(await screen.findByLabelText("Settings")).toBeInTheDocument();
-		expect(document.querySelector('[data-section="browserProfiles"]')).not.toBeInTheDocument();
-		expect(document.querySelector('[data-section="remoteHosts"]')).not.toBeInTheDocument();
 	});
 
 	it("keeps download history inside the Browser settings page", async () => {
@@ -406,18 +399,6 @@ describe("GlobalSettingsForm", () => {
 		await user.click(toggle);
 		expect(window.localStorage.getItem("ao.diagnostics")).toBe("true");
 		expect(useUiStore.getState().diagnostics).toBe(true);
-	});
-
-	it("keeps Remote hosts in its own page and persists the enable switch", async () => {
-		const user = userEvent.setup();
-		renderForm("remoteHosts");
-		const remoteHosts = await screen.findByRole("switch", { name: "Connect to remote hosts" });
-		expect(remoteHosts).toHaveAttribute("aria-checked", "false");
-		expect(screen.queryByRole("switch", { name: "Developer mode" })).not.toBeInTheDocument();
-
-		await user.click(remoteHosts);
-		expect(window.localStorage.getItem("ao.remoteHosts")).toBe("true");
-		expect(useUiStore.getState().remoteHosts).toBe(true);
 	});
 
 	it("shows the available feature builds after choosing Feature Releases", async () => {

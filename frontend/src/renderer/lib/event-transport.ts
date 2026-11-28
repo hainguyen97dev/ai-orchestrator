@@ -16,10 +16,9 @@ import { sessionUsageQueryRoot } from "../hooks/useSessionUsageSummaries";
 import { backgroundTasksQueryRoot } from "../hooks/useBackgroundTasks";
 import { editorHandoffQueryKey, editorHandoffQueryRoot } from "../hooks/useEditorHandoff";
 import { shellTerminalsQueryKey, shellTerminalsQueryKeyForHost } from "../hooks/useShellTerminals";
-import { baseUrlForHost, connectedHosts, subscribeConnectedHosts } from "./host-clients";
-import { probeRemoteSse } from "./remote-sse-probe";
+import { baseUrlForHost, connectedHosts, subscribeConnectedHosts } from "./local-daemon-client";
+import { probeRemoteSse } from "./local-daemon-client";
 import { persistLocalChats } from "./local-chat-cache";
-import { persistRemoteCache } from "./remote-chat-cache";
 
 export type EventTransport = {
 	connect: () => () => void;
@@ -115,7 +114,6 @@ export function createEventTransport(queryClient: QueryClient): EventTransport {
 					// A supporting daemon answers with an open stream; do not keep it.
 					.finally(() => controller.abort());
 			};
-			const stopPersistingRemoteCache = persistRemoteCache(queryClient);
 			const stopPersistingLocalChats = persistLocalChats(queryClient);
 			let disposed = false;
 			type RemoteConnection = {
@@ -723,8 +721,7 @@ export function createEventTransport(queryClient: QueryClient): EventTransport {
 					if (connection.idOnlyTimer !== undefined) clearTimeout(connection.idOnlyTimer);
 				}
 				remoteSources.clear();
-				stopPersistingRemoteCache();
-				stopPersistingLocalChats();
+					stopPersistingLocalChats();
 				setEventsConnectionState("idle");
 			};
 		},

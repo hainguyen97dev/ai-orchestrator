@@ -4,7 +4,7 @@ import { getApiBaseUrl } from "../../lib/api-client";
 import { useContext, useState } from "react";
 import { MarkdownFileContext } from "./markdown-file-context";
 import { resolveMarkdownAssetPath, resolveArtifactImageSrc, resolveMarkdownImageSrc } from "../../lib/markdown-image-resolver";
-import { baseUrlForHost } from "../../lib/host-clients";
+import { baseUrlForHost } from "../../lib/local-daemon-client";
 
 /**
  * react-markdown's `img` override: resolves a worktree-relative `src` via the

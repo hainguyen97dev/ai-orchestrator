@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { FileCodeReference } from "../../shared/file-annotations";
 import { captureFileReference, isSupportedFileReference, type ChatFileReference } from "../../shared/chat-file-reference";
-import { sessionUiKey } from "./hosts";
+import { sessionUiKey } from "./session-keys";
 
 // Lets a file or diff view hand a code reference, or the PR card a quoted
 // comment, to the session's Chat composer without threading callbacks through

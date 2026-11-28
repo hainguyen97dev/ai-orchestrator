@@ -1,6 +1,6 @@
 import { apiErrorException } from "../lib/api-error-exception";
 import { getApiBaseUrl } from "../lib/api-client";
-import { baseUrlForHost } from "../lib/host-clients";
+import { baseUrlForHost } from "../lib/local-daemon-client";
 import { artifactAtPath } from "../../../../packages/shared/artifacts/deliverables";
 import { isCancelledError, useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, PanelRight, Plus, SquareTerminal } from "@/components/app-icons";
@@ -141,10 +141,10 @@ import { cloudChatEventsQueryKey, recordCloudScriptStepEvents, useCachedQueryDat
 import { useTerminalResetStore } from "../stores/terminal-reset-store";
 import { useSessionSwitchStore } from "../stores/session-switch-store";
 import { apiErrorCode, apiErrorMessage } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
-import { useHostConnection } from "../hooks/useHostConnection";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { useHostConnection } from "../hooks/useLocalHostConnection";
 import { sessionReviewsQueryKey } from "../lib/session-reviews";
-import { HOST_UNREACHABLE_CODES, sessionUiKey } from "../lib/hosts";
+import { HOST_UNREACHABLE_CODES, sessionUiKey } from "../lib/session-keys";
 import { resolveSessionWorkspacePath, sessionWorkspaceFilesQueryOptions } from "../hooks/useSessionWorkspaceFiles";
 import { isAbsoluteFileReference, matchWorkspaceFilePath, normalizeWorkspaceFileReference } from "../lib/workspace-file-path";
 import { markFileViewerPerformance } from "../lib/file-viewer-performance";
@@ -582,15 +582,12 @@ export function SessionView({ sessionId, cloudOrgId, projectId, hostId }: Sessio
 	// under someone who is watching the agent work.
 	useCloudSessionPresence(session?.cloud?.orgId, session?.cloud ? session.id : undefined, Boolean(session?.cloud));
 	const { draftBoundaries: chatDraftBoundaries, confirmUnsafeDraftLeave } = interfaceUi;
-	const remoteHostsEnabled = useUiStore((state) => state.remoteHosts);
-	const setRemoteHosts = useUiStore((state) => state.setRemoteHosts);
 	useBlocker({
 		disabled: chatDraftBoundaries.length === 0,
 		enableBeforeUnload: chatDraftBoundaries.length > 0,
 		shouldBlockFn: async () => {
 			const decision = await confirmUnsafeDraftLeave();
 			if (decision.kind === "cancelled") {
-				if (hostId && !remoteHostsEnabled) setRemoteHosts(true);
 				return true;
 			}
 			if (decision.kind === "confirmed") {

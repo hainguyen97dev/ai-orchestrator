@@ -1208,11 +1208,9 @@ export function useBrowserView({
 	// (starting, asleep, redeploying, not set up, or an agent that has not
 	// used it) is asked again, backing off, for as long as the view stays.
 	useEffect(() => {
-		const agentBrowserUrl = origin
-			? () => aoBridge.remotes.agentBrowserUrl(origin.hostId, origin.sessionId)
-			: cloudAgentBrowser
-				? () => aoBridge.cloudCp.agentBrowserUrl(cloudAgentBrowser.baseUrl, cloudAgentBrowser.orgId, cloudAgentBrowser.sessionId)
-				: undefined;
+		const agentBrowserUrl = cloudAgentBrowser
+			? () => aoBridge.cloudCp.agentBrowserUrl(cloudAgentBrowser.baseUrl, cloudAgentBrowser.orgId, cloudAgentBrowser.sessionId)
+			: undefined;
 		if (!hasNativeBrowser || !agentBrowserUrl || !viewId || viewIdRef.current !== viewId || terminated) return;
 		let cancelled = false;
 		let retry = 0;
@@ -1280,15 +1278,6 @@ export function useBrowserView({
 		[hasNativeBrowser, withView],
 	);
 
-	// Clearing or terminating a remote preview must also retire its viewer-only
-	// origin, even when the native browser view has already been destroyed.
-	useEffect(() => {
-		if (!origin || (!terminated && previewUrl?.trim())) return;
-		void aoBridge.remotes.previewUrl(origin.hostId, origin.sessionId, "").catch(() => {
-			// A disconnected proxy is already closed, so there is nothing to revoke.
-		});
-		return undefined;
-	}, [origin?.hostId, origin?.sessionId, origin?.proxyBase, previewUrl, terminated]);
 
 	// Drive the view from the daemon-set preview target. Current daemons key
 	// this on previewRevision (bumped on every `ao preview` call); older daemons
@@ -1312,9 +1301,7 @@ export function useBrowserView({
 		if (hasNativeBrowser) consumedPreviewTriggers.set(sessionId, consumed);
 		if (target) {
 			let cancelled = false;
-			const resolved = origin
-				? aoBridge.remotes.previewUrl(origin.hostId, origin.sessionId, target)
-				: Promise.resolve(target);
+			const resolved = Promise.resolve(target);
 			void resolved.then((url) => {
 				return cancelled ? undefined : showPreview(url);
 			}).catch((error) => console.warn("Unable to open browser preview", error));

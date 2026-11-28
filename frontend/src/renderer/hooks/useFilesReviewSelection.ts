@@ -21,7 +21,7 @@ import {
 	ticksIncludingBetween,
 	toggleCommit,
 } from "../lib/files-review-selection";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import type { ProjectKind } from "../types/workspace";
 import { useUiStore } from "../stores/ui-store";
 import { useLatestCallback } from "./useStable";

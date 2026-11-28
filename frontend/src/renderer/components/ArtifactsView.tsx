@@ -44,7 +44,7 @@ import {
 	type ArtifactType,
 } from "../lib/artifacts";
 import { formatTimeCompact } from "../lib/format-time";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import { useShellMaybe } from "../lib/shell-context";
 import { useNavigateToSession } from "../lib/navigate-to-session";
 import { cn } from "../lib/utils";

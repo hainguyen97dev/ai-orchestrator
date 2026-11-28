@@ -5,9 +5,7 @@ import { cloudSessionsQueryKey, workspaceQueryKeyForHost } from "./useWorkspaceQ
 import { apiClient } from "../lib/api-client";
 import type { CloudCpSession } from "../lib/cloud-cp";
 import { createRendererCloudCpClient } from "../lib/cloud-cp/renderer-client";
-import { clientForSessionHost } from "../lib/host-clients";
-import { isLocal } from "../lib/hosts";
-import { forgetRemoteUnpin, unpinRemoteSession } from "../lib/remote-session-unpins";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { settingsQueryKey, type Settings } from "./useSettings";
 
 export const pinSessionMutationKey = ["pin-session"] as const;
@@ -40,11 +38,6 @@ function restoreCloudSessions(queryClient: QueryClient, snapshot: CloudSessionsS
 	for (const [key, data] of snapshot ?? []) queryClient.setQueryData(key, data);
 }
 
-/** A session another host's daemon owns, as opposed to this computer's or the control plane's. */
-function remoteHostOf(session: WorkspaceSession): string | undefined {
-	return session.hostId && !isLocal(session.hostId) && !session.cloud ? session.hostId : undefined;
-}
-
 function refreshAfterPin(queryClient: QueryClient, session: WorkspaceSession) {
 	return queryClient.invalidateQueries({ queryKey: session.cloud ? cloudSessionsQueryKey : workspaceQueryKeyForHost(session.hostId) });
 }
@@ -64,8 +57,6 @@ export function usePinSession() {
 			}
 		},
 		onMutate: (session) => {
-			const hostId = remoteHostOf(session);
-			if (hostId) forgetRemoteUnpin(hostId, session.id);
 			return markCloudPinned(queryClient, session, true);
 		},
 		onSuccess: async (_data, session) => {
@@ -84,11 +75,6 @@ export function useUnpinSession() {
 		mutationKey: unpinSessionMutationKey,
 		mutationFn: async (session: WorkspaceSession) => {
 			if (session.cloud) return setCloudPinned(queryClient, session, false);
-			// Pins are this sidebar's to remove even when the owning host is asleep,
-			// offline, or no longer linked: the row loses its pin now and the host
-			// is told whenever it answers.
-			const hostId = remoteHostOf(session);
-			if (hostId) return unpinRemoteSession(queryClient, hostId, session.id, session.pinnedAt);
 			const { error, response } = await (session.hostId ? clientForSessionHost(session.hostId) : apiClient).DELETE("/api/v1/sessions/{sessionId}/pin", {
 				params: { path: { sessionId: session.id } },
 			});
@@ -100,7 +86,7 @@ export function useUnpinSession() {
 		onMutate: (session) => markCloudPinned(queryClient, session, false),
 		onSuccess: async (_data, session) => {
 			// A remote unpin refreshes its host itself, once the host has it.
-			if (!remoteHostOf(session)) await refreshAfterPin(queryClient, session);
+			await refreshAfterPin(queryClient, session);
 		},
 		onError: (error, _session, snapshot) => {
 			restoreCloudSessions(queryClient, snapshot);

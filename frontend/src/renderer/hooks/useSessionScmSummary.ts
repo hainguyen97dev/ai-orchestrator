@@ -3,8 +3,8 @@ import { hashKey, useQuery, useQueryClient, type QueryClient, type QueryKey } fr
 import { useMemo } from "react";
 import type { components } from "../../api/schema";
 import { apiClient } from "../lib/api-client";
-import { clientForHost } from "../lib/host-clients";
-import { LOCAL_HOST } from "../lib/hosts";
+import { clientForHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST } from "../lib/session-keys";
 import { noPRDetails } from "../lib/pr-display";
 import type { CloudCpPullRequestSummary } from "../lib/cloud-cp";
 import { createRendererCloudCpClient } from "../lib/cloud-cp/renderer-client";

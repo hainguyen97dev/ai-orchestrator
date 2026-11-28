@@ -131,20 +131,6 @@ it("keeps an early rejection's minified frame and debug ID", async () => {
 	}
 });
 
-it("preserves a remotes:list code across the preload bridge without changing its displayed error", async () => {
-	const { controller, resolvePolicy } = await setup(true);
-	resolvePolicy(controller.snapshot());
-	mocks.invoke.mockImplementation(async (channel: string) => channel === "remotes:list"
-		? { code: "REMOTES_READ_FAILED", message: "Error: Could not read remote hosts" }
-		: null);
-	const { listRemoteHosts } = await import("./renderer/lib/remote-host-list");
-	await expect(listRemoteHosts()).rejects.toMatchObject({
-		code: "REMOTES_READ_FAILED",
-		message: "Error invoking remote method 'remotes:list': Error: Could not read remote hosts",
-	});
-	expect(mocks.invoke).toHaveBeenCalledWith("remotes:list", true);
-});
-
 it("still captures an early rejection whose code getter throws", async () => {
 	const { controller, resolvePolicy } = await setup(true);
 	resolvePolicy(controller.snapshot());
@@ -157,27 +143,6 @@ it("still captures an early rejection whose code getter throws", async () => {
 	await vi.waitFor(() => expect(mocks.invoke).toHaveBeenCalledWith("telemetry:capture", expect.objectContaining({
 		message: "An early failure", tags: expect.objectContaining({ code: "UNHANDLED_REJECTION" }),
 	})));
-});
-
-it.each([
-	["EXPECTED_IPC_ERROR", "Sign in to Orchestrator Cloud"],
-	["LOCAL_IDENTITY_UNAVAILABLE_ERROR", "Local Orchestrator identity is unavailable; remote connection is offline"],
-])("preserves the expected %s rejection without reporting it", async (code, message) => {
-	const { controller, resolvePolicy } = await setup(true);
-	resolvePolicy(controller.snapshot());
-	mocks.invoke.mockImplementation(async (channel: string) => channel === "remotes:list"
-		? { code, message: "Error: " + message, expected: true }
-		: null);
-	const { listRemoteHosts } = await import("./renderer/lib/remote-host-list");
-	const error = await listRemoteHosts().catch((reason: unknown) => reason);
-	expect(error).toMatchObject({ code, expected: true, message: "Error invoking remote method 'remotes:list': Error: " + message });
-	const wrapped = new AoError("REMOTE_WRAPPER", "wrapped", { cause: error });
-	const event = new Event("unhandledrejection");
-	Object.defineProperty(event, "reason", { value: wrapped });
-	window.dispatchEvent(event);
-	const { captureExceptionToSentry } = await import("./renderer/lib/sentry");
-	captureExceptionToSentry(wrapped);
-	expect(mocks.invoke.mock.calls.some(([channel]) => channel === "telemetry:capture")).toBe(false);
 });
 
 it("forwards uncoded engine errors with their original type for main's display rule", async () => {

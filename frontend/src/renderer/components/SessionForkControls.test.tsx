@@ -16,8 +16,8 @@ const { getMock, postMock, navigateMock, remote } = vi.hoisted(() => ({
 	remote: { online: false, listeners: new Set<() => void>(), host: { hostId: "flaky", label: "flaky", url: "https://flaky", base: "https://flaky/api" } },
 }));
 
-vi.mock("../lib/host-clients", async (importOriginal) => ({
-	...(await importOriginal<typeof import("../lib/host-clients")>()),
+vi.mock("../lib/local-daemon-client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../lib/local-daemon-client")>()),
 	clientForSessionHost: (hostId?: string) => {
 		// As the real helper does for a remote host that has disconnected.
 		if (hostId === "gone" || (hostId === "flaky" && !remote.online)) throw new Error(`host ${hostId} is not connected`);
@@ -248,27 +248,5 @@ describe("session fork controls", () => {
 		rerender(timeline());
 		rerender(timeline());
 		expect(renders).toBe(settled);
-	});
-
-	it("still renders for a session on a remote host that has disconnected", async () => {
-		const offline = { ...session, hostId: "gone" } as WorkspaceSession;
-		renderControls(latestTurnFork(offline));
-		const button = await screen.findByRole("button", { name: "Fork" });
-		await waitFor(() => expect(button).toHaveAttribute("aria-disabled", "true"));
-		expect(getMock).not.toHaveBeenCalled();
-	});
-
-	it("asks again when a disconnected remote host reconnects", async () => {
-		remote.online = false;
-		const onRemote = { ...session, hostId: "flaky" } as WorkspaceSession;
-		renderControls(latestTurnFork(onRemote));
-		const button = await screen.findByRole("button", { name: "Fork" });
-		await waitFor(() => expect(button).toHaveAttribute("aria-disabled", "true"));
-		act(() => {
-			remote.online = true;
-			for (const listener of remote.listeners) listener();
-		});
-		await waitFor(() => expect(button).toHaveAttribute("aria-disabled", "false"));
-		expect(getMock).toHaveBeenCalledTimes(1);
 	});
 });

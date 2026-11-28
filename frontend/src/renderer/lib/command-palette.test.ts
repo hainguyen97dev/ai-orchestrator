@@ -881,28 +881,6 @@ describe("whole keyword matches", () => {
 		const rows = buildSettingsCommands(appI18n.t, { developerMode: true, diagnostics: true, mac: true });
 		expect(filterCommands(rows, query).length).toBeLessThanOrEqual(2);
 	});
-
-	it("keep code to the rows that name it", () => {
-		const rows = buildSettingsCommands(appI18n.t, { developerMode: true, diagnostics: true, mac: true });
-		// Its title, Mobile's "qr code", the Harness page's "codex", Color theme's
-		// "VS Code" option, and last, loose letters of "Connected devices".
-		const ids = filterCommands(rows, "code").map((item) => item.id);
-		expect([...ids].sort()).toEqual(
-			["setting:color-theme", "setting:connection-password", "setting:harness", "setting:mobile", "setting:mobile-devices"],
-		);
-		expect(ids.at(-1)).toBe("setting:mobile-devices");
-	});
-
-	it("rank the code keyword above qr code, below a title that says code", () => {
-		const rows = [...buildShortcutCommands(appI18n.t, { session: "local" }), ...buildSettingsCommands(appI18n.t, { developerMode: false, diagnostics: false })];
-		const byId = (id: string) => rows.find((item) => item.id === id)!;
-		// "Pairing code or password" names it in its title, and a title beats a keyword.
-		expect(bestMatch(rows, "code")?.id).toBe("setting:connection-password");
-		expect(matchScore("code", byId("shortcut:open-in-editor"))).toBeGreaterThan(matchScore("code", byId("setting:mobile")));
-		// Mobile's page words stay on the page row: "Connected devices" is found
-		// only by its title's loose letters, below the page's "qr code".
-		expect(matchScore("code", byId("setting:mobile-devices"))).toBeLessThan(matchScore("code", byId("setting:mobile")));
-	});
 });
 
 describe("search groups", () => {

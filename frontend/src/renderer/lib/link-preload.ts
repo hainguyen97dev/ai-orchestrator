@@ -5,7 +5,7 @@ import { sessionArtifactFileQueryOptions } from "../hooks/useSessionWorkspaceFil
 import { workspaceQueryKey } from "../hooks/useWorkspaceQuery";
 import { isInlineArtifactUrl } from "../../shared/agent-page-url";
 import type { WorkspaceSummary } from "../types/workspace";
-import { LOCAL_HOST } from "./hosts";
+import { LOCAL_HOST } from "./session-keys";
 import { isRasterImagePath, isSvgPath } from "./image-files";
 import { queryClient } from "./query-client";
 import { artifactAtPath } from "../../../../packages/shared/artifacts/deliverables";

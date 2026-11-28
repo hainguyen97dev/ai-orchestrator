@@ -12,7 +12,7 @@ const { baseUrlForHostMock, lineScrollIntoView } = vi.hoisted(() => ({
 	lineScrollIntoView: vi.fn(),
 }));
 vi.mock("../lib/api-client", () => ({ getApiBaseUrl: () => "" }));
-vi.mock("../lib/host-clients", () => {
+vi.mock("../lib/local-daemon-client", () => {
 	const snapshots = new Map<string, { base: string }>();
 	return {
 		connectedHost: (hostId: string) => {
@@ -212,14 +212,6 @@ describe("ReadOnlyFileView", () => {
 		expect(img).toHaveAttribute("src", expect.stringContaining("side=after"));
 	});
 
-	it("loads remote images through the selected host proxy and not local when offline", () => {
-		baseUrlForHostMock.mockImplementation((hostId: string) => hostId === "host-a" ? "http://127.0.0.1:4000/token-a" : undefined);
-		const detail = baseDetail({ binary: true, content: "", path: "logo.png", imageMediaType: "image/png" });
-		const { rerender } = render(<ReadOnlyFileView annotation={annotation()} detail={detail} hostId="host-a" sessionId="same-id" />);
-		expect(screen.getByRole("img")).toHaveAttribute("src", expect.stringContaining("http://127.0.0.1:4000/token-a/api/v1/sessions/same-id/"));
-		rerender(<ReadOnlyFileView annotation={annotation()} detail={detail} hostId="offline" sessionId="same-id" />);
-		expect(screen.getByRole("img")).not.toHaveAttribute("src");
-	});
 
 	it("shows a binary placeholder for a non-image binary file", () => {
 		render(<ReadOnlyFileView annotation={annotation()} detail={baseDetail({ binary: true, content: "" })} sessionId="sess-1" />);

@@ -3,7 +3,7 @@ import { useIsMutating, useMutation, useQueryClient } from "@tanstack/react-quer
 import { useTranslation } from "react-i18next";
 import { Play } from "@/components/app-icons";
 import { aoBridge } from "../lib/bridge";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { cloudSessionsQueryKey, workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
 import { useCloudCp } from "../hooks/useCloudCp";
 import { useCanResumeAgent } from "../hooks/useCanResumeAgent";

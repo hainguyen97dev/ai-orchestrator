@@ -14,8 +14,8 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorMessage: (error: unknown, fallback?: string) => error instanceof Error ? error.message : fallback ?? "error",
 	getApiBaseUrl: () => "http://127.0.0.1:3001",
 }));
-vi.mock("../lib/host-clients", async (importOriginal) => ({
-	...(await importOriginal<typeof import("../lib/host-clients")>()),
+vi.mock("../lib/local-daemon-client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../lib/local-daemon-client")>()),
 	clientForSessionHost: (hostId?: string) => ({ POST: hostId ? remotePostMock : postMock, PUT: putMock }),
 }));
 vi.mock("./MarkdownEditor", () => ({

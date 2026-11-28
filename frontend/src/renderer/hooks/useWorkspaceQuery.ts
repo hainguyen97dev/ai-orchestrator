@@ -1,6 +1,6 @@
 import { markApiError } from "../lib/reported-errors";
 import { type QueryClient, useQueries, useQuery, useQueryClient, type Query } from "@tanstack/react-query";
-import { useRemoteUnpinStore, withRemoteUnpins } from "../stores/remote-unpin-store";
+import { useRemoteUnpinStore, withRemoteUnpins } from "../stores/session-pin-cache";
 import { cleanUpLegacyPreparedCloudSessions } from "../lib/cloud-session-prestart";
 import type { TraySessionEntry } from "../../shared/tray";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
@@ -19,12 +19,11 @@ import { mockWorkspaces } from "../lib/mock-data";
 import { usesPreviewWorkspaceData } from "../lib/preview-mode";
 import { toReviewerHarnessId } from "../lib/reviewer-harnesses";
 import { captureRendererEvent } from "../lib/telemetry";
-import { aoBridge } from "../lib/bridge";
 import { withQueryFields } from "../lib/query-result";
 import { refetchWhenOlderThan } from "../lib/refetch-when-older-than";
-import { clientForHost } from "../lib/host-clients";
-import { useConnectedHosts } from "./useHostConnection";
-import { requestRemoteHostCheck } from "./useRemoteHosts";
+import { clientForHost } from "../lib/local-daemon-client";
+import { useConnectedHosts } from "./useLocalHostConnection";
+import { requestRemoteHostCheck } from "../lib/local-daemon-client";
 import { applyOptimisticSessionKills, optimisticSessionKillsVersion, subscribeOptimisticSessionKills } from "./optimistic-session-kills";
 import { applyOptimisticProjectRemovals, isOptimisticallyRemovedProject, optimisticProjectRemovalsVersion, subscribeOptimisticProjectRemovals } from "./optimistic-project-removals";
 import { renameReadStarted, useOptimisticRenamesVersion } from "./optimistic-renames";
@@ -384,7 +383,7 @@ async function fetchRemoteSessions(hostId: string) {
 		...session,
 		artifactFiles: await Promise.all((session.artifactFiles ?? []).map(async (artifact) => ({
 			...artifact,
-			rawUrl: artifact.rawUrl ? await aoBridge.remotes.previewUrl(hostId, session.id, artifact.rawUrl) : undefined,
+			rawUrl: artifact.rawUrl ? artifact.rawUrl : undefined,
 			// The remote daemon's inline origin is a localhost name, which here
 			// would mean this computer; a remote chat shows no frame anyway.
 			inlineUrl: undefined,

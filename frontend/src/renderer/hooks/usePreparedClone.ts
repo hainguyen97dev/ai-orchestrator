@@ -2,7 +2,7 @@ import { apiErrorException } from "../lib/api-error-exception";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { components } from "../../api/schema";
 import { apiClient } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 
 type PreparedClone = components["schemas"]["ClonePreparationResult"];
 export type CloneProgress = components["schemas"]["CloneProgress"];

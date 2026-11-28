@@ -1,7 +1,6 @@
 import { Bell, CircleCheckBig, GitPullRequest, ListFilter, Loader2, Menu, MessageSquare, Plus, type AppIcon } from "@/components/app-icons";
 import { type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { statusColor, type MobileTheme } from "../../lib/mobile-theme";
 import { cn } from "../../lib/utils";
 import { AgentAvatar } from "../AgentAvatar";
 
@@ -25,6 +24,9 @@ const SYSTEM = MONO;
 
 /** tokens.ts `space`. */
 const space = { hair: 2, xxs: 4, xs: 6, sm: 8, md: 12, lg: 16 } as const;
+
+const statusColor = (_theme: MobileTheme, status: PhoneWorkerStatus) => ({ working: "currentColor", needs_input: "currentColor", mergeable: "currentColor", review_pending: "currentColor" })[status];
+type MobileTheme = { bgBase:string; bgElevated:string; textPrimary:string; textSecondary:string; textTertiary:string; textFaint:string; borderSubtle:string; borderDefault:string; accent:string; orange:string; amber:string; red:string; green:string; purple:string; blue:string };
 
 export type PhoneWorkerStatus = "working" | "needs_input" | "mergeable" | "review_pending";
 

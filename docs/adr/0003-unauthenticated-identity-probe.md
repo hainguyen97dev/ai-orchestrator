@@ -3,6 +3,8 @@
 Date: 2026-08-27
 Status: Accepted
 
+> Superseded: this feature was cut in L1 F-13 B1 on 2026-11-28. Kept as a historical decision record.
+
 ## Context
 
 The mobile app is moving from a single stored address to a list of endpoints it

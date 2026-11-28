@@ -20,7 +20,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
@@ -93,9 +92,6 @@ const (
 	TargetStakpak         Target = "stakpak"
 	TargetOpenInterpreter Target = "open-interpreter"
 	TargetTau             Target = "tau"
-	// TargetCloudflared is the optional connector that makes a paired phone
-	// reachable from outside the local network.
-	TargetCloudflared Target = "cloudflared"
 	// TargetCuaDriver is Cua Driver, the optional computer-use driver behind
 	// the agents' computer-use tools.
 	TargetCuaDriver Target = "cua-driver"
@@ -123,7 +119,7 @@ var agentTargetSet = func() map[Target]bool {
 // systemTargetSet is the stable contract of the legacy /system/install route.
 // Agent-only targets use /agents/{agent}/install instead.
 var systemTargetSet = map[Target]bool{
-	TargetTmux: true, TargetGH: true, TargetClaude: true, TargetCloudflared: true,
+	TargetTmux: true, TargetGH: true, TargetClaude: true,
 	TargetCuaDriver: true, TargetCodex: true, TargetOpencode: true, TargetOpencodeV2: true, TargetCopilot: true,
 }
 
@@ -214,9 +210,6 @@ type Plan struct {
 	managed bool
 	// managedPin is the release a managed reinstall installs again.
 	managedPin string
-	// download is a pinned release binary AO installs itself; see
-	// planCloudflared.
-	download *ports.ManagedBinaryDownload
 	// sourceMethod/sourcePackage identify the existing owner during a planned
 	// migration. Method and Package always describe what the operation runs.
 	sourceMethod  string
@@ -348,7 +341,7 @@ var devinInstalledLine = regexp.MustCompile(`Installed devin v\S+ to [^\r\n]+/de
 
 // Job is the tracked state of one harness operation for a Target.
 type Job struct {
-	Target              Target    `json:"target" enum:"tmux,gh,claude,claude-code,codex,cursor,opencode,opencode-v2,aider,copilot,grok,kimi,pi,amp,auggie,droid,crush,cline,goose,qwen,gemini,continue,devin,kiro,kilocode,vibe,muse,agy,autohand,kimchi,prime-agent,omp,fx,unreal-agent,codewhale,mimo-code,minimax-code,deepseek-harness,openhands,command-code,mastra-code,docker-agent,memcode,hermes,stakpak,open-interpreter,tau,cloudflared,cua-driver" description:"Fixed install target this job ran (or is running) for."`
+	Target              Target    `json:"target" enum:"tmux,gh,claude,claude-code,codex,cursor,opencode,opencode-v2,aider,copilot,grok,kimi,pi,amp,auggie,droid,crush,cline,goose,qwen,gemini,continue,devin,kiro,kilocode,vibe,muse,agy,autohand,kimchi,prime-agent,omp,fx,unreal-agent,codewhale,mimo-code,minimax-code,deepseek-harness,openhands,command-code,mastra-code,docker-agent,memcode,hermes,stakpak,open-interpreter,tau,cua-driver" description:"Fixed install target this job ran (or is running) for."`
 	Status              Status    `json:"status" enum:"idle,running,waiting_for_idle,installing,verifying,succeeded,failed,unsupported,interrupted" description:"Current lifecycle state of the job. waiting_for_idle: the update runs once every session using the harness is idle (Windows)."`
 	Method              string    `json:"method,omitempty" description:"Server-owned installation method selected for this harness job."`
 	Command             string    `json:"command,omitempty" description:"Human-readable install command, e.g. \"brew install tmux\", for display even before/without output."`
@@ -434,7 +427,6 @@ type Service struct {
 	commands              ports.CommandRunner
 	installCommands       ports.InstallCommandRunner
 	installScripts        ports.InstallScriptRunner
-	managedBinaries       ports.ManagedBinaryInstaller
 	installCapabilities   ports.InstallCapabilityProbe
 	pathWritable          ports.PathWritableProbe
 	privateNPMPrefixes    map[Target]string
@@ -447,8 +439,6 @@ type Service struct {
 	// runtime.GOOS; tests override it to exercise every OS branch from one
 	// machine, the same seam lookPath provides for PATH probing.
 	goos string
-	// goarch picks the pinned cloudflared asset; tests override it like goos.
-	goarch string
 	// installTimeout bounds each run — see defaultInstallTimeout. Tests
 	// override it with a short duration to exercise the timeout path without
 	// a real multi-minute wait.
@@ -497,17 +487,6 @@ type Service struct {
 	// officialVersion reads a vendor release channel when no package manager
 	// owns the harness binary.
 	officialVersion func(context.Context, Target) (string, error)
-	// cloudflaredDownloadFailed turns planCloudflared, the install the user
-	// starts, to the package-manager fallback once a download failed every
-	// try. The automatic download still tries again.
-	cloudflaredDownloadFailed atomic.Bool
-	// downloadWaits spaces a failing download's tries; see
-	// cloudflaredDownloadWaits.
-	downloadWaits []time.Duration
-	// cloudflaredAutoStarted records that remote access already asked for the
-	// connector once; onCloudflaredInstalled is its callback. Both under mu.
-	cloudflaredAutoStarted bool
-	onCloudflaredInstalled func()
 	// systemResolvers find system targets installed outside the daemon's PATH.
 	systemResolvers map[Target]func(context.Context) (string, error)
 }
@@ -552,7 +531,6 @@ func New(executables ports.ExecutableFinder, commands ports.CommandRunner) *Serv
 func NewWithDeps(executables ports.ExecutableFinder, commands ports.CommandRunner, deps Deps) *Service {
 	installCommands, _ := commands.(ports.InstallCommandRunner)
 	installScripts, _ := commands.(ports.InstallScriptRunner)
-	managedBinaries, _ := commands.(ports.ManagedBinaryInstaller)
 	installCapabilities, _ := executables.(ports.InstallCapabilityProbe)
 	pathWritable, _ := executables.(ports.PathWritableProbe)
 	backgroundContext, stop := context.WithCancel(context.Background())
@@ -563,7 +541,6 @@ func NewWithDeps(executables ports.ExecutableFinder, commands ports.CommandRunne
 		commands:                   commands,
 		installCommands:            installCommands,
 		installScripts:             installScripts,
-		managedBinaries:            managedBinaries,
 		installCapabilities:        installCapabilities,
 		jobStore:                   deps.JobStore,
 		verifier:                   deps.Verifier,
@@ -575,9 +552,7 @@ func NewWithDeps(executables ports.ExecutableFinder, commands ports.CommandRunne
 		managedRoot:                deps.ManagedRoot,
 		releases:                   deps.Releases,
 		goos:                       runtime.GOOS,
-		goarch:                     runtime.GOARCH,
 		installTimeout:             defaultInstallTimeout,
-		downloadWaits:              cloudflaredDownloadWaits,
 		persistenceTimeout:         defaultPersistenceTimeout,
 		stop:                       stop,
 		backgroundContext:          backgroundContext,
@@ -757,10 +732,6 @@ func (s *Service) startPlanLocked(target Target, plan Plan) Job {
 
 	go func() { //nolint:gosec // bounded daemon-owned worker intentionally outlives the request.
 		defer s.workers.Done()
-		if plan.download != nil {
-			s.runCloudflaredDownload(s.backgroundContext, *plan.download, job)
-			return
-		}
 		s.run(s.backgroundContext, plan, job)
 	}()
 
@@ -1344,13 +1315,6 @@ func (s *Service) run(parent context.Context, plan Plan, job *Job) {
 		s.mu.Unlock()
 		return
 	}
-	if connectorInstalled := s.onCloudflaredInstalled; job.Target == TargetCloudflared && connectorInstalled != nil {
-		// A package-manager install remote access waited on, like the
-		// download: the connector starts before the job reads as done.
-		s.mu.Unlock()
-		connectorInstalled()
-		s.mu.Lock()
-	}
 	job.Status = StatusSucceeded
 	callback := s.onSucceeded
 	target := job.Target
@@ -1756,9 +1720,6 @@ func (s *Service) resolvePlan(target Target) Plan {
 // displayCommand renders the plan for display. Prepare steps are joined with
 // "; " rather than "&&": a failed step is noted and Command still runs.
 func displayCommand(plan Plan) string {
-	if plan.download != nil {
-		return "download " + plan.download.URL
-	}
 	if plan.Script != nil {
 		display := fmt.Sprintf("%s <downloaded from %s>", strings.Join(plan.Script.Interpreter, " "), plan.Script.URL)
 		if len(plan.Script.Args) > 0 {
@@ -1864,8 +1825,6 @@ func (s *Service) planFor(target Target) Plan {
 		return s.planOpencode()
 	case TargetOpencodeV2:
 		return s.planAgent(TargetOpencodeV2)
-	case TargetCloudflared:
-		return s.planCloudflared()
 	case TargetCuaDriver:
 		return s.planCuaDriver()
 	default:
@@ -1904,30 +1863,6 @@ func (s *Service) planGH() Plan {
 		})
 	default:
 		return Plan{Target: TargetGH, Unsupported: true, Reason: "gh installation is not supported on this platform."}
-	}
-}
-
-// planCloudflared downloads AO's pinned cloudflared release into the managed
-// bin directory: the user does not install cloudflared by hand. Homebrew,
-// winget and the Linux packages are only the fallback, for a platform with no
-// pinned asset, a Service without a downloader, or once the download failed
-// during this daemon run.
-func (s *Service) planCloudflared() Plan {
-	if plan, ok := s.cloudflaredDownloadPlan(); ok && !s.cloudflaredDownloadFailed.Load() {
-		return plan
-	}
-	switch s.goos {
-	case "windows":
-		return s.planWinget(TargetCloudflared, "Cloudflare.cloudflared")
-	case "darwin":
-		return s.planBrew(TargetCloudflared, "cloudflared")
-	case "linux":
-		return s.planLinuxPackage(TargetCloudflared, func(string) string { return "cloudflared" })
-	default:
-		return Plan{
-			Target: TargetCloudflared, Unsupported: true,
-			Reason: "cloudflared installation is not supported on this platform.",
-		}
 	}
 }
 

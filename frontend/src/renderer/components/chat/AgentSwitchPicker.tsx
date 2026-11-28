@@ -17,7 +17,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { agentModelDisplayLabel, mergeSameNamedModels, offeredCatalogModels, recordedModelName, splitClaudeModels } from "../../lib/agent-model-choices";
 import { agentLabel } from "../../lib/agent-options";
 import { CHAT_SWITCH_TARGETS, TERMINAL_ONE_SHOT_TARGETS, TERMINAL_SWITCH_TARGETS } from "../../lib/agent-switch-targets";
-import { clientForSessionHost } from "../../lib/host-clients";
+import { clientForSessionHost } from "../../lib/local-daemon-client";
 import { toggleModelFavorite, useModelFavorites, type ModelFavorite } from "../../lib/model-favorites";
 import {
 	collapseModelVariants,

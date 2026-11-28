@@ -8,7 +8,7 @@ import { aoBridge } from "../lib/bridge";
 import { ChatMarkdown } from "../components/chat/ChatMarkdown";
 
 const get = vi.hoisted(() => vi.fn());
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost: () => ({ GET: get }) }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost: () => ({ GET: get }) }));
 vi.mock("./useConversation", () => ({
 	toSnapshot: (value: unknown) => value,
 	mergeConversationPages: (pages: ConversationSnapshot[]) => ({ ...pages[0], items: [...pages[1].items, ...pages[0].items] }),

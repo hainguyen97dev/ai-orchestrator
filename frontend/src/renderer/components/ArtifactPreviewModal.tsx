@@ -8,7 +8,7 @@ import { useCloudArtifactAccess, usePinnedArtifactUrl } from "../hooks/useCloudA
 import { useCloudCp } from "../hooks/useCloudCp";
 import { artifactContentUrl } from "../lib/artifact-content-url";
 import { artifactKey, type ArtifactRow } from "../lib/artifacts";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import { useNavigateToSession } from "../lib/navigate-to-session";
 import { useStartSessionFromArtifact } from "../hooks/useStartSessionFromArtifact";
 import { cn } from "../lib/utils";

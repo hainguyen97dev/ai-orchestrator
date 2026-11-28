@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Check, ChevronDown, ChevronRight, ChevronUp, FileCode2, Loader2, MoreVertical, Send } from "@/components/app-icons";
 import { prDetailsLoadQueryKey, usePRDetailsLoad } from "../../hooks/usePRDetailsLoad";
 import { agentLabel } from "../../lib/agent-options";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { formatTimeCompact } from "../../lib/format-time";
 import { reviewCommentIsOpen, type ReviewComment, type ReviewPRBlock, type ReviewReviewer, type ReviewReviewerStatus } from "../../lib/review-comments";
 import { cn } from "../../lib/utils";

@@ -446,14 +446,6 @@ describe("SettingsDialog", () => {
 		expect(screen.queryByRole("button", { name: "Environment" })).not.toBeInTheDocument();
 	});
 
-	it("opens the requested global settings page", async () => {
-		useUiStore.getState().openGlobalSettings("mobile");
-		renderSettingsDialog();
-
-		expect(await screen.findByTestId("global-settings-section")).toHaveTextContent("mobile");
-		expect(screen.getByRole("button", { name: "Mobile" })).toHaveAttribute("data-active", "true");
-	});
-
 	it("scrolls to and briefly highlights the setting a deep link names", async () => {
 		const original = Element.prototype.scrollIntoView;
 		const scrollIntoView = vi.fn();
@@ -469,15 +461,6 @@ describe("SettingsDialog", () => {
 		} finally {
 			Element.prototype.scrollIntoView = original;
 		}
-	});
-
-	it("shows Remote hosts without Developer mode even while the connection switch is off", async () => {
-		useUiStore.setState({ developerMode: false, remoteHosts: false });
-		useUiStore.getState().openGlobalSettings("remoteHosts");
-		renderSettingsDialog();
-
-		expect(await screen.findByTestId("global-settings-section")).toHaveTextContent("remoteHosts");
-		expect(screen.getByRole("button", { name: "Remote hosts" })).toHaveAttribute("data-active", "true");
 	});
 
 	it("opens Agents, where accounts live, and forwards its agent focus target", async () => {

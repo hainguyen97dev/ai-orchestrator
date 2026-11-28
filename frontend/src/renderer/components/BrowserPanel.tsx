@@ -68,7 +68,7 @@ import {
 	X,
 } from "@/components/app-icons";
 import { apiErrorMessage } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { useBrowserView, type BrowserViewModel } from "../hooks/useBrowserView";
 import { useBrowserRuntimeState } from "../hooks/useBrowserRuntimeState";
 import { useTabScrollEdges } from "../hooks/useTabScrollEdges";
@@ -261,14 +261,7 @@ export function useBrowserAnnotationQueue({
 						screenshotPaths = [];
 					}
 				}
-				let sendPayload = payload;
-				if (hostIdRef.current && sourcePreviewUrlRef.current) {
-					let pageUrl = "";
-					try {
-						pageUrl = await aoBridge.remotes.resolvePreviewUrl(hostIdRef.current, sendSessionId, payload.session.page.url);
-					} catch { /* A disconnected host cannot resolve a preview capability. */ }
-					sendPayload = { ...payload, session: { ...payload.session, page: { ...payload.session.page, url: pageUrl } } };
-				}
+				const sendPayload = payload;
 				const message = formatBrowserAnnotationMessage(sendPayload, { screenshotPaths });
 				const { error } = await client.POST("/api/v1/sessions/{sessionId}/send", {
 					params: { path: { sessionId: sendSessionId } },
@@ -896,13 +889,7 @@ export const BrowserPanelView = memo(function BrowserPanelView({
 		setUrlEditing(true);
 	};
 
-	// A remote preview's address works only in this panel, which trusts its
-	// certificate: outside AO it goes by its plain-http address.
-	const externalURL = async (url: string): Promise<string> => {
-		if (!session?.hostId) return url;
-		// A disconnected host has no other address for it: keep the one shown.
-		return aoBridge.remotes.externalUrl(session.hostId, url).catch(() => url);
-	};
+	const externalURL = async (url: string): Promise<string> => url;
 
 	const openCurrentPageExternally = async () => {
 		if (!isWebLink(navState.url) || agentPageOnHost) return;

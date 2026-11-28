@@ -2,7 +2,7 @@ import { apiErrorException } from "../lib/api-error-exception";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { apiErrorMessage } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import type { ApprovalMode } from "../types/conversation";
 import { STANDALONE_WORKSPACE_ID, type SessionKind } from "../types/workspace";
 import { remoteWorkspaceQueryKey, workspaceQueryKey } from "./useWorkspaceQuery";

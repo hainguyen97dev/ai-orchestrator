@@ -17,8 +17,6 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/presence"
 	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/pr"
 	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/service/review"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
@@ -56,7 +54,6 @@ type APIDeps struct {
 	Notifications      controllers.NotificationService
 	Reports            controllers.ReportService
 	NotificationStream controllers.NotificationStream
-	Push               controllers.PushRegistry
 	Import             controllers.ImportService
 	SessionImport      controllers.SessionImportService
 	Directories        controllers.DirectoryBrowserService
@@ -77,7 +74,6 @@ type APIDeps struct {
 	// GET /api/v1/telemetry/identity and updated by the desktop over loopback.
 	TelemetryIdentity ports.TelemetryIdentityStore
 	LifetimeSessions  func(context.Context) (int64, error)
-	Mobile            *controllers.MobileController
 	BrowserLive       *BrowserLiveHub
 	Browser           controllers.BrowserService
 	BrowserChrome     controllers.BrowserChromeService
@@ -89,15 +85,7 @@ type APIDeps struct {
 	SessionCapabilities      controllers.SessionCapabilityValidator
 	ShellPreviewCapabilities controllers.ShellPreviewCapabilityValidator
 	SystemChecks             controllers.SystemChecker
-	// HostID is this machine's stable, machine-bound identity, served by the
-	// unauthenticated GET /api/v1/identity probe so a phone can confirm which
-	// machine answered before presenting a credential.
-	HostID string
-	// Endpoints reports how this daemon can currently be reached, for the
-	// phone's endpoint-refresh route.
-	Endpoints  controllers.EndpointSource
-	HostUpdate controllers.HostUpdater
-	Installer  controllers.Installer
+	Installer controllers.Installer
 	// ComputerUse is the Cua Driver integration behind Settings and the computer-use tools.
 	ComputerUse controllers.ComputerUse
 	AgentAuth   controllers.AgentAuthService
@@ -113,47 +101,9 @@ type APIDeps struct {
 	// the route answering 501; the index itself is built by the daemon.
 	SessionSearch controllers.SessionSearchService
 
-	// Presence tracks which mobile devices are currently running the app.
-	// Nil disables presence tracking (the roster then reports every device offline).
-	Presence *presence.Tracker
 	// ClientTimeZone records the time zone the desktop app reports, which
 	// agent prompts prefer over this daemon's own. Nil disables recording.
 	ClientTimeZone *clienttz.Recorder
-
-	// DeviceRoster and DeviceLive back the desktop-only mobile device roster.
-	DeviceRoster controllers.DeviceRoster
-	DeviceLive   controllers.LiveSet
-	// DeviceAccess adds device tokens and the account to the device list. Nil skips them.
-	DeviceAccess controllers.DeviceAccess
-	// AccessDevices links push registrations to device tokens.
-	AccessDevices *mobilebridge.AccessDevices
-}
-
-// normalizeAPIDeps closes the Presence/DeviceLive duplication trap structurally.
-// Liveness enters APIDeps twice — Presence drives the heartbeat middleware that
-// touches it, DeviceLive is what the device roster reads — and nothing enforces
-// they stay the same tracker. If a future edit set Presence but left DeviceLive
-// nil (or re-split them), the roster would silently and permanently report
-// every device offline: no error, no log, no test failure short of a live
-// phone. Defaulting DeviceLive to Presence here, at the one place APIDeps is
-// consumed to build the API, makes that trap unreachable rather than merely
-// currently avoided by careful call-site wiring.
-//
-// A nil Presence on its own is not an error: the roster must keep listing and
-// managing devices with every device simply reporting offline (see
-// MobileDevicesController.List's own nil-Presence fallback) — that decision
-// stands. What IS a real mis-wiring is a live DeviceRoster with no liveness
-// source at all after the fallback above; that gets exactly one startup
-// warning, because a silent-forever-offline roster is precisely what a
-// startup log is for.
-func normalizeAPIDeps(deps APIDeps, log *slog.Logger) APIDeps {
-	if deps.DeviceLive == nil && deps.Presence != nil {
-		deps.DeviceLive = deps.Presence
-	}
-	if deps.DeviceRoster != nil && deps.DeviceLive == nil {
-		log.Warn("mobile device roster has no liveness tracker wired; every device will report offline")
-	}
-	return deps
 }
 
 // API owns one controller per resource and is the single Register call the
@@ -174,7 +124,6 @@ type API struct {
 	reviews       *controllers.ReviewsController
 	notifications *controllers.NotificationsController
 	reports       *controllers.ReportsController
-	push          *controllers.PushController
 	imports       *controllers.ImportController
 	sessionImport *controllers.SessionImportController
 	fs            *controllers.FSController
@@ -186,9 +135,6 @@ type API struct {
 	browser       *controllers.BrowserController
 	panes         *controllers.PanesController
 	system        *controllers.SystemController
-	identity      *controllers.IdentityController
-	endpoints     *controllers.EndpointsController
-	hostUpdate    *controllers.HostUpdateController
 	telemetryID   *controllers.TelemetryIdentityController
 	systemInstall *controllers.SystemInstallController
 	computerUse   *controllers.ComputerUseController
@@ -246,7 +192,6 @@ func newAPIWithLogger(cfg config.Config, deps APIDeps, log *slog.Logger) *API {
 		reviews:       &controllers.ReviewsController{Svc: deps.Reviews},
 		notifications: &controllers.NotificationsController{Svc: deps.Notifications, Stream: deps.NotificationStream},
 		reports:       &controllers.ReportsController{Svc: deps.Reports},
-		push:          &controllers.PushController{Registry: deps.Push, Devices: deps.AccessDevices},
 		imports:       &controllers.ImportController{Svc: deps.Import},
 		sessionImport: &controllers.SessionImportController{Svc: deps.SessionImport},
 		fs:            &controllers.FSController{Svc: deps.Directories},
@@ -258,9 +203,6 @@ func newAPIWithLogger(cfg config.Config, deps APIDeps, log *slog.Logger) *API {
 		browser:       &controllers.BrowserController{Svc: deps.Browser, Chrome: deps.BrowserChrome},
 		panes:         &controllers.PanesController{Svc: deps.Panes, Terminals: deps.PaneTerminals, Sessions: deps.Sessions, Capabilities: deps.SessionCapabilities},
 		system:        &controllers.SystemController{Checks: deps.SystemChecks},
-		identity:      &controllers.IdentityController{HostID: deps.HostID},
-		endpoints:     &controllers.EndpointsController{Source: deps.Endpoints},
-		hostUpdate:    &controllers.HostUpdateController{Updater: deps.HostUpdate},
 		telemetryID:   &controllers.TelemetryIdentityController{Source: deps.TelemetryIdentity, LifetimeSessions: deps.LifetimeSessions},
 		systemInstall: &controllers.SystemInstallController{Installer: deps.Installer},
 		computerUse:   &controllers.ComputerUseController{Svc: deps.ComputerUse},
@@ -386,7 +328,6 @@ func (a *API) Register(root chi.Router) {
 					ordinary.ServeHTTP(w, req)
 				})
 			})
-			r.Use(presenceMiddleware(a.deps.Presence))
 			r.Use(clientTimeZoneMiddleware(a.deps.ClientTimeZone))
 			a.agents.Register(r)
 			a.codexAccounts.Register(r)
@@ -401,7 +342,6 @@ func (a *API) Register(root chi.Router) {
 			a.reviews.Register(r)
 			a.notifications.Register(r)
 			a.reports.Register(r)
-			a.push.Register(r)
 			a.imports.Register(r)
 			a.sessionImport.Register(r)
 			a.fs.Register(r)
@@ -413,9 +353,6 @@ func (a *API) Register(root chi.Router) {
 			a.browser.Register(r)
 			a.panes.Register(r)
 			a.system.Register(r)
-			a.identity.Register(r)
-			a.endpoints.Register(r)
-			a.hostUpdate.Register(r)
 			a.telemetryID.Register(r)
 			a.systemInstall.Register(r)
 			a.computerUse.Register(r)

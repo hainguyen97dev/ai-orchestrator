@@ -23,7 +23,7 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorMessage: (_error: unknown, fallback = "Request failed") => fallback,
 }));
 
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost: () => ({ POST: postMock }) }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost: () => ({ POST: postMock }) }));
 
 vi.mock("../hooks/useBrowserRuntimeState", () => ({
 	useBrowserRuntimeState: () => ({ connected: true, connecting: false, rejected: false }),

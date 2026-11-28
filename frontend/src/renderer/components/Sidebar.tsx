@@ -38,9 +38,9 @@ import {
 	QuestionMark,
 	Search,
 	Settings,
-	Smartphone,
 	Trash2,
 	TriangleAlert,
+	Coffee,
 	User,
 	ArrowLeft,
 } from "@/components/app-icons";
@@ -165,10 +165,7 @@ import { ResizeHandle } from "./ResizeHandle";
 import { NAV_ROW_HIGHLIGHT_HOST_CLASS, NavRowHighlight } from "./NavRowHighlight";
 import { isLinuxPlatform, isMacPlatform } from "../lib/platform";
 import { useCloudSession } from "../lib/cloud-session";
-import type { RemoteHost } from "../hooks/useRemoteHosts";
-import { sessionNavigateTarget } from "../lib/navigate-to-session";
-import { sessionUiKey } from "../lib/hosts";
-import { RemoteHostsSection } from "./RemoteHostsSection";
+import { sessionUiKey } from "../lib/session-keys";
 
 // macOS paints framed chrome: the fixed TitlebarNav cluster carries the
 // sidebar toggle + history arrows above this surface. Windows hangs the sidebar
@@ -514,7 +511,7 @@ type SidebarProps = {
 	topbarOffset?: "toolbar" | "titlebar" | "trafficLights" | "session";
 	workspaceError?: string;
 	workspaces: WorkspaceSummary[];
-	remoteHosts?: RemoteHost[];
+	remoteHosts?: { hostId: string; label: string; url?: string; status?: string }[];
 	onCreateRemoteProject: (hostId: string, input: CreateProjectInput) => Promise<void>;
 	onInitializeRemoteProject: (hostId: string, path: string) => Promise<void>;
 	onOpenRemoteProject?: (hostId: string, projectId: string) => void;
@@ -557,8 +554,6 @@ function useSelection() {
 	const goUsage = useCallback(() => void navigate({ to: "/usage" }), [navigate]);
 	const goStandaloneBoard = useCallback(() => void navigate({ to: "/sessions" }), [navigate]);
 	const goGlobalSettings = useCallback(() => openGlobalSettings(), [openGlobalSettings]);
-	// Asking to connect a phone is the consent to turn Connect Mobile on, so the code starts preparing at once.
-	const goConnectMobile = useCallback(() => openGlobalSettings("mobile", { startPairing: true }), [openGlobalSettings]);
 	const goSettings = useCallback((projectId: string, cloudOrgId?: string) => openProjectSettings(projectId, { cloudOrgId }), [openProjectSettings]);
 	const goProject = useCallback(
 		(projectId: string) => void navigate({ to: "/projects/$projectId", params: { projectId } }),
@@ -595,11 +590,10 @@ function useSelection() {
 		// Settings is a modal — open it in place so the current page (session
 		// terminal, board, etc.) stays underneath.
 		goGlobalSettings,
-		goConnectMobile,
 		goSettings,
 		goProject,
 		goSession,
-	}), [goArtifacts, goAutomations, goUsage, goConnectMobile, goGlobalSettings, goHome, goProject, goSession, goSettings, goStandaloneBoard, params.hostId, params.projectId, params.sessionId, pathname]);
+	}), [goArtifacts, goAutomations, goUsage, goGlobalSettings, goHome, goProject, goSession, goSettings, goStandaloneBoard, params.hostId, params.projectId, params.sessionId, pathname]);
 }
 
 // A marker that asks the user to act now: the agent's question, or the red alert.
@@ -744,13 +738,12 @@ export const Sidebar = memo(function Sidebar({
 	remoteHosts = [],
 	onCreateRemoteProject,
 	onInitializeRemoteProject,
-	onOpenRemoteProject = () => undefined,
-	onOpenRemoteOrchestrator = () => undefined,
-	onConfigureRemoteProject = () => undefined,
-	onRemoveRemoteProject = () => undefined,
-	onRetryRemoteHosts = () => undefined,
-	remoteWorkspaces = [],
-	remoteFailedHostIds = [],
+	onOpenRemoteProject: _onOpenRemoteProject = () => undefined,
+	onOpenRemoteOrchestrator: _onOpenRemoteOrchestrator = () => undefined,
+	onConfigureRemoteProject: _onConfigureRemoteProject = () => undefined,
+	onRemoveRemoteProject: _onRemoveRemoteProject = () => undefined,
+	onRetryRemoteHosts: _onRetryRemoteHosts = () => undefined,
+	remoteFailedHostIds: _remoteFailedHostIds = [],
 	onCloneProject,
 	onCreateProject,
 	onInitializeProject,
@@ -758,7 +751,6 @@ export const Sidebar = memo(function Sidebar({
 	resizeAuxiliaryTargetRef,
 }: SidebarProps) {
 	const { t } = useTranslation();
-	const remoteNavigate = useNavigate();
 	const selection = useSelection();
 	const { state, setOpen, toggleSidebar } = useSidebar();
 	const isCollapsed = state === "collapsed";
@@ -811,7 +803,6 @@ export const Sidebar = memo(function Sidebar({
 	// Disclosure state is persisted as the IDs of projects that were expanded.
 	// An empty/missing store intentionally means all projects start collapsed.
 	const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => readExpandedProjectIds());
-	const [collapsedRemoteProjects, setCollapsedRemoteProjects] = useState<ReadonlySet<string>>(() => new Set());
 	const [dismissedInitialActiveProjectIds, setDismissedInitialActiveProjectIds] = useState<ReadonlySet<string>>(
 		() => new Set(),
 	);
@@ -881,24 +872,6 @@ export const Sidebar = memo(function Sidebar({
 				const next = new Set(prev);
 				next.add(activeProjectKey);
 				window.localStorage?.setItem(expandedProjectsStorageKey, JSON.stringify([...next]));
-				return next;
-			});
-		}
-		// A remote project keeps its own collapse state. Open it for a worker row;
-		// an orchestrator has no row, so its project stays as the user left it.
-		const remoteHostId = selection.activeRemoteHostId;
-		const remoteProjectId = selection.activeRemoteProjectId;
-		const remoteSession = remoteHostId && remoteProjectId
-			? remoteWorkspaces
-				.find((workspace) => workspace.hostId === remoteHostId && workspace.id === remoteProjectId)
-				?.sessions.find((session) => session.id === selection.activeRemoteSessionId)
-			: undefined;
-		if (remoteHostId && remoteProjectId && remoteSession && !isOrchestratorSession(remoteSession)) {
-			const remoteKey = sessionUiKey(remoteProjectId, remoteHostId);
-			setCollapsedRemoteProjects((prev) => {
-				if (!prev.has(remoteKey)) return prev;
-				const next = new Set(prev);
-				next.delete(remoteKey);
 				return next;
 			});
 		}
@@ -1282,45 +1255,7 @@ export const Sidebar = memo(function Sidebar({
 												onProjectDrop={handleProjectDrop}
 											/>
 										))}
-										<RemoteHostsSection
-											hosts={remoteHosts}
-											workspaces={remoteWorkspaces}
-											failedHostIds={remoteFailedHostIds}
-											renderProject={(host, workspace) => {
-												const hostId = host.hostId;
-												const projectKey = sessionUiKey(workspace.id, hostId);
-												const scopedSelection: Selection = {
-													...selection,
-													activeProjectId: selection.activeRemoteHostId === hostId ? selection.activeRemoteProjectId : undefined,
-													activeSessionId: selection.activeRemoteHostId === hostId ? selection.activeRemoteSessionId : undefined,
-												goProject: (projectId) => { onOpenRemoteProject(hostId, projectId); return undefined; },
-													goSession: (projectId, sessionId) => { void remoteNavigate(sessionNavigateTarget(projectId, sessionId, hostId)); },
-													goSettings: (projectId) => onConfigureRemoteProject(hostId, projectId),
-												};
-												return <ProjectItem
-													key={projectKey}
-													workspace={workspace}
-													hostLabel={host.label}
-													expanded={!collapsedRemoteProjects.has(projectKey)}
-													selection={scopedSelection}
-													isDragged={false}
-													projectDragInProgress={false}
-													consumeDragClick={() => false}
-													onToggle={() => setCollapsedRemoteProjects((previous) => {
-														const next = new Set(previous);
-														next.has(projectKey) ? next.delete(projectKey) : next.add(projectKey);
-														return next;
-													})}
-													onRemoveProject={(projectId) => onRemoveRemoteProject(hostId, projectId)}
-													onOpenOrchestrator={() => onOpenRemoteOrchestrator(hostId, workspace.id)}
-													onProjectDragStart={() => undefined}
-													onProjectDragEnd={() => undefined}
-													onProjectDragOver={() => undefined}
-													onProjectDrop={() => undefined}
-												/>;
-											}}
-											onRetry={onRetryRemoteHosts}
-										/>
+										
 										{isIconRail && <CreateProjectListItem />}
 										<div
 											aria-hidden="true"
@@ -1397,7 +1332,6 @@ export const Sidebar = memo(function Sidebar({
 						</div>
 					) : (
 						<FooterAccountRow
-							onConnectMobile={() => selection.goConnectMobile()}
 							onOpenSettings={() => selection.goGlobalSettings()}
 							tabIndex={isCollapsed ? -1 : 0}
 						/>
@@ -1419,24 +1353,7 @@ export const Sidebar = memo(function Sidebar({
 						/>
 						<CloudSignInRailButton tabIndex={isCollapsed ? 0 : -1} />
 						<CloudAccountRailButton tabIndex={isCollapsed ? 0 : -1} />
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Pressable
-									data-telemetry-id="sidebar.connect_mobile"
-									aria-label={t("settings.connectMobile")}
-									className={FOOTER_RAIL_BUTTON_CLASS}
-									onClick={() => selection.goConnectMobile()}
-									tabIndex={isCollapsed ? 0 : -1}
-									type="button"
-								>
-									<NavRowHighlight />
-									<span className="relative z-[1] grid place-items-center [&_svg]:size-icon-base">
-										<Smartphone aria-hidden="true" />
-									</span>
-								</Pressable>
-							</TooltipTrigger>
-							<TooltipContent side="right">{t("settings.connectMobile")}</TooltipContent>
-						</Tooltip>
+						<FooterAwakeMenu tabIndex={isCollapsed ? 0 : -1} />
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Pressable
@@ -3169,11 +3086,9 @@ function CloudSignInRailButton({ tabIndex }: { tabIndex: number }) {
  * is still loading the left side stays empty and the icons hold their place.
  */
 function FooterAccountRow({
-	onConnectMobile,
 	onOpenSettings,
 	tabIndex,
 }: {
-	onConnectMobile: () => void;
 	onOpenSettings: () => void;
 	tabIndex: number;
 }) {
@@ -3205,7 +3120,7 @@ function FooterAccountRow({
 					</Pressable>
 				)}
 			</div>
-			<FooterMobileMenu onConnectMobile={onConnectMobile} tabIndex={tabIndex} />
+			<FooterAwakeMenu tabIndex={tabIndex} />
 			{configured ? (
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -3230,77 +3145,29 @@ function FooterAccountRow({
 	);
 }
 
-/**
- * The footer's Mobile menu: Connect mobile, plus the Stay Awake toggle on macOS
- * (keeping the Mac awake is what lets the phone reach it). Off macOS there is
- * nothing to group, so the icon opens Connect mobile directly. A paused or
- * failed Stay Awake badges the icon so the warning is not hidden inside the menu.
- */
-function FooterMobileMenu({ onConnectMobile, tabIndex }: { onConnectMobile: () => void; tabIndex: number }) {
+/** The tray control for desktop Awake; mobile pairing has been removed. */
+function FooterAwakeMenu({ tabIndex }: { tabIndex: number }) {
 	const { t } = useTranslation();
-	// Held here, not in the menu row, so a failed toggle outlives the menu.
 	const stay = useFooterStayAwake();
 	const attention = awakeNeedsAttention(stay);
-	const label = isMac ? t("settings.mobile") : t("settings.connectMobile");
-	const icon = (
-		<span className="relative z-[1] grid place-items-center">
-			<Smartphone aria-hidden="true" />
-			{attention ? (
-				<TriangleAlert
-					aria-hidden="true"
-					className="absolute -right-1 -top-1 size-2.5! fill-background text-error"
-					data-testid="awake-inactive-indicator"
-					strokeWidth={2.5}
-				/>
-			) : null}
-		</span>
-	);
-
-	if (!isMac) {
-		return (
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<Pressable
-						aria-label={label}
-						className={FOOTER_ICON_BUTTON_CLASS}
-						onClick={onConnectMobile}
-						tabIndex={tabIndex}
-						type="button"
-					>
-						<NavRowHighlight />
-						{icon}
-					</Pressable>
-				</TooltipTrigger>
-				<TooltipContent>{label}</TooltipContent>
-			</Tooltip>
-		);
-	}
-
+	if (!isMac) return null;
 	return (
 		<DropdownMenu>
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<DropdownMenuTrigger asChild>
-						<Pressable
-							aria-label={label}
-							className={FOOTER_ICON_BUTTON_CLASS}
-							data-testid="footer-mobile-menu"
-							tabIndex={tabIndex}
-							type="button"
-						>
+						<Pressable aria-label={t("awake.title", "Stay Awake")} className={FOOTER_ICON_BUTTON_CLASS} data-testid="footer-awake-menu" tabIndex={tabIndex} type="button">
 							<NavRowHighlight />
-							{icon}
+							<span className="relative z-[1] grid place-items-center">
+								<Coffee aria-hidden="true" />
+								{attention ? <TriangleAlert aria-hidden="true" className="absolute -right-1 -top-1 size-2.5! fill-background text-error" data-testid="awake-inactive-indicator" strokeWidth={2.5} /> : null}
+							</span>
 						</Pressable>
 					</DropdownMenuTrigger>
 				</TooltipTrigger>
-				<TooltipContent>{label}</TooltipContent>
+				<TooltipContent>{t("awake.title", "Stay Awake")}</TooltipContent>
 			</Tooltip>
 			<DropdownMenuContent side="top" align="end" sideOffset={8} collisionPadding={8} className="w-56">
-				<DropdownMenuItem onSelect={onConnectMobile}>
-					<Smartphone aria-hidden="true" />
-					{t("settings.connectMobile")}
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
 				<AwakeMenuItem stay={stay} />
 			</DropdownMenuContent>
 		</DropdownMenu>

@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { components } from "../../api/schema";
 import { apiClient } from "../lib/api-client";
-import { clientForHost } from "../lib/host-clients";
+import { clientForHost } from "../lib/local-daemon-client";
 import { staleSavedTuning } from "../lib/stale-agent-tuning";
 import { useUiStore } from "../stores/ui-store";
 

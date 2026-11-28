@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import type { ApprovalMode } from "../types/conversation";
 
 /** The permission modes the picked chat agent runs in, strictest first, as the daemon reports them without starting anything. */

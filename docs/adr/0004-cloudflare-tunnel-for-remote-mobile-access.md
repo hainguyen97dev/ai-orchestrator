@@ -1,5 +1,7 @@
 # 4. A Cloudflare tunnel for remote mobile access
 
+> Superseded: this feature was cut in L1 F-13 B1 on 2026-11-28. Kept as a historical decision record.
+
 Date: 2026-08-28
 Status: Accepted
 

@@ -9,7 +9,7 @@ import {
 	type BackgroundTask,
 	type BackgroundTaskReading,
 } from "../hooks/useBackgroundTasks";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { shellTaskLabel } from "../lib/shell-task-label";
 import { cn } from "../lib/utils";
 import { failedTaskKey, useUiStore } from "../stores/ui-store";

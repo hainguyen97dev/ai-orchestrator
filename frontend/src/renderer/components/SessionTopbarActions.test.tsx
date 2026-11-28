@@ -85,8 +85,8 @@ vi.mock("../lib/spawn-orchestrator", async (importOriginal) => ({
 	...await importOriginal<typeof import("../lib/spawn-orchestrator")>(),
 	spawnOrchestrator: spawnMock,
 }));
-vi.mock("../hooks/useHostConnection", async (importOriginal) => ({
-	...await importOriginal<typeof import("../hooks/useHostConnection")>(),
+vi.mock("../hooks/useLocalHostConnection", async (importOriginal) => ({
+	...await importOriginal<typeof import("../hooks/useLocalHostConnection")>(),
 	useConnectedHosts: () => ["box-a"],
 }));
 vi.mock("../lib/telemetry", () => ({
@@ -274,17 +274,6 @@ describe("optimistic orchestrator topbar", () => {
 		expect(screen.getByRole("button", { name: "Choose editor", hidden: true })).toBeDisabled();
 		expect(screen.getByRole("button", { name: "Run a cue" })).toBeDisabled();
 	});
-
-	it("reserves no editor or cue slot on a remote host, where the session has neither", () => {
-		useWorkspaceQueryMock.mockReturnValue({ data: [], isError: false, isLoading: false, isSuccess: true });
-		render(
-			<QueryClientProvider client={new QueryClient()}>
-				<TooltipProvider><SessionTopbarActions startingOrchestrator route={{ hostId: "host-1", projectId: "proj-1" }} /></TooltipProvider>
-			</QueryClientProvider>,
-		);
-		expect(screen.queryByRole("button", { name: "Choose editor", hidden: true })).not.toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: "Run a cue" })).not.toBeInTheDocument();
-	});
 });
 
 describe("SessionTopbarActions embedded actions", () => {
@@ -373,18 +362,6 @@ describe("SessionTopbarActions embedded actions", () => {
 		expect(buttons[0]).toBe("Open orchestrator");
 		expect(buttons.slice(1, 4)).toEqual(["New terminal", "Session option", "Switch to chat UI"]);
 		expect(screen.queryByRole("button", { name: "Archive session" })).not.toBeInTheDocument();
-	});
-
-	it("uses the same embedded actions for a remote session, routed to its host", async () => {
-		paramsMock.hostId = "box-a";
-		const view = renderTopbarSessions([{ ...worker, hostId: "box-a" }, { ...orchestrator, hostId: "box-a" }], worker.id);
-		expect(screen.queryByRole("button", { name: /open in.*editor/i })).not.toBeInTheDocument();
-		await userEvent.click(screen.getByRole("button", { name: "Open orchestrator" }));
-		expect(navigateMock).toHaveBeenCalledWith({ to: "/host/$hostId/project/$projectId/session/$sessionId", params: { hostId: "box-a", projectId: "proj-1", sessionId: "orch-1" } });
-		view.unmount();
-		renderTopbarSessions([{ ...orchestrator, hostId: "box-a" }], orchestrator.id);
-		await userEvent.click(screen.getByRole("button", { name: "New task" }));
-		expect(useUiStore.getState().newTaskRequest).toMatchObject({ projectId: "proj-1", hostId: "box-a" });
 	});
 
 	it("marks embedded session actions compact when requested", () => {
@@ -577,20 +554,6 @@ describe("SessionTopbarActions orchestrator actions", () => {
 		await waitFor(() => expect(useUiStore.getState().settingsModal).toEqual({
 			scope: "project", projectId: "proj-1", section: "agents",
 		}));
-		expect(navigateMock).not.toHaveBeenCalled();
-	});
-
-	it("opens remote project agent settings when the daemon cannot fill a missing agent", async () => {
-		paramsMock.hostId = "box-a";
-		spawnMock.mockRejectedValueOnce(new OrchestratorSpawnError("Configure an orchestrator agent", "AGENT_REQUIRED"));
-		renderTopbarSessions([{ ...worker, hostId: "box-a" }], worker.id);
-
-		await userEvent.click(screen.getByRole("button", { name: "Open orchestrator" }));
-
-		await waitFor(() => expect(useUiStore.getState().settingsModal).toEqual({
-			scope: "project", projectId: "proj-1", hostId: "box-a", section: "agents",
-		}));
-		expect(spawnMock).toHaveBeenCalledWith("proj-1", "topbar", false, undefined, undefined, "box-a");
 		expect(navigateMock).not.toHaveBeenCalled();
 	});
 

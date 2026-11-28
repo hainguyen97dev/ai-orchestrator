@@ -6,7 +6,7 @@ import { useEffect, useMemo } from "react";
 import { useUiStore } from "../stores/ui-store";
 import { useTranslation } from "react-i18next";
 import { useRemoteWorkspaces, useWorkspaceQuery } from "../hooks/useWorkspaceQuery";
-import { labelForHost } from "../lib/host-clients";
+import { labelForHost } from "../lib/local-daemon-client";
 import { apiClient } from "../lib/api-client";
 import { TaskComposer } from "./TaskComposer";
 import { CLOUD_PROJECT_KIND, isScratchpadWorkspace, STANDALONE_WORKSPACE_ID } from "../types/workspace";

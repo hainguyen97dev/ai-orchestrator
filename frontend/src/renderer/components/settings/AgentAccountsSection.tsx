@@ -6,7 +6,7 @@ import { getAgentUILogin, type AgentLoginSnapshot } from "../../hooks/useAgentAu
 import { agentAccountLabel, agentAccountPerToken as perToken, agentAccountProviderFor, agentAccountProviderNames, agentAccountUsable, describeAccountProblem, useAgentAccountActions, useAgentAccounts, useAgentAccountUsage, withoutSameLogins, type AgentAccount, type AgentAccountLimitWindow, type AgentAccountLogin, type AgentAccountLoginRequest, type AgentAccountProvider } from "../../hooks/useAgentAccounts";
 import type { TerminalSessionState } from "../../hooks/useTerminalSession";
 import { apiErrorCode, apiErrorDetails } from "../../lib/api-client";
-import { baseUrlForHost } from "../../lib/host-clients";
+import { baseUrlForHost } from "../../lib/local-daemon-client";
 import { useShellMaybe } from "../../lib/shell-context";
 import { formatRelativeTime } from "../../lib/usage-format";
 import { cn } from "../../lib/utils";

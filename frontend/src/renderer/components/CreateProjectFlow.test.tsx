@@ -76,7 +76,7 @@ vi.mock("../lib/api-client", () => ({
 const hostMocks = vi.hoisted(() => ({
 	aGet: vi.fn(), aPost: vi.fn(), bGet: vi.fn(), bPost: vi.fn(),
 }));
-vi.mock("../lib/host-clients", () => {
+vi.mock("../lib/local-daemon-client", () => {
 	const client = (hostId: string) => hostId === "host-a"
 		? { GET: hostMocks.aGet, POST: hostMocks.aPost }
 		: { GET: hostMocks.bGet, POST: hostMocks.bPost };
@@ -534,107 +534,6 @@ describe("first run project actions", () => {
 	});
 });
 
-describe("CreateProjectFlow remote host", () => {
-	it("switches the shared picker back to this computer", async () => {
-		const user = userEvent.setup();
-		const onSelectHost = vi.fn();
-		renderChooseFlow({
-			initialOpen: true,
-			hostId: "host-a",
-			hostLabel: "Host A",
-			remoteHosts: [{ hostId: "host-a", label: "Host A", url: "https://a.test", status: "connected" }],
-			onSelectHost,
-		});
-		await user.click(screen.getByRole("combobox", { name: "Machine" }));
-		await user.click(screen.getByRole("option", { name: "This computer" }));
-		expect(onSelectHost).toHaveBeenCalledWith(undefined);
-	});
-
-	it("shows safe Git clone guidance from a failed host clone", async () => {
-		const user = userEvent.setup();
-		hostMocks.aPost.mockResolvedValueOnce(cloneStream({
-			error: {
-				code: "GIT_CLONE_FAILED",
-				message: "fatal: Authentication failed for https://user:secret@github.com/acme/private.git",
-			},
-		}));
-		renderChooseFlow({ hostId: "host-a", hostLabel: "Host A", connected: true });
-
-		await openSource(user, "Clone a repo");
-		fireEvent.click(await screen.findByText("Continue clone"));
-
-		await waitFor(() => expect(useUiStore.getState().globalToast?.body).toBe(
-			"Could not clone this repository. Check the URL, your Git credentials, and your network connection.",
-		));
-		expect(useUiStore.getState().globalToast?.body).not.toContain("secret");
-	});
-
-	it("explains a clone that ran past its time limit", async () => {
-		const user = userEvent.setup();
-		hostMocks.aPost.mockResolvedValueOnce(cloneStream({
-			error: { code: "GIT_CLONE_TIMED_OUT", message: "Cloning this repository took too long and was stopped." },
-		}));
-		renderChooseFlow({ hostId: "host-a", hostLabel: "Host A", connected: true });
-
-		await openSource(user, "Clone a repo");
-		fireEvent.click(await screen.findByText("Continue clone"));
-
-		await waitFor(() => expect(useUiStore.getState().globalToast?.body).toBe(
-			"Cloning took too long and was stopped. Check your network connection and try again.",
-		));
-	});
-
-	it("uses the shared source picker, host folder picker, and agent sheet without dismissing between steps", async () => {
-		const user = userEvent.setup();
-		const onDismiss = vi.fn();
-		const onCreateProject = vi.fn().mockResolvedValue(undefined);
-		hostMocks.aGet.mockResolvedValue({ data: { path: "/srv/todo-app", parent: "/srv", entries: [], truncated: false } });
-		hostMocks.aPost.mockResolvedValue({ data: projectValidation("/srv/todo-app") });
-		render(<QueryClientProvider client={new QueryClient()}><CreateProjectFlow
-			mode="choose" initialOpen hostId="host-a" hostLabel="Host A" connected
-			onCreateProject={onCreateProject} onInitializeProject={noop.onInitializeProject} onDismiss={onDismiss}
-		/></QueryClientProvider>);
-		await user.click(screen.getByRole("button", { name: "Open a local folder" }));
-		expect(await screen.findByRole("dialog", { name: "Choose a folder on Host A" })).toBeInTheDocument();
-		await user.click(await screen.findByRole("button", { name: "Use this folder" }));
-		await waitFor(() => expect(hostMocks.aPost).toHaveBeenCalledWith("/api/v1/imports/validate", {
-			body: { importKind: "project", path: "/srv/todo-app" },
-		}));
-		expect(await screen.findByTestId("agent-sheet")).toHaveAttribute("data-path", "/srv/todo-app");
-		expect(onDismiss).not.toHaveBeenCalled();
-		await user.click(screen.getByRole("button", { name: "Submit setup" }));
-		await waitFor(() => expect(onCreateProject).toHaveBeenCalledWith({
-			path: "/srv/todo-app", asWorkspace: false, ...PROJECT_AGENTS,
-		}));
-		expect(apiMocks.POST).not.toHaveBeenCalled();
-		expect(bridgeMocks.chooseDirectory).not.toHaveBeenCalled();
-	});
-
-	it("prepares a clone on the selected host and passes its token to project registration", async () => {
-		const user = userEvent.setup();
-		const onCreateProject = vi.fn().mockResolvedValue(undefined);
-		hostMocks.bPost.mockImplementation(async (path: string) => path === "/api/v1/projects/clone/prepare"
-			? { data: { path: "/repo/empty-repository", preparationId: "prepared-b" } }
-			: { data: projectValidation("/repo/empty-repository") });
-		render(<QueryClientProvider client={new QueryClient()}><CreateProjectFlow
-			mode="choose" initialOpen hostId="host-b" hostLabel="Host B" connected
-			onCreateProject={onCreateProject} onInitializeProject={noop.onInitializeProject}
-		/></QueryClientProvider>);
-		expect(screen.getByText("Pick up a project you already have on Host B")).toBeInTheDocument();
-		await user.click(screen.getByRole("button", { name: "Clone a repo" }));
-		await user.click(await screen.findByRole("button", { name: "Continue clone" }));
-		expect(await screen.findByTestId("agent-sheet")).toHaveAttribute("data-path", "/repo/empty-repository");
-		await user.click(screen.getByRole("button", { name: "Submit setup" }));
-		await waitFor(() => expect(onCreateProject).toHaveBeenCalledWith({
-			path: "/repo/empty-repository", clonePreparationId: "prepared-b", ...PROJECT_AGENTS,
-		}));
-		expect(hostMocks.bPost).toHaveBeenCalledWith("/api/v1/projects/clone/prepare", {
-			body: { remoteUrl: "file:///source/empty-repository.git", destinationParent: "/repo" },
-			signal: expect.any(AbortSignal),
-		});
-		expect(apiMocks.POST).not.toHaveBeenCalled();
-	});
-});
 
 describe("CreateProjectFlow droppedPath", () => {
 	it("shows the standalone agent action when the host provides one", async () => {
@@ -2186,24 +2085,6 @@ describe("CreateProjectFlow project import validation", () => {
 		screen.getByRole("button", { name: "Back" }).focus();
 		await user.keyboard("{Enter}");
 		await waitFor(() => expect(screen.getByRole("button", { name: "On this computer" })).toHaveFocus());
-	});
-
-	it("names the local tile for remote machines when any are connected", () => {
-		cloudMocks.cloudEnabled = true;
-		cloudMocks.sessionStatus = "authenticated";
-		render(
-			<CreateProjectFlow
-				embedded
-				mode="choose"
-				remoteHosts={[{ hostId: "box-a", label: "Box A", url: "http://box-a:3011", status: "connected" }]}
-				onSelectHost={vi.fn()}
-				{...noop}
-			/>,
-			{ wrapper: CloudTestProviders },
-		);
-
-		expect(screen.getByRole("button", { name: "On your machines" })).toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: "On this computer" })).not.toBeInTheDocument();
 	});
 
 	it("starts with connecting a repository, with no project name or manual setup", async () => {

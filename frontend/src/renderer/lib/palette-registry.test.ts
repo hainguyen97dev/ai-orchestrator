@@ -50,10 +50,8 @@ describe("palette registry", () => {
 		const regular = buildSettingsCommands(t, { developerMode: false, diagnostics: false }).map((item) => item.id);
 		const developer = buildSettingsCommands(t, { developerMode: true, diagnostics: true }).map((item) => item.id);
 		expect(regular).toContain("setting:harness");
-		expect(regular).toContain("setting:remote-hosts");
 		expect(regular).not.toContain("setting:diagnostics");
 		expect(developer).toContain("setting:harness");
-		expect(developer).toContain("setting:remote-hosts");
 		expect(developer).toContain("setting:diagnostics");
 	});
 
@@ -75,21 +73,6 @@ describe("palette registry", () => {
 		expect(ids).not.toContain("setting:keep-awake-lid");
 		expect(ids).toContain("setting:color-theme");
 		expect(ids).toContain("setting:computer-use");
-	});
-
-	it("names a row's page beside it and keeps page keywords on the page row", () => {
-		const items = buildSettingsCommands(t, { developerMode: false, diagnostics: false });
-		const logins = items.find((item) => item.id === "setting:harness-logins");
-		expect(logins?.title).toBe("Agent logins");
-		expect(logins?.subtitle).toBe(t("settings.harness"));
-		expect(logins?.action).toEqual({ kind: "open-settings-section", section: "harness", focus: t("settings.harness.viewLabel") });
-		// Accounts live on the Harness page, so an accounts search lands there.
-		expect(filterCommands(items, "codex accounts")[0]?.action).toMatchObject({ kind: "open-settings-section", section: "harness" });
-		// API keys are set from a harness's Account, so a key search lands there too.
-		expect(filterCommands(items, "api key")[0]?.action).toMatchObject({ kind: "open-settings-section", section: "harness" });
-		expect(filterCommands(items, "pair phone")[0]?.id).toBe("setting:mobile");
-		expect(filterCommands(items, "color theme")[0]?.id).toBe("setting:color-theme");
-		expect(filterCommands(items, "dark mode")[0]?.id).toBe("setting:theme");
 	});
 
 	it("lands a row on itself and a page on its top", () => {

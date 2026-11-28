@@ -271,7 +271,7 @@ vi.mock("./ChatWorkspace", async () => {
 	};
 });
 
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { SessionChatSurface } from "./SessionChatSurface";
 import {
 	peekSessionSearchReveal,

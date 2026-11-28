@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import type { ApprovalMode, ChatConfigOption, ChatModel, TurnSettings } from "../../types/conversation";
 import { TurnSettingsBar } from "./TurnSettingsBar";
 

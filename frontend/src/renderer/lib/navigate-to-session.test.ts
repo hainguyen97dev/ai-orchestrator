@@ -1,26 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { projectNavigateTarget, sessionNavigateTarget } from "./navigate-to-session";
 
-describe("sessionNavigateTarget", () => {
-	it("keeps local URLs and identifies the remote host in a session URL", () => {
-		expect(sessionNavigateTarget("project-1", "session-1")).toEqual({
-			to: "/projects/$projectId/sessions/$sessionId",
-			params: { projectId: "project-1", sessionId: "session-1" },
-		});
-		expect(sessionNavigateTarget("project-1", "session-1", "machine-a")).toEqual({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "machine-a", projectId: "project-1", sessionId: "session-1" },
-		});
-		expect(sessionNavigateTarget("__standalone__", "standalone-1")).toEqual({
-			to: "/sessions/$sessionId",
-			params: { sessionId: "standalone-1" },
-		});
-	});
-});
-
-it("routes a project to its owning host without changing the local URL", () => {
-	expect(projectNavigateTarget("project-1")).toEqual({ to: "/projects/$projectId", params: { projectId: "project-1" } });
-	expect(projectNavigateTarget("project-1", "machine-a")).toEqual({
-		to: "/host/$hostId/project/$projectId", params: { hostId: "machine-a", projectId: "project-1" },
-	});
+describe("local session navigation", () => {
+ it("routes standalone and project sessions locally", () => {
+  expect(sessionNavigateTarget(undefined, "s1")).toEqual({ to: "/sessions/$sessionId", params: { sessionId: "s1" } });
+  expect(sessionNavigateTarget("p1", "s1")).toEqual({ to: "/projects/$projectId/sessions/$sessionId", params: { projectId: "p1", sessionId: "s1" } });
+ });
+ it("routes project roots locally", () => { expect(projectNavigateTarget("p1")).toEqual({ to: "/projects/$projectId", params: { projectId: "p1" } }); });
 });

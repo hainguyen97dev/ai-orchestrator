@@ -7,21 +7,22 @@ afterEach(() => { vi.useRealTimers(); });
 function setup() {
 	vi.useFakeTimers();
 	let base: string | null = "http://127.0.0.1:3001";
-	const request = vi.fn(async (url: string) => Response.json(url.endsWith("mobile/status") ? { keepAwake: { active: false } } : { active: false }));
+	const request = vi.fn(async () => Response.json({ active: false }));
 	const setState = vi.fn();
 	const monitor = createAwakeTrayMonitor({ baseURL: () => base, request, setState });
 	return { request, setState, monitor, setBase: (value: string | null) => { base = value; } };
 }
 
 describe("local awake menu bar monitor", () => {
-	it.each(["awake", "mobile/status"])("shows an active hold from %s and clears after release", async (source) => {
+	it("shows an active desktop hold and clears after release", async () => {
 		const { request, setState, monitor } = setup();
 		await vi.advanceTimersByTimeAsync(0);
+		expect(request).toHaveBeenCalledWith("http://127.0.0.1:3001/api/v1/awake", expect.anything());
 		expect(setState).toHaveBeenLastCalledWith(false);
-		request.mockImplementation(async (url) => Response.json(url.endsWith("mobile/status") ? { keepAwake: { active: source === "mobile/status" } } : { active: source === "awake" }));
+		request.mockResolvedValue(Response.json({ active: true }));
 		await vi.advanceTimersByTimeAsync(5000);
 		expect(setState).toHaveBeenLastCalledWith(true);
-		request.mockImplementation(async (url) => Response.json(url.endsWith("mobile/status") ? { keepAwake: { active: false } } : { active: false }));
+		request.mockResolvedValue(Response.json({ active: false }));
 		await vi.advanceTimersByTimeAsync(5000);
 		expect(setState).toHaveBeenLastCalledWith(false);
 		monitor.dispose();
@@ -40,19 +41,7 @@ describe("local awake menu bar monitor", () => {
 		await vi.advanceTimersByTimeAsync(5000);
 		expect(setState).toHaveBeenLastCalledWith(null);
 		setBase("http://127.0.0.1:3001");
-		request.mockImplementation(async (url) => Response.json(url.endsWith("mobile/status") ? { keepAwake: { active: false } } : { active: true }));
-		await vi.advanceTimersByTimeAsync(5000);
-		expect(setState).toHaveBeenLastCalledWith(true);
-		monitor.dispose();
-	});
-
-	it("keeps a confirmed hold visible when the other source is unavailable", async () => {
-		const { request, setState, monitor } = setup();
-		await vi.advanceTimersByTimeAsync(0);
-		request.mockImplementation(async (url) => {
-			if (url.endsWith("mobile/status")) throw new Error("unavailable");
-			return Response.json({ active: true });
-		});
+		request.mockResolvedValue(Response.json({ active: true }));
 		await vi.advanceTimersByTimeAsync(5000);
 		expect(setState).toHaveBeenLastCalledWith(true);
 		monitor.dispose();
@@ -66,7 +55,7 @@ describe("local awake menu bar monitor", () => {
 		await vi.advanceTimersByTimeAsync(5000);
 		setBase("http://127.0.0.1:3002");
 		setState.mockClear();
-		for (const finish of finishes) finish(Response.json({ active: true, keepAwake: { active: true } }));
+		for (const finish of finishes) finish(Response.json({ active: true }));
 		await vi.advanceTimersByTimeAsync(0);
 		expect(setState).not.toHaveBeenCalled();
 		monitor.dispose();
@@ -75,7 +64,7 @@ describe("local awake menu bar monitor", () => {
 	it("forwards each change in the awake state, once, for the sidebar", async () => {
 		vi.useFakeTimers();
 		let awake = { active: false, sessions: [] as unknown[] };
-		const request = vi.fn(async (url: string) => Response.json(url.endsWith("mobile/status") ? { keepAwake: { active: false } } : awake));
+		const request = vi.fn(async () => Response.json(awake));
 		const onAwakeState = vi.fn();
 		const monitor = createAwakeTrayMonitor({ baseURL: () => "http://127.0.0.1:3001", request, setState: vi.fn(), onAwakeState });
 		await vi.advanceTimersByTimeAsync(0);
@@ -93,9 +82,7 @@ describe("local awake menu bar monitor", () => {
 		vi.useFakeTimers();
 		let base: string | null = "http://127.0.0.1:3001";
 		const finishes: ((value: Response) => void)[] = [];
-		const request = vi.fn((url: string) => url.endsWith("mobile/status")
-			? Promise.resolve(Response.json({ keepAwake: { active: false } }))
-			: new Promise<Response>((resolve) => { finishes.push(resolve); }));
+		const request = vi.fn(() => new Promise<Response>((resolve) => { finishes.push(resolve); }));
 		const onAwakeState = vi.fn();
 		const monitor = createAwakeTrayMonitor({ baseURL: () => base, request, setState: vi.fn(), onAwakeState });
 		await vi.advanceTimersByTimeAsync(0);
@@ -118,7 +105,7 @@ describe("local awake menu bar monitor", () => {
 		setBase(null);
 		monitor.dispose();
 		setState.mockClear();
-		for (const finish of finishes) finish(Response.json({ active: true, keepAwake: { active: true } }));
+		for (const finish of finishes) finish(Response.json({ active: true }));
 		await vi.advanceTimersByTimeAsync(5000);
 		expect(setState).not.toHaveBeenCalled();
 		expect(request).toHaveBeenCalledTimes(count);

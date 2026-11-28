@@ -7,7 +7,7 @@ import { usePRDetailsLoad } from "./usePRDetailsLoad";
 import { sessionScmSummaryQueryKey, type SessionPRSummary } from "./useSessionScmSummary";
 
 const postMock = vi.fn(async () => ({ data: {}, error: undefined }));
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost: () => ({ POST: postMock }) }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost: () => ({ POST: postMock }) }));
 
 const URL = "https://github.com/acme/repo/pull/7";
 const pr = (url = URL): SessionPRSummary => ({

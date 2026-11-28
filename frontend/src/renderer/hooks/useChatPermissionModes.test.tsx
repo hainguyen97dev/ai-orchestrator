@@ -5,7 +5,7 @@ import { expect, it, vi } from "vitest";
 import { useChatPermissionModes } from "./useChatPermissionModes";
 
 const h = vi.hoisted(() => ({ get: vi.fn() }));
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForSessionHost: () => ({ GET: h.get }),
 }));
 

@@ -1,5 +1,5 @@
 import { BrowserIcon, type AppIcon } from "../icons";
-import { Activity, Bot, CircleHelp, CreditCard, Keyboard, MousePointerClick, RefreshCw, Server, Settings2, Smartphone, Users } from "@/components/app-icons";
+import { Activity, Bot, CircleHelp, CreditCard, Keyboard, MousePointerClick, RefreshCw, Server, Settings2, Users } from "@/components/app-icons";
 import { lazy, type ReactNode } from "react";
 import type { TFunction } from "i18next";
 import type { GlobalSettingsSection, HarnessDiagnosticsRequest } from "../../stores/ui-store";
@@ -9,13 +9,10 @@ import { BrowserDownloadsSection } from "./BrowserDownloadsSection";
 import { BrowserProfilesSection } from "./BrowserProfilesSection";
 import { CoderSettingsSection } from "./CoderSettingsSection";
 import { ComputerUseSection } from "./ComputerUseSection";
-import { ConnectMobileContent } from "./ConnectMobileContent";
 import { GeneralSettingsSection } from "./GeneralSettingsSection";
 import { HarnessSettingsSection } from "./HarnessSettingsSection";
 import { KeyboardShortcutsContent } from "./KeyboardShortcutsContent";
-import { MobileDevicesSection } from "./MobileDevicesSection";
 import { ReportProblemContent } from "./ReportProblemContent";
-import { RemoteHostsSettings } from "./RemoteHostsSettings";
 import { SettingsSection } from "./SettingsSection";
 import { teamsUnavailable } from "../../hooks/useTeams";
 import { TeamsSection } from "./TeamsSection";
@@ -98,7 +95,7 @@ const globalSettingsCatalog: SettingsCatalogItem[] = [
 		id: "harness",
 		icon: Bot,
 		label: (t) => t("settings.harness"),
-		render: (_t, titleHidden, { focusAgentId, hostId, harnessView, startLogin, showDiagnostics }) => <HarnessSettingsSection focusAgentId={focusAgentId} {...(hostId ? { hostId } : {})} {...(harnessView ? { initialView: harnessView } : {})} {...(startLogin ? { startLogin } : {})} {...(showDiagnostics ? { showDiagnostics } : {})} titleHidden={titleHidden} />,
+		render: (_t, titleHidden, { focusAgentId, harnessView, startLogin, showDiagnostics }) => <HarnessSettingsSection focusAgentId={focusAgentId} {...(harnessView ? { initialView: harnessView } : {})} {...(startLogin ? { startLogin } : {})} {...(showDiagnostics ? { showDiagnostics } : {})} titleHidden={titleHidden} />,
 	},
 	{
 		id: "teams",
@@ -141,27 +138,6 @@ const globalSettingsCatalog: SettingsCatalogItem[] = [
 		label: (t) => t("settings.coder.navLabel"),
 		visible: ({ cloudEnabled, customCoder }) => cloudEnabled && customCoder,
 		render: (_t, titleHidden, { singlePage }) => <CoderSettingsSection titleHidden={titleHidden || Boolean(singlePage)} />,
-	},
-	{
-		id: "remoteHosts",
-		icon: Server,
-		label: (t) => t("settings.remoteHosts"),
-		render: (_t, titleHidden) => <RemoteHostsSettings titleHidden={titleHidden} />,
-	},
-	{
-		id: "mobile",
-		icon: Smartphone,
-		label: (t) => t("settings.mobile"),
-		render: (t, titleHidden) => (
-			<>
-				<SettingsSection titleHidden={titleHidden} title={t("settings.mobile")} grouped>
-					{/* Its own card rows: the pairing content row, then Keep awake. */}
-					<ConnectMobileContent active />
-				</SettingsSection>
-				{/* Its own section (and card) when devices are paired; renders nothing otherwise. */}
-				<MobileDevicesSection />
-			</>
-		),
 	},
 	{
 		id: "shortcuts",

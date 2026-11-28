@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { components } from "../../api/schema";
 import { apiErrorCode } from "../lib/api-client";
 import { apiErrorException } from "../lib/api-error-exception";
-import { clientForSessionHost } from "../lib/host-clients";
-import { LOCAL_HOST, type HostId } from "../lib/hosts";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST, type HostId } from "../lib/session-keys";
 import { isQueryRefinement } from "../lib/session-search-machines";
 
 export type SessionSearchResponse = components["schemas"]["SessionSearchResponse"];

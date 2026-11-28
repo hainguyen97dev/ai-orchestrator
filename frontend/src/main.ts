@@ -52,10 +52,8 @@ import {
 	setUpdateSettings,
 	setMacDifferentialUpdates,
 	returnToHome,
-	getMacInstallBlocker,
 	type UpdateCheckOptions,
 } from "./main/auto-updater";
-import { REMOTE_APP_UPDATE_ACTION, runRemoteAppUpdate } from "./main/remote-app-update";
 import { listFeatureBuilds, getActiveFeatureBuild } from "./main/feature-builds";
 import { clearMainSentryCache, initMainSentry, sanitizeRendererCapture } from "./main/sentry-main";
 import { TelemetryPolicyAuthority, resolveDesktopDataDir } from "./main/telemetry-policy-file";
@@ -186,7 +184,6 @@ import { DEFAULT_TERMINAL_SHELL, type TerminalShellPreference } from "./shared/u
 import { bundledTmuxBinaryPath, stableBundledTmuxBinaryPath } from "./shared/bundled-tmux";
 import {
 	getCloudAccessToken,
-	getCloudSession,
 	getCloudSessionCached,
 	installCloudIPC,
 	registerCloudProtocol,
@@ -203,7 +200,6 @@ import { registerCloudShareIpc } from "./main/cloud-share-ipc";
 import { ShareLinkRecords } from "./main/cloud-share-links";
 import { registerSessionShareUrlsIpc, SessionShareUrls } from "./main/session-share-urls";
 import { createCloudAgentProxy } from "./main/cloud-agent-proxy";
-import { installCloudCpProxy } from "./main/cloud-cp-proxy";
 import { clearFolderImports, isChosenFolder, registerCloudFolderPushIpc, rememberChosenFolder } from "./main/cloud-folder-push";
 import { createControlPlaneUrlResolver } from "./main/cloud-control-plane-url";
 import { DEFAULT_POSTHOG_HOST, DEFAULT_POSTHOG_PROJECT_KEY } from "./shared/posthog-config";
@@ -285,12 +281,7 @@ import {
 import { buildLinuxAppMenuTemplate, buildMacAppMenuTemplate, buildWindowsAppMenuTemplate, coerceAppMenuAvailability, type AppMenuCommands } from "./main/menu";
 import { ancestorRepositorySetupWarning, resolveCheckedOutBranch, scanImportFolder } from "./main/import-folder-scan";
 import { parseOpenFolderPathArg } from "./main/open-folder-arg";
-import { registerRemotesIpc, remotesFilePath } from "./main/remotes-main";
-import { sealSavedPasswords, setPasswordCipher } from "./main/remotes-store";
-import { createLocalHostIdentity } from "./main/remote-request";
-import { RemoteRegistry } from "./main/remote-registry";
-import { startRemoteProxy } from "./main/remote-proxy";
-import { captureMainError, reportDaemonFailure, ExpectedIpcError, installIpcErrorCapture, setMainErrorSink } from "./main/main-error-capture";
+import { captureMainError, reportDaemonFailure, installIpcErrorCapture, setMainErrorSink } from "./main/main-error-capture";
 
 // Every ipcMain.handle registered from here on reports unexpected throws.
 installIpcErrorCapture(ipcMain);
@@ -1217,7 +1208,7 @@ async function createWindowInternal(): Promise<void> {
 		// artifact's inline origin) is not the page navigating away.
 		const app = shellWebContents.mainFrame;
 		if (event.initiator?.processId === app.processId && event.initiator.routingId === app.routingId) return;
-		if (blocksRenderFrameNavigation(event.frame.url, event.url, (url) => remoteRegistry.isRenderUrl(url))) event.preventDefault();
+		if (blocksRenderFrameNavigation(event.frame.url, event.url)) event.preventDefault();
 	});
 
 	// A cloud artifact frame's page can open another file of its session; the
@@ -1242,11 +1233,11 @@ async function createWindowInternal(): Promise<void> {
 	shellWebContents.session.webRequest.onBeforeRequest((details, callback) => {
 		// Loading an agent page into a frame is always allowed: the page's own
 		// CSP sandboxes it, and it is judged by its own rule from then on.
-		if (details.resourceType === "subFrame" && (isAgentPageUrl(details.url) || remoteRegistry.isRenderUrl(details.url))) return callback({});
+		if (details.resourceType === "subFrame" && (isAgentPageUrl(details.url))) return callback({});
 		let pageUrl: string | undefined;
 		try {
 			for (let frame = details.frame; frame && !pageUrl; frame = frame.parent) {
-				if (isAgentPageUrl(frame.url) || remoteRegistry.isRenderUrl(frame.url)) pageUrl = frame.url;
+				if (isAgentPageUrl(frame.url)) pageUrl = frame.url;
 			}
 		} catch {
 			// The frame went away mid-request; nothing of its page is left to load.
@@ -1335,7 +1326,7 @@ async function createWindowInternal(): Promise<void> {
 		onTabCloseFailure: createBrowserCloseDiagnostics(browserProfileStateDir(), app.getVersion()),
 		// Agent tabs: only a connected host's or a cloud session's own
 		// agent-browser viewer may report the remote page a Browser tab shows.
-		isAgentBrowserUrl: (url) => remoteRegistry.isAgentBrowserUrl(url) || cloudAgentProxy.isAgentBrowserUrl(url),
+		isAgentBrowserUrl: (url) => cloudAgentProxy.isAgentBrowserUrl(url),
 		mainWindow,
 		shellWebContents,
 		ipcMain,
@@ -2052,17 +2043,7 @@ function establishBrowserRuntimeLink(): void {
 			if (command.action === "__render-measure") {
 				return measureRender({ BrowserWindow }, command.args ?? {}, signal);
 			}
-			if (command.action === REMOTE_APP_UPDATE_ACTION) {
-				return runRemoteAppUpdate({
-					packaged: app.isPackaged,
-					hasUnsavedDrafts: () => chatDraftRisks.length > 0,
-					installBlocker: getMacInstallBlocker,
-					check: () => checkForUpdatesNow(path.dirname(rfp)),
-					download: () => downloadUpdateNow(),
-					status: getUpdateStatus,
-					install: quitAndInstallUpdate,
-				}, command.args ?? {});
-			}
+
 			const host = browserViewHost;
 			if (!host) {
 				throw Object.assign(new Error("Browser target owner is unavailable"), {
@@ -3811,39 +3792,6 @@ async function chooseDirectory(title: string, defaultPath?: string): Promise<str
 	return chosen;
 }
 
-const remoteRegistry = new RemoteRegistry((entry) => {
-	// Node reports "null" for the custom app:// origin; only Vite's HTTP URL
-	// needs parsing. Never reflect an arbitrary request Origin here.
-	const devUrl = typeof MAIN_WINDOW_VITE_DEV_SERVER_URL === "undefined" ? undefined : MAIN_WINDOW_VITE_DEV_SERVER_URL;
-	return startRemoteProxy(entry, devUrl ? new URL(devUrl).origin : RENDERER_ORIGIN);
-});
-setPasswordCipher(() => protectedStorageAvailable() ? {
-	encrypt: (text) => safeStorage.encryptString(text).toString("base64"),
-	decrypt: (sealed) => safeStorage.decryptString(Buffer.from(sealed, "base64")),
-} : null);
-void app.whenReady().then(() => sealSavedPasswords(remotesFilePath())).catch((error: unknown) => {
-	console.warn("[remotes] could not encrypt saved host passwords", error);
-});
-registerRemotesIpc(ipcMain, {
-	file: remotesFilePath(),
-	registry: remoteRegistry,
-	requireAccount: async () => {
-		if (!await getCloudSession(cloudDataDir())) throw new ExpectedIpcError("Sign in to Orchestrator Cloud to use remote hosts.");
-	},
-	getAccountId: async () => (await getCloudSession(cloudDataDir()))?.user.id ?? "",
-	cloudRequest: async (method, path, { body, signal } = {}) => {
-		const baseUrl = await cloudControlPlaneUrl();
-		if (!baseUrl) throw new ExpectedIpcError("No Orchestrator Cloud control plane is configured.");
-		return cloudCpProxy.request({
-			baseUrl, path, method,
-			...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
-		}, { hostTokens: true, signal });
-	},
-	localIdentity: createLocalHostIdentity(() => daemonStatus.state === "ready" && daemonStatus.port
-		? { port: daemonStatus.port, pid: daemonStatus.pid, generation: daemonAttachmentGeneration }
-		: null),
-});
-
 ipcMain.handle("app:chooseDirectory", async (_event, input?: string | { title?: string; defaultPath?: string }) => {
 	const title = typeof input === "string"
 		? input
@@ -4066,7 +4014,7 @@ registerCloudShareIpc({
 	records: new ShareLinkRecords(path.join(desktopDataDir, "share-links.json")),
 	// A remote host's file is read through its loopback proxy, which adds the
 	// host's credential; Node's fetch sends no Origin, as the proxy requires.
-	hostApiBase: (hostId) => remoteRegistry.apiBase(hostId),
+	hostApiBase: (_hostId) => undefined,
 	fetchHost: (url, init) => fetch(url, init),
 });
 // Session and project share links this device made, so Copy link works again
@@ -4462,7 +4410,6 @@ function notifyRenderersOfCloudSession(
 	// being lost (a sign-out, or a refresh that failed for good), clears them.
 	bindArtifactSnapshotsToCloudAccount(account?.user.id ?? null);
 	if (!account) {
-		void remoteRegistry.disconnectAll();
 		void cloudAgentProxy.close();
 	}
 	const contents = getShellWebContents();
@@ -4488,7 +4435,6 @@ installCloudLocalAuthIPC(cloudDataDir, notifyRenderersOfCloudSession);
 
 // Cloud control-plane proxy IPC — cloudCp:request/openStream/closeStream.
 // CP calls go through main so the WorkOS bearer token never reaches a renderer.
-const cloudCpProxy = installCloudCpProxy(cloudDataDir, cloudControlPlaneUrl);
 
 // A local folder added to a cloud workspace is uploaded from here, into the
 // empty repository the control plane made for it, so the token stays in main.
@@ -5088,7 +5034,6 @@ app.on("before-quit", (event) => {
 			};
 			const cleanup = Promise.all([
 				disposeAllBrowserViewHosts(),
-				remoteRegistry.closeAll(),
 				cloudAgentProxy.close(),
 				telemetryPolicyController?.close() ?? Promise.resolve(),
 				retireSides(),
