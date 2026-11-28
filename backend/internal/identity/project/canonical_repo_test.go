@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )

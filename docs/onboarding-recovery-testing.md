@@ -8,7 +8,7 @@ Git or agent installation flows are unchanged.
 From the repository root:
 
 ```bash
-go -C backend test ./internal/service/project ./internal/httpd/...
+go -C backend test ./internal/identity/project ./internal/httpd/...
 npm --prefix frontend run test -- src/renderer/hooks/usePreparedClone.test.ts src/renderer/components/CloneRepositoryDialog.test.ts src/renderer/components/CreateProjectFlow.test.tsx src/renderer/components/CreateProjectAgentSheet.test.tsx src/renderer/i18n/instance.test.ts
 ```
 

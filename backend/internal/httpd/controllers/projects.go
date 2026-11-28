@@ -14,7 +14,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
+	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

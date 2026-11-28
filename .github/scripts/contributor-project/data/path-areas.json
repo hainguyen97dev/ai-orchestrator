@@ -134,7 +134,7 @@
   {"glob": "backend/internal/service/session/github_actor*", "area": "scm-git"},
   {"glob": "backend/internal/gitdefault/*", "area": "scm-git"},
   {"glob": "backend/internal/daemon/scm_wiring*", "area": "scm-git"},
-  {"glob": "backend/internal/service/project/*", "area": "projects-workspaces"},
+  {"glob": "backend/internal/identity/project/*", "area": "projects-workspaces"},
   {"glob": "backend/internal/service/session/kanban*", "area": "projects-workspaces"},
   {"glob": "backend/internal/sharedkernel/domain/project*", "area": "projects-workspaces"},
   {"glob": "backend/internal/sharedkernel/domain/kanban*", "area": "projects-workspaces"},

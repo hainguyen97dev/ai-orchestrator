@@ -25,7 +25,7 @@
     "uiRoutes": [],
     "tables": ["pr", "pr_checks", "pr_comment", "pr_details", "pr_review_threads", "pr_reviews", "pr_url_alias", "review", "review_run", "review_session", "repository_renames"] },
   { "id": "F-06", "name": "Project, project config", "bc": "identity (project)", "ui": "Projects", "action": "Giữ",
-    "packages": ["internal/service/project"],
+    "packages": ["internal/identity/project"],
     "httpPrefixes": ["/api/v1/projects"],
     "uiRoutes": ["_shell.projects.$projectId.tsx", "_shell.projects.$projectId_.settings.tsx", "_shell.index.tsx"],
     "tables": ["projects"] },
