@@ -6,7 +6,8 @@
 // nothing else. Blank lines pass. Generated files are skipped by path. New,
 // deleted and binary files fail. Usage: node scripts/check-import-only-diff.mjs <baseRef>
 import { execFileSync } from 'node:child_process';
-import { dirname, resolve } from 'node:path';
+import { realpathSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const MODULE_PATHS = [
@@ -118,7 +119,7 @@ export function checkDiff(text, { isGenerated = isGeneratedPath } = {}) {
   return violations;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   const base = process.argv[2];
   if (!base) {
     console.error('usage: check-import-only-diff.mjs <baseRef> [headRef]');
@@ -131,5 +132,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const violations = checkDiff(text);
   for (const v of violations) console.log(v);
   console.log(violations.length === 0 ? 'import-only: ok' : `import-only: ${violations.length} violation(s)`);
-  process.exit(violations.length === 0 ? 0 : 1);
+  process.exitCode = violations.length === 0 ? 0 : 1;
 }

@@ -73,6 +73,13 @@ test('files backend tests and Go CI read from outside backend/ run the Go lane',
   assert.ok(pickLanes(pr(['frontend/scripts/prepare-cloudflared.mjs'])).lanes.includes('go'));
 });
 
+test('DDD spec, CONTEXT.md and archtest changes run the config lane (ddd-spec checker)', () => {
+  assert.deepEqual(pickLanes(pr(['docs/fork/ddd-spec/04-bounded-context-map.md'])).lanes, ['config']);
+  assert.deepEqual(pickLanes(pr(['CONTEXT.md'])).lanes, ['config']);
+  assert.deepEqual(pickLanes(pr(['backend/internal/archtest/rules.go'])).lanes, ['go', 'cli-e2e', 'config']);
+  assert.deepEqual(pickLanes(pr(['docs/fork/README.md'])).lanes, []);
+});
+
 test('packages/shared reaches the frontend, with all vitest files', () => {
   const pick = pickLanes(pr(['packages/shared/theme/palette.ts']));
   assert.deepEqual(pick.lanes, ['frontend', 'boundary']);

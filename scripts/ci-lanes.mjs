@@ -11,7 +11,7 @@ export const LANES = {
   boundary: [FRONTEND, /^backend\/internal\/httpd\//],
   cloud: [/^packages\/cloud-client\//, /^contracts\/cloud\//],
   'product-ui': [/^packages\/product-ui\//],
-  config: [/^\.github\//, /^scripts\//],
+  config: [/^\.github\//, /^scripts\//, /^docs\/fork\/ddd-spec\//, /^CONTEXT\.md$/, /^backend\/internal\/archtest\//],
 };
 
 export const FRONTEND_WORKFLOW_LANES = ['frontend', 'docs', 'boundary', 'cloud', 'product-ui'];

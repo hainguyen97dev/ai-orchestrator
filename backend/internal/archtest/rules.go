@@ -7,8 +7,9 @@
 //     Imports between two new contexts are forbidden in v1.
 //   - R2: platform/... and integrations/... never import a new context.
 //   - R3: nothing outside a new context imports that context's acl.
-//   - R4: outside its acl, a new context never imports AO's SQLite store
-//     (AOStorePackages). It gets a *sql.DB from the daemon and owns its tables.
+//   - R4: outside its acl, a new context never imports AO's SQLite store or
+//     change_log CDC (AOSubstratePackages). It gets a *sql.DB from the daemon
+//     and owns its tables.
 package archtest
 
 import (
@@ -78,18 +79,25 @@ func under(path, dir string) bool {
 	return path == dir || strings.HasPrefix(path, dir+"/")
 }
 
-// AOStorePackages hold AO's own tables and queries; sqlite.Open returns the
-// AO store, so the opener counts too. Generic helpers (timestamps, searchtext,
-// sqlitetest) stay open to new contexts.
-var AOStorePackages = []string{
-	"platform/persistence/sqlite",
+// AOSubstratePackages hold AO's own tables, queries and change_log CDC;
+// sqlite.Open returns the AO store, so the opener counts too. Generic helpers
+// (timestamps, searchtext, sqlitetest) stay open to new contexts.
+// Each entry covers its subpackages too, except the bare opener, whose
+// siblings are the generic helpers.
+var AOSubstratePackages = []string{
 	"platform/persistence/sqlite/store",
 	"platform/persistence/sqlite/gen",
+	"platform/eventbus/cdc",
 }
 
+const aoSQLiteOpener = "platform/persistence/sqlite"
+
 func aoStore(path string) bool {
-	for _, p := range AOStorePackages {
-		if path == p {
+	if path == aoSQLiteOpener {
+		return true
+	}
+	for _, p := range AOSubstratePackages {
+		if under(path, p) {
 			return true
 		}
 	}

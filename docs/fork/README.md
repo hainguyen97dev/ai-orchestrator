@@ -12,10 +12,11 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 ## Trạng thái (2026-11-28)
 
 - P0 xong: chỉ còn `main`, không worktree phụ, không session/script chạy nền.
-- Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge. Plan đã chạy xong: `2026-11-27-p1-feature-code-map.md`, `2026-11-27-p3a-frame-move.md`.
-- P3a (đã merge vào `main` ở local 2026-11-28): module path `github.com/hainguyen97dev/ai-orchestrator/backend`; `internal/sharedkernel/{domain,ports}`; `platform/persistence/sqlite` (migrations ở `backend/platform/persistence/sqlite/migrations`); `platform/eventbus/cdc`; `cmd/server`; test kiến trúc `internal/archtest`; smoke `TestSmokeProjectSessionWorktreeDiff`; job CI `import-only` theo label.
-- P1 (đã merge vào `main` ở local 2026-11-28): `docs/fork/ddd-spec/17-feature-code-map.md`. Còn Task 4: chuyển `../ai-orchestra` vào `../archive/2026-11-27/` — hoãn vì một `ao-chat-host` bản dev vẫn chạy từ binary trong thư mục đó.
-- Phase kế tiếp sau khi merge: P2 (Strategic DDD) và P3b (dời theo cụm, thứ tự ở §5 của 17).
+- Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge. Plan đã chạy xong: `2026-11-27-p1-feature-code-map.md`, `2026-11-27-p3a-frame-move.md`, `2026-11-28-p2-strategic-ddd.md`.
+- P3a (đã merge, push 2026-11-28): module path `github.com/hainguyen97dev/ai-orchestrator/backend`; `internal/sharedkernel/{domain,ports}`; `platform/persistence/sqlite` (migrations ở `backend/platform/persistence/sqlite/migrations`); `platform/eventbus/cdc`; `cmd/server`; test kiến trúc `internal/archtest`; smoke `TestSmokeProjectSessionWorktreeDiff`; job CI `import-only` theo label.
+- P1 (đã merge, push 2026-11-28): `docs/fork/ddd-spec/17-feature-code-map.md`. Còn Task 4: chuyển `../ai-orchestra` vào `../archive/2026-11-27/` — hoãn vì một `ao-chat-host` bản dev vẫn chạy từ binary trong thư mục đó.
+- P2 Strategic DDD: 01/04/05/06/14 v0.2 + CONTEXT.md một bộ thuật ngữ; 16 context (04 là nguồn duy nhất); event v1 (`domain_outbox`, `consumed_events`, 05); luật R4 phủ cả `platform/eventbus/cdc`; script `scripts/ddd-spec/check-consistency.mjs` chạy ở lane CI config. **Thứ tự ưu tiên nguồn (04) chờ chủ sản phẩm duyệt.**
+- Phase kế tiếp: P3b (dời theo cụm, thứ tự ở §5 của 17).
 
 ## Quyết định đã chốt
 
@@ -30,8 +31,11 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 | K7 | Module path mới `github.com/hainguyen97dev/ai-orchestrator/backend`, đổi trong một PR thuần cơ học ở P3a. |
 | K8 | Lát dọc nghiệm thu: CR "mua hộ roaming không cần đăng nhập". Mỗi phase đẩy lát này đi thêm một bước. |
 | K9 | Agent: mỗi task/node chọn harness, model, effort, account. Account hiện có: Claude `pro`, Codex `plus`. |
-| K10 | Context mới không đọc store SQLite của AO (`platform/persistence/sqlite`, `/store`, `/gen`) ngoài `infrastructure/acl/**` (luật R4 trong `internal/archtest`). Context mới nhận `*sql.DB` từ daemon, tự sở hữu bảng của mình (migration vẫn chung thư mục). |
+| K10 | Context mới không đọc store SQLite của AO (`platform/persistence/sqlite`, `/store`, `/gen`) hay CDC `change_log` (`platform/eventbus/cdc`) ngoài `infrastructure/acl/**` (luật R4 trong `internal/archtest`). Context mới nhận `*sql.DB` từ daemon, tự sở hữu bảng của mình (migration vẫn chung thư mục). |
 | K11 | Job `import-only` không là required check: PR chỉ dời code thì gắn label `import-only`; job chỉ chạy khi có label. |
+| K12 | Thuật ngữ theo spec: RoleProfile gộp vào Agent Definition, KnowledgeSnapshot thành Context Package (01 §Thuật ngữ bỏ). |
+| K13 | Danh sách context: bảng §Context của 04 là nguồn duy nhất; 14 và `archtest.NewContexts` phải khớp (script ddd-spec). |
+| K14 | Event v1: context mới ghi `domain_outbox` cùng transaction, consumer idempotent qua `consumed_events`, dead-letter sau 5 lần lỗi; `change_log` của AO chỉ vào context mới qua ACL. |
 
 ## Quy tắc thường trực
 
