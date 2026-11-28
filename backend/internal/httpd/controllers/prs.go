@@ -12,7 +12,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
+	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/pr"
 )
 
 var prIDPattern = regexp.MustCompile(`^[1-9]\d*$`)

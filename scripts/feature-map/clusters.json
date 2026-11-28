@@ -20,7 +20,7 @@
     "uiRoutes": ["_shell.usage.tsx"],
     "tables": ["model_usage_events", "anthropic_usage_event_details", "openai_usage_event_details", "usage_bindings", "usage_sources", "usage_message_summary", "usage_pr_measurement", "usage_price_overrides", "usage_project_identity", "usage_tier_repairs", "agent_limit_readings", "deleted_session_account_usage"] },
   { "id": "F-05", "name": "PR, CI, review", "bc": "quality", "ui": "Tasks", "action": "Bọc → QualityGate",
-    "packages": ["internal/service/pr", "internal/review", "internal/service/review", "internal/observe/scm", "internal/autoreview", "internal/reviewgateway", "internal/adapters/scm/...", "internal/adapters/reviewer/...", "internal/service/prpreview", "internal/service/githubpat"],
+    "packages": ["internal/quality/pr", "internal/quality/review", "internal/quality/service/review", "internal/quality/observe/scm", "internal/quality/autoreview", "internal/quality/reviewgateway", "internal/quality/scm/...", "internal/quality/reviewer/...", "internal/quality/prpreview", "internal/quality/githubpat"],
     "httpPrefixes": ["/api/v1/prs", "/api/v1/reviews", "/api/v1/github", "/api/v1/pr-preview", "/api/v1/sessions/{sessionId}/pr"],
     "uiRoutes": [],
     "tables": ["pr", "pr_checks", "pr_comment", "pr_details", "pr_review_threads", "pr_reviews", "pr_url_alias", "review", "review_run", "review_session", "repository_renames"] },

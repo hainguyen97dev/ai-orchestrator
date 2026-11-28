@@ -11,7 +11,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/githubpat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/githubpat"
 )
 
 // GitHubPATService is the controller-facing contract for local GitHub PAT management.

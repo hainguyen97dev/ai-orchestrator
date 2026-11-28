@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"testing"
 
-	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/scm"
+	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/observe/scm"
+	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 

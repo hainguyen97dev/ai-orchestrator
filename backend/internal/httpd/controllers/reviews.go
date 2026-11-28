@@ -10,8 +10,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/review"
-	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/review"
+	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/review"
+	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/service/review"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )

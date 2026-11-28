@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/review"
+	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/review"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

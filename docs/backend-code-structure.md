@@ -31,8 +31,8 @@ graph TB
     subgraph Services["Service Layer"]
         Project[internal/identity/project]
         Session[internal/service/session]
-        PR[internal/service/pr]
-        Review[internal/service/review]
+        PR[internal/quality/pr]
+        Review[internal/quality/service/review]
     end
 
     subgraph Core["Core Layer"]
@@ -238,8 +238,8 @@ graph LR
 
     Services --> Project[internal/identity/project<br/>Project CRUD]
     Services --> Session[internal/service/session<br/>Session read-model assembly]
-    Services --> PR[internal/service/pr<br/>PR observation/actions]
-    Services --> Review[internal/service/review<br/>Code review]
+    Services --> PR[internal/quality/pr<br/>PR observation/actions]
+    Services --> Review[internal/quality/service/review<br/>Code review]
 
     Services -->|delegate to| SessionMgr[session_manager]
     Services -->|query| Store[storage stores]
@@ -396,7 +396,7 @@ graph TD
 
 **Current observation packages:**
 
-- `internal/observe/scm` — provider-neutral SCM observer loop for GitHub and GitLab
+- `internal/quality/observe/scm` — provider-neutral SCM observer loop for GitHub and GitLab
 - `internal/observe/reaper` — Runtime liveness observation loop
 
 **Belongs here:**

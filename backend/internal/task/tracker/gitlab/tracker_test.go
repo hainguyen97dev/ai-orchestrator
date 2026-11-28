@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/gitlab"
+	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/gitlab"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

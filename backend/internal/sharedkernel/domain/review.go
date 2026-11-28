@@ -180,7 +180,7 @@ const (
 type ReviewRunStatus string
 
 // Review run statuses. queued, launching, running and cancelling are active:
-// every active run has an owner and a time limit (see internal/review's run
+// every active run has an owner and a time limit (see internal/quality/review's run
 // supervisor). The rest are final and are never overwritten.
 const (
 	// ReviewRunQueued means the trigger accepted the pass and wrote the row; no

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
-	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/review"
+	reviewcore "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/review"
+	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/multi"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

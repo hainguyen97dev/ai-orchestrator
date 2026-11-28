@@ -10,7 +10,7 @@
  * exactly as many, within its paragraph; a run with no such partner is plain
  * text. A backslash before a backtick makes that backtick plain text.
  *
- * The daemon's markdownCodeRanges (backend/internal/service/pr/markdown_code.go)
+ * The daemon's markdownCodeRanges (backend/internal/quality/pr/markdown_code.go)
  * mirrors this, so the app and the daemon agree on which files a comment links.
  */
 export function markdownCodeRanges(text: string): [number, number][] {

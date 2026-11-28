@@ -19,8 +19,8 @@ import (
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/presence"
-	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
-	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/review"
+	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/pr"
+	reviewsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/service/review"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"
 )

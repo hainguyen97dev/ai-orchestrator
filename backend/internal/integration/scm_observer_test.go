@@ -19,9 +19,9 @@ import (
 	"testing"
 	"time"
 
-	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
-	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/scm"
+	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/observe/scm"
+	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"

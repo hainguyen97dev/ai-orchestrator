@@ -14,7 +14,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/prpreview"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/prpreview"
 )
 
 type fakePRPreview struct {

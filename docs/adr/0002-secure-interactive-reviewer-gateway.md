@@ -18,7 +18,7 @@ granting only the capabilities needed for review.
 
 ## Decision
 
-`backend/internal/reviewgateway` is the provider-neutral capability boundary for
+`backend/internal/quality/reviewgateway` is the provider-neutral capability boundary for
 future interactive reviewer adapters.
 
 - Each reviewer receives a private neutral working directory, configuration,

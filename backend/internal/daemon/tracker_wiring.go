@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/gitlab"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
+	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/gitlab"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	trackergithub "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/github"

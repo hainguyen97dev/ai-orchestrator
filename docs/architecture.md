@@ -274,7 +274,7 @@ Observation is separated from action:
 
 Review runs follow the same split. The Runtime Reaper also probes reviewers,
 but only those serving an in-progress review run, and reports each pass to the
-review engine's run lifecycle (`internal/review/run_lifecycle.go`) instead of
+review engine's run lifecycle (`internal/quality/review/run_lifecycle.go`) instead of
 the session LCM: a reviewer has no session row. The run lifecycle reduces the
 pass into guarded `review_run` transitions (`queued`, `launching`, `running`,
 `cancelling`, then `completed`, `failed`, `cancelled` or `superseded`), applies
