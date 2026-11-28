@@ -16,7 +16,12 @@ func TestViolations(t *testing.T) {
 		{"acl may import AO", "m/internal/workflow/infrastructure/acl", "m/internal/service/session", 0},
 		{"acl subpackage may import AO", "m/internal/workflow/infrastructure/acl/session", "m/pkg/agentruntime", 0},
 		{"new context importing another new context", "m/internal/workflow/domain", "m/internal/knowledge/domain", 1},
-		{"new context importing platform", "m/internal/knowledge/infrastructure/persistence", "m/platform/persistence/sqlite", 0},
+		{"new context importing platform", "m/internal/knowledge/infrastructure/persistence", "m/platform/eventbus/cdc", 0},
+		{"new context importing a generic sqlite helper", "m/internal/knowledge/infrastructure/persistence", "m/platform/persistence/sqlite/timestamps", 0},
+		{"new context importing the AO sqlite store", "m/internal/knowledge/infrastructure/persistence", "m/platform/persistence/sqlite/store", 1},
+		{"new context importing AO sqlc queries", "m/internal/budget/application", "m/platform/persistence/sqlite/gen", 1},
+		{"new context importing the sqlite opener", "m/internal/workflow/infrastructure", "m/platform/persistence/sqlite", 1},
+		{"acl may import the AO sqlite store", "m/internal/knowledge/infrastructure/acl/sessions", "m/platform/persistence/sqlite/store", 0},
 		{"new context importing integrations", "m/internal/knowledge/infrastructure/vault", "m/integrations/obsidian", 0},
 		{"new context importing itself", "m/internal/workflow/application", "m/internal/workflow/domain", 0},
 		{"new context importing stdlib and third party", "m/internal/context/domain", "golang.org/x/sync/errgroup", 0},
@@ -34,6 +39,14 @@ func TestViolations(t *testing.T) {
 				t.Fatalf("Violations = %v, want %d violation(s)", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestAOStoreViolationIsR4(t *testing.T) {
+	got := Violations("m", []Pkg{{Path: "m/internal/workflow/domain", Imports: []string{"m/platform/persistence/sqlite/store"}}})
+	want := []string{"m/internal/workflow/domain -> m/platform/persistence/sqlite/store: R4"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Violations = %v, want %v", got, want)
 	}
 }
 

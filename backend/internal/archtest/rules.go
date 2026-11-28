@@ -7,6 +7,8 @@
 //     Imports between two new contexts are forbidden in v1.
 //   - R2: platform/... and integrations/... never import a new context.
 //   - R3: nothing outside a new context imports that context's acl.
+//   - R4: outside its acl, a new context never imports AO's SQLite store
+//     (AOStorePackages). It gets a *sql.DB from the daemon and owns its tables.
 package archtest
 
 import (
@@ -41,11 +43,14 @@ func Violations(module string, pkgs []Pkg) []string {
 			rule := ""
 			switch {
 			case fromCtx != "":
+				inACL := under(from, "internal/"+fromCtx+"/infrastructure/acl")
 				switch {
+				case aoStore(to) && !inACL:
+					rule = "R4"
 				case toCtx == fromCtx, under(to, "platform"), under(to, "integrations"):
 				case toCtx != "":
 					rule = "R1"
-				case !under(from, "internal/"+fromCtx+"/infrastructure/acl"):
+				case !inACL:
 					rule = "R1"
 				}
 			case toCtx != "" && (under(from, "platform") || under(from, "integrations")):
@@ -71,6 +76,24 @@ func rel(module, path string) (string, bool) {
 
 func under(path, dir string) bool {
 	return path == dir || strings.HasPrefix(path, dir+"/")
+}
+
+// AOStorePackages hold AO's own tables and queries; sqlite.Open returns the
+// AO store, so the opener counts too. Generic helpers (timestamps, searchtext,
+// sqlitetest) stay open to new contexts.
+var AOStorePackages = []string{
+	"platform/persistence/sqlite",
+	"platform/persistence/sqlite/store",
+	"platform/persistence/sqlite/gen",
+}
+
+func aoStore(path string) bool {
+	for _, p := range AOStorePackages {
+		if path == p {
+			return true
+		}
+	}
+	return false
 }
 
 func newContext(path string) string {

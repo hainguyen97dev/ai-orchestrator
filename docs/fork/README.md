@@ -30,6 +30,8 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 | K7 | Module path mới `github.com/hainguyen97dev/ai-orchestrator/backend`, đổi trong một PR thuần cơ học ở P3a. |
 | K8 | Lát dọc nghiệm thu: CR "mua hộ roaming không cần đăng nhập". Mỗi phase đẩy lát này đi thêm một bước. |
 | K9 | Agent: mỗi task/node chọn harness, model, effort, account. Account hiện có: Claude `pro`, Codex `plus`. |
+| K10 | Context mới không đọc store SQLite của AO (`platform/persistence/sqlite`, `/store`, `/gen`) ngoài `infrastructure/acl/**` (luật R4 trong `internal/archtest`). Context mới nhận `*sql.DB` từ daemon, tự sở hữu bảng của mình (migration vẫn chung thư mục). |
+| K11 | Job `import-only` không là required check: PR chỉ dời code thì gắn label `import-only`; job chỉ chạy khi có label. |
 
 ## Quy tắc thường trực
 
