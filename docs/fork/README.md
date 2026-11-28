@@ -15,7 +15,7 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 - Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge. Plan đã chạy xong: `2026-11-27-p1-feature-code-map.md`, `2026-11-27-p3a-frame-move.md`, `2026-11-28-p2-strategic-ddd.md`.
 - P3a (đã merge, push 2026-11-28): module path `github.com/hainguyen97dev/ai-orchestrator/backend`; `internal/sharedkernel/{domain,ports}`; `platform/persistence/sqlite` (migrations ở `backend/platform/persistence/sqlite/migrations`); `platform/eventbus/cdc`; `cmd/server`; test kiến trúc `internal/archtest`; smoke `TestSmokeProjectSessionWorktreeDiff`; job CI `import-only` theo label.
 - P1 (đã merge, push 2026-11-28): `docs/fork/ddd-spec/17-feature-code-map.md`. Còn Task 4: chuyển `../ai-orchestra` vào `../archive/2026-11-27/` — hoãn vì một `ao-chat-host` bản dev vẫn chạy từ binary trong thư mục đó.
-- P2 Strategic DDD: 01/04/05/06/14 v0.2 + CONTEXT.md một bộ thuật ngữ; 16 context (04 là nguồn duy nhất); event v1 (`domain_outbox`, `consumed_events`, 05); luật R4 phủ cả `platform/eventbus/cdc`; script `scripts/ddd-spec/check-consistency.mjs` chạy ở lane CI config. **Thứ tự ưu tiên nguồn (04) chờ chủ sản phẩm duyệt.**
+- P2 Strategic DDD: 01/04/05/06/14 v0.2 + CONTEXT.md một bộ thuật ngữ; 16 context (04 là nguồn duy nhất); event v1 (`domain_outbox`, `consumed_events`, 05); luật R4 phủ cả `platform/eventbus/cdc`; script `scripts/ddd-spec/check-consistency.mjs` chạy ở lane CI config. Thứ tự ưu tiên nguồn (04) đã duyệt 2026-11-28.
 - Phase kế tiếp: P3b (dời theo cụm, thứ tự ở §5 của 17).
 
 ## Quyết định đã chốt
@@ -36,6 +36,7 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 | K12 | Thuật ngữ theo spec: RoleProfile gộp vào Agent Definition, KnowledgeSnapshot thành Context Package (01 §Thuật ngữ bỏ). |
 | K13 | Danh sách context: bảng §Context của 04 là nguồn duy nhất; 14 và `archtest.NewContexts` phải khớp (script ddd-spec). |
 | K14 | Event v1: context mới ghi `domain_outbox` cùng transaction, consumer idempotent qua `consumed_events`, dead-letter sau 5 lần lỗi; `change_log` của AO chỉ vào context mới qua ACL. |
+| K15 | Thứ tự ưu tiên nguồn (04): "phải làm gì" — requirement/rule APPROVED > code + test > vault nháp > suy luận AI; "đang làm gì" — code + test trước; mâu thuẫn không tự chọn, ghi `unresolved_conflicts` và đưa người duyệt. |
 
 ## Quy tắc thường trực
 

@@ -84,7 +84,7 @@ Dùng published language và Anti-corruption Layer cho CLI, Obsidian, API ngoài
 
 ## Thứ tự ưu tiên nguồn
 
-**Trạng thái: đề xuất, chờ chủ sản phẩm duyệt.**
+**Trạng thái: đã duyệt (chủ sản phẩm, 2026-11-28).**
 
 | Câu hỏi | Thứ tự (cao → thấp) |
 |---|---|
