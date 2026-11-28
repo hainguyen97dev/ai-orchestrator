@@ -32,7 +32,7 @@ const aggregates = (row = '| Workflow | WorkflowRun | pin |') =>
   `## Aggregate\n| Context | Aggregate root | Invariant |\n|---|---|---|\n${row}\n`;
 const layout = 'Module layout: internal/workflow, internal/knowledge, internal/quality; platform/persistence.';
 const ctx = (item = '- **Workflow Run**: x') =>
-  `# G\n## Mobile connectivity\n- **Pairing QR**: x\n## Platform domain (fork)\nThe earlier "Flow" vocabulary is retired: FlowRun → **Workflow Run**, Gate → **Approval**.\n${item}\n`;
+  `# G\n## Mobile connectivity\n- **Pairing QR**: x\n## Platform domain (fork)\nThe earlier vocabulary is retired: FlowRun → **Workflow Run**, Gate → **Approval**.\n${item}\n`;
 const good = (over = {}) => ({ '01': md01, '04': md04, '05': events(), '06': aggregates(), '14': layout, CONTEXT: ctx(), ...over });
 
 test('a consistent set has no violations', () => assert.deepEqual(check(good(), NEW), []));
@@ -93,5 +93,17 @@ test('unknown context in 06 or 05 column is a violation', () => {
   assert.deepEqual(check(good({ '06': aggregates('| Ghost | X | y |'), '05': events('| A | B | c | Phantom |') }), NEW), [
     '05: unknown context "Phantom"',
     '06: unknown context "Ghost"',
+  ]);
+});
+
+test('a CONTEXT line mentioning "retired" is not exempt unless it is the retirement sentence', () => {
+  assert.deepEqual(check(good({ CONTEXT: ctx('- **Workflow Run**: replaces FlowRun (retired)') }), NEW), [
+    'CONTEXT: retired term "FlowRun" (use Workflow Run)',
+  ]);
+});
+
+test('a malformed context row is a violation, not a crash', () => {
+  assert.deepEqual(check(good({ '04': `${md04}| Scheduling | \`internal/scheduling\` |\n` }), NEW), [
+    '04: malformed context row "Scheduling" (need Context | Package | Loại | Nguồn AO)',
   ]);
 });

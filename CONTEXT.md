@@ -73,7 +73,7 @@ The earlier vocabulary is retired: Flow → **Workflow Definition**, FlowRun →
 - **Context Package**: the versioned set of knowledge, with citations and token estimate, compiled for one Agent Run.
 - **Provider Profile**: credential reference, allowed models, capability, quota and health of one AI source.
 - **Artifact**: a durable output of a node, such as a document, plan, diff, PR, or test report.
-- **SkillDefinition**: a versioned, reusable instruction set a role or node references to perform one kind of task.
-- **ToolProfile**: a versioned allow/deny policy over builtin, MCP, and shell tools, resolved node → role → project where each lower layer may only narrow.
+- **SkillDefinition**: a versioned, reusable instruction set an Agent Definition or node references to perform one kind of task.
+- **ToolProfile**: a versioned allow/deny policy over builtin, MCP, and shell tools, resolved node → Agent Definition → project where each lower layer may only narrow.
 - **MCPServer**: a registered MCP server (transport, command or URL, env, headers) that a ToolProfile can grant tools from.
 - **Enforcement level**: how strongly an agent adapter applies a ToolProfile: `enforced`, `best-effort`, or `none`.

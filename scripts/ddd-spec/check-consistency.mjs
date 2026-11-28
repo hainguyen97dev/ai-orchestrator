@@ -3,7 +3,7 @@
 // one vocabulary (01 ↔ CONTEXT.md, no retired terms), one context list (04 ↔
 // module layout in 14 ↔ archtest NewContexts), known contexts in the 05/06
 // tables, and SQLite as the only store. Usage: node scripts/ddd-spec/check-consistency.mjs
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,7 +42,10 @@ export function contextTerms(contextMd) {
 }
 
 export const contexts = (md04) =>
-  tableRows(md04, 'Context').map(([name, pkg, kind]) => ({ name, pkg: pkg.replace(/`/g, ''), kind }));
+  tableRows(md04, 'Context').map(([name = '', pkg = '', kind = '']) => ({ name, pkg: pkg.replace(/`/g, ''), kind }));
+
+// A context row needs all four cells; a short one is reported, not parsed.
+const wellFormed = (md04) => tableRows(md04, 'Context').map((r) => r.length >= 4 && r.slice(0, 4).every(Boolean));
 
 export function layoutPackages(md14) {
   const line = md14.split('\n').find((l) => l.startsWith('Module layout:')) ?? '';
@@ -63,6 +66,7 @@ function retiredHits(line, word, canonical) {
   ).length;
 }
 
+const RETIREMENT_SENTENCE = /^The earlier vocabulary is retired:/;
 const DOCS = ['04', '05', '06', '14', 'CONTEXT'];
 
 export function check(files, newContexts) {
@@ -77,13 +81,18 @@ export function check(files, newContexts) {
     for (const [word, use] of g.retired) {
       const n = files[doc]
         .split('\n')
-        .filter((l) => !(doc === 'CONTEXT' && /retired/i.test(l)))
+        .filter((l) => !(doc === 'CONTEXT' && RETIREMENT_SENTENCE.test(l)))
         .reduce((acc, l) => acc + retiredHits(l, word, g.canonical), 0);
       if (n) v.push(`${doc}: retired term "${word}" (use ${use})`);
     }
   }
 
-  const ctx = contexts(files['04']);
+  const shape = wellFormed(files['04']);
+  const all = contexts(files['04']);
+  all.forEach((c, i) => {
+    if (!shape[i]) v.push(`04: malformed context row "${c.name}" (need Context | Package | Loại | Nguồn AO)`);
+  });
+  const ctx = all.filter((_, i) => shape[i]);
   const pkgs = new Set(ctx.map((c) => c.pkg));
   const layout = new Set(layoutPackages(files['14']));
   for (const p of pkgs) if (!layout.has(p)) v.push(`14: layout missing ${p}`);
@@ -111,7 +120,7 @@ export function check(files, newContexts) {
   return v;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   const root = resolve(fileURLToPath(import.meta.url), '../../..');
   const specDir = join(root, 'docs/fork/ddd-spec');
   const spec = (n) => readFileSync(join(specDir, readdirSync(specDir).find((f) => f.startsWith(`${n}-`))), 'utf8');
@@ -122,5 +131,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const violations = check(files, [...list.matchAll(/"([^"]+)"/g)].map((m) => m[1]));
   for (const line of violations) console.log(line);
   console.log(violations.length === 0 ? 'ddd-spec: ok' : `ddd-spec: ${violations.length} violation(s)`);
-  process.exit(violations.length === 0 ? 0 : 1);
+  process.exitCode = violations.length === 0 ? 0 : 1;
 }

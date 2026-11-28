@@ -19,6 +19,8 @@ func TestViolations(t *testing.T) {
 		{"new context importing platform", "m/internal/knowledge/infrastructure/persistence", "m/platform/observability", 0},
 		{"new context importing AO change_log CDC", "m/internal/workflow/application", "m/platform/eventbus/cdc", 1},
 		{"acl may import AO change_log CDC", "m/internal/workflow/infrastructure/acl/events", "m/platform/eventbus/cdc", 0},
+		{"new context importing a CDC subpackage", "m/internal/workflow/application", "m/platform/eventbus/cdc/consumer", 1},
+		{"new context importing an AO store subpackage", "m/internal/budget/application", "m/platform/persistence/sqlite/store/usage", 1},
 		{"new context importing a generic sqlite helper", "m/internal/knowledge/infrastructure/persistence", "m/platform/persistence/sqlite/timestamps", 0},
 		{"new context importing the AO sqlite store", "m/internal/knowledge/infrastructure/persistence", "m/platform/persistence/sqlite/store", 1},
 		{"new context importing AO sqlc queries", "m/internal/budget/application", "m/platform/persistence/sqlite/gen", 1},

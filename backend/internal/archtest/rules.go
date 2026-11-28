@@ -82,16 +82,22 @@ func under(path, dir string) bool {
 // AOSubstratePackages hold AO's own tables, queries and change_log CDC;
 // sqlite.Open returns the AO store, so the opener counts too. Generic helpers
 // (timestamps, searchtext, sqlitetest) stay open to new contexts.
+// Each entry covers its subpackages too, except the bare opener, whose
+// siblings are the generic helpers.
 var AOSubstratePackages = []string{
-	"platform/persistence/sqlite",
 	"platform/persistence/sqlite/store",
 	"platform/persistence/sqlite/gen",
 	"platform/eventbus/cdc",
 }
 
+const aoSQLiteOpener = "platform/persistence/sqlite"
+
 func aoStore(path string) bool {
+	if path == aoSQLiteOpener {
+		return true
+	}
 	for _, p := range AOSubstratePackages {
-		if path == p {
+		if under(path, p) {
 			return true
 		}
 	}
