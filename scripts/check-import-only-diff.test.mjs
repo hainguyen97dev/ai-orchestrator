@@ -88,3 +88,10 @@ test('an import spec re-sorted into another hunk of the same file pairs; other l
   ), []);
   assert.equal(check(twoHunks('backend/n.go', '-\tx := 1', '+\tx := 1')).length, 2);
 });
+
+test('a moved path that ends a sentence in a comment pairs', () => {
+  assert.deepEqual(check(
+    rename('backend/internal/sessionartifacts/a.go', 'backend/internal/artifact/sessionartifacts/a.go'),
+    diff('packages/shared/d.ts', [' -* in backend/internal/sessionartifacts.'.trim().replace(/^-\*/, '- *'), '+ * in backend/internal/artifact/sessionartifacts.']),
+  ), []);
+});
