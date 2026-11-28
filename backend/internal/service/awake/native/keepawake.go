@@ -1,4 +1,4 @@
-package mobilebridge
+package native
 
 import (
 	"context"
@@ -13,6 +13,9 @@ import (
 
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
+
+// processProbeTimeout bounds shell-outs used to inspect native helper processes.
+const processProbeTimeout = 3 * time.Second
 
 // KeepAwakeSupported reports whether this platform can hold the machine awake.
 // Only macOS is supported; caffeinate ships with every install.

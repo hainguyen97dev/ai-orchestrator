@@ -1,6 +1,6 @@
 //go:build !windows
 
-package mobilebridge
+package native
 
 import (
 	"context"

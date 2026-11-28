@@ -1,6 +1,6 @@
 //go:build !darwin && !linux
 
-package mobilebridge
+package native
 
 import (
 	"context"

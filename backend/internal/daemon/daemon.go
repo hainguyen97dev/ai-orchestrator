@@ -75,6 +75,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
 	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
 	awakesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/awake"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/awake/native"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	cuesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/cue"
 	devimportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/devimport"
@@ -1305,9 +1306,9 @@ func Run(buildVersion string) (retErr error) {
 			dispatcher.Run(ctx)
 		}()
 	}
-	if mobilebridge.KeepAwakeSupported() {
-		ka := mobilebridge.NewKeepAwake(os.Getpid())
-		ka.SetLidController(mobilebridge.NewLidAwake(os.Getpid(), os.Getenv("AO_WAKE_HELPER"), cfg.DataDir))
+	if native.KeepAwakeSupported() {
+		ka := native.NewKeepAwake(os.Getpid())
+		ka.SetLidController(native.NewLidAwake(os.Getpid(), os.Getenv("AO_WAKE_HELPER"), cfg.DataDir))
 		bs.KeepAwake = ka
 	}
 	awakeHost := awakesvc.NewHost(os.Getpid(), os.Getenv("AO_WAKE_HELPER"), cfg.DataDir)

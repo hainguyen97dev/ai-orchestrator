@@ -1,4 +1,4 @@
-package mobilebridge
+package native
 
 import (
 	"context"
