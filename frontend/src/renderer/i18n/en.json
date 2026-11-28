@@ -4005,7 +4005,6 @@
 	"remote.connectBeforeStart": "Connect this remote host before starting a task.",
 	"remote.standalone": "Standalone",
 	"remote.noReadyAgent": "No agent is ready on this host. Configure one there first.",
-	"remoteHosts.loadFailed": "Could not load sessions. Retry",
 	"standalone.archive.heading_one": "{{count}} Archived Session",
 	"standalone.archive.heading_other": "{{count}} Archived Sessions",
 	"standalone.archive.newAgent": "New agent",

@@ -4005,7 +4005,6 @@
 	"remote.connectBeforeStart": "Görev başlatmadan önce bu uzak makineye bağlanın.",
 	"remote.standalone": "Bağımsız",
 	"remote.noReadyAgent": "Bu makinede hazır aracı yok. Önce o makinede bir aracı yapılandırın.",
-	"remoteHosts.loadFailed": "Oturumlar yüklenemedi. Yeniden deneyin",
 	"standalone.archive.heading_one": "{{count}} arşivlenmiş oturum",
 	"standalone.archive.heading_other": "{{count}} arşivlenmiş oturum",
 	"standalone.archive.newAgent": "Yeni aracı",

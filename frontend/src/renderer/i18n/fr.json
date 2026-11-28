@@ -4133,7 +4133,6 @@
 	"remote.connectBeforeStart": "Connectez cet hôte distant avant de démarrer une tâche.",
 	"remote.standalone": "Autonome",
 	"remote.noReadyAgent": "Aucun agent n’est prêt sur cet hôte. Configurez-en un sur l’hôte d’abord.",
-	"remoteHosts.loadFailed": "Impossible de charger les sessions. Réessayer",
 	"standalone.archive.heading_one": "{{count}} session archivée",
 	"standalone.archive.heading_many": "{{count}} sessions archivées",
 	"standalone.archive.heading_other": "{{count}} sessions archivées",

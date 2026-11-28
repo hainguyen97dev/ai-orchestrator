@@ -1224,8 +1224,7 @@ The daemon runs two independent HTTP listeners sharing the same chi router:
    Tailscale TLS setup and QR advertisement remain incomplete. The rotating password is persisted in a mode-`0600`
    file at `AO_DATA_DIR/mobile/config.json` (normally
    `~/.ao/data/mobile/config.json`); its comparison hash is in memory. See the
-   [current access guide](../frontend/src/docs/content/configuration/remote-access.mdx)
-   and [historical LAN ADR](adr/0001-lan-listener-for-mobile.md).
+   [historical LAN ADR](adr/0001-lan-listener-for-mobile.md).
 
 The mobile app is a second thin renderer over those same session resources. It
 branches on the session's persisted `mode`: TUI attaches the existing mux PTY,

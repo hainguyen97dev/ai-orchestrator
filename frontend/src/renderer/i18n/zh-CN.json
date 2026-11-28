@@ -4003,7 +4003,6 @@
 	"remote.connectBeforeStart": "请先连接此远程主机，再启动任务。",
 	"remote.standalone": "独立任务",
 	"remote.noReadyAgent": "此主机上没有就绪的代理。请先在该主机上配置。",
-	"remoteHosts.loadFailed": "无法加载会话。重试",
 	"standalone.archive.heading_one": "{{count}} 个已归档会话",
 	"standalone.archive.heading_other": "{{count}} 个已归档会话",
 	"standalone.archive.newAgent": "新建代理",

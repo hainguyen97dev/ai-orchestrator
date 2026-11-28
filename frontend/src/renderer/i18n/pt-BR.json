@@ -4133,7 +4133,6 @@
 	"remote.connectBeforeStart": "Conecte esta máquina remota antes de iniciar uma tarefa.",
 	"remote.standalone": "Independente",
 	"remote.noReadyAgent": "Nenhum agente está pronto nesta máquina. Configure um agente nela primeiro.",
-	"remoteHosts.loadFailed": "Não foi possível carregar as sessões. Tentar novamente",
 	"standalone.archive.heading_one": "{{count}} sessão arquivada",
 	"standalone.archive.heading_many": "{{count}} sessões arquivadas",
 	"standalone.archive.heading_other": "{{count}} sessões arquivadas",

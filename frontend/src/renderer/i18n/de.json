@@ -4021,7 +4021,6 @@
 	"remote.connectBeforeStart": "Verbinden Sie diesen Remote-Host, bevor Sie eine Aufgabe starten.",
 	"remote.standalone": "Eigenständig",
 	"remote.noReadyAgent": "Auf diesem Host ist kein Agent bereit. Konfigurieren Sie dort zuerst einen Agenten.",
-	"remoteHosts.loadFailed": "Sitzungen konnten nicht geladen werden. Erneut versuchen",
 	"standalone.archive.heading_one": "{{count}} archivierte Sitzung",
 	"standalone.archive.heading_other": "{{count}} archivierte Sitzungen",
 	"standalone.archive.newAgent": "Neuer Agent",

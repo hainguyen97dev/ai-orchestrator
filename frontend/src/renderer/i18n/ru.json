@@ -4230,7 +4230,6 @@
 	"remote.connectBeforeStart": "Подключитесь к этому удалённому хосту перед запуском задачи.",
 	"remote.standalone": "Отдельный",
 	"remote.noReadyAgent": "На этом хосте нет готовых агентов. Сначала настройте там агент.",
-	"remoteHosts.loadFailed": "Не удалось загрузить сессии. Повторить",
 	"standalone.archive.heading_one": "{{count}} архивная сессия",
 	"standalone.archive.heading_few": "{{count}} архивные сессии",
 	"standalone.archive.heading_many": "{{count}} архивных сессий",

@@ -33,7 +33,7 @@ description: Common questions about the current Orchestrator desktop product.
 	</Accordion>
 
 	<Accordion title="Can I expose Orchestrator on a remote server?">
-		Do not expose the primary daemon listener. It is unauthenticated and fixed to `127.0.0.1`. Connect Mobile creates a separate authenticated path. Its direct LAN listener is plaintext for trusted networks; an advertised managed HTTPS endpoint supports remote pairing. The current Tailscale pairing flow has additional limits, especially on iPhone. See [Connect Mobile](/configuration/remote-access).
+		Do not expose the primary daemon listener. It is unauthenticated and fixed to `127.0.0.1`, and Orchestrator has no network-facing listener.
 	</Accordion>
 
 	<Accordion title="What does Orchestrator cost?">
