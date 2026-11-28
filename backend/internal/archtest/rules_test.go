@@ -13,7 +13,7 @@ func TestViolations(t *testing.T) {
 		want     int
 	}{
 		{"new context importing AO shared kernel", "m/internal/workflow/application", "m/internal/sharedkernel/domain", 1},
-		{"acl may import AO", "m/internal/workflow/infrastructure/acl", "m/internal/service/session", 0},
+		{"acl may import AO", "m/internal/workflow/infrastructure/acl", "m/internal/execution/session", 0},
 		{"acl subpackage may import AO", "m/internal/workflow/infrastructure/acl/session", "m/pkg/agentruntime", 0},
 		{"new context importing another new context", "m/internal/workflow/domain", "m/internal/knowledge/domain", 1},
 		{"new context importing platform", "m/internal/knowledge/infrastructure/persistence", "m/platform/observability", 0},
@@ -31,9 +31,9 @@ func TestViolations(t *testing.T) {
 		{"new context importing stdlib and third party", "m/internal/context/domain", "golang.org/x/sync/errgroup", 0},
 		{"platform importing new context", "m/platform/persistence/sqlite", "m/internal/knowledge/domain", 1},
 		{"integrations importing new context", "m/integrations/obsidian", "m/internal/knowledge/domain", 1},
-		{"AO importing an acl", "m/internal/service/session", "m/internal/workflow/infrastructure/acl", 1},
+		{"AO importing an acl", "m/internal/execution/session", "m/internal/workflow/infrastructure/acl", 1},
 		{"platform importing AO shared kernel", "m/platform/persistence/sqlite", "m/internal/sharedkernel/domain", 0},
-		{"AO importing AO", "m/internal/service/session", "m/internal/sharedkernel/ports", 0},
+		{"AO importing AO", "m/internal/execution/session", "m/internal/sharedkernel/ports", 0},
 		{"prefix lookalike is not a new context", "m/internal/contextx/foo", "m/internal/sharedkernel/domain", 0},
 	}
 	for _, tc := range cases {

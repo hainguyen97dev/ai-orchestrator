@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionfork"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionfork"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/filesnapshot"

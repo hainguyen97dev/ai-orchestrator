@@ -20,8 +20,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/inputdelay"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/ptyexec"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionid"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionid"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/tmuxbin"

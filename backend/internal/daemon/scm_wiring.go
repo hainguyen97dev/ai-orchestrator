@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/lifecycle"
 	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/observe/scm"
 	scmgithub "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/github"
 	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/gitlab"

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/conpty/ptyregistry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionid"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/procmem"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionid"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 

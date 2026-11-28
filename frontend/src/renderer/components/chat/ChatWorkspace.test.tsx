@@ -2550,7 +2550,7 @@ describe("ChatWorkspace timeline", () => {
 		await waitFor(() => expect(log.querySelector('[data-chat-activity-id="a-2"]')).toHaveClass("chat-annotation-target"));
 		const row = log.querySelector<HTMLElement>('[data-chat-activity-id="a-2"]')!;
 		expect(within(row).getAllByRole("button")[0]).toHaveAttribute("aria-expanded", "true");
-		expect(row).toHaveTextContent("backend/internal/session_manager/manager.go");
+		expect(row).toHaveTextContent("backend/internal/execution/session_manager/manager.go");
 		expect(screen.queryByText("The referenced message could not be brought into view.")).not.toBeInTheDocument();
 	});
 

@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionfork"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionfork"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )

@@ -32,6 +32,8 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
@@ -40,8 +42,6 @@ import (
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/previewserver"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
-	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/contract"

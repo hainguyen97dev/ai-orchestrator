@@ -78,12 +78,12 @@ function draw(text: string, extra: Partial<ConversationMessage> = {}, queued = f
 describe("reading AO's automation messages", () => {
 	it("reads file feedback from the message the file view sends", () => {
 		const one = formatFileAnnotationMessage(
-			{ source: "Workspace", path: "backend/internal/sessionguard/guard.go", side: "new", line: 131, newLine: 131, lineText: "const slowLeaseHold = 5 * time.Second", scope: "committed", workspaceVersion: "f138c8", fileFingerprint: "1182ac" },
+			{ source: "Workspace", path: "backend/internal/execution/sessionguard/guard.go", side: "new", line: 131, newLine: 131, lineText: "const slowLeaseHold = 5 * time.Second", scope: "committed", workspaceVersion: "f138c8", fileFingerprint: "1182ac" },
 			"why is this required?",
 		);
 		expect(readAutomation(one)).toEqual({
 			kind: "fileFeedback",
-			comments: [{ path: "backend/internal/sessionguard/guard.go", line: 131, code: "const slowLeaseHold = 5 * time.Second", quote: undefined, feedback: "why is this required?" }],
+			comments: [{ path: "backend/internal/execution/sessionguard/guard.go", line: 131, code: "const slowLeaseHold = 5 * time.Second", quote: undefined, feedback: "why is this required?" }],
 		});
 
 		const [batch] = formatFileAnnotationMessages([

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionsearch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/sentryobs"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionsearch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 

@@ -30,14 +30,14 @@ graph TB
 
     subgraph Services["Service Layer"]
         Project[internal/identity/project]
-        Session[internal/service/session]
+        Session[internal/execution/session]
         PR[internal/quality/pr]
         Review[internal/quality/service/review]
     end
 
     subgraph Core["Core Layer"]
-        SessionMgr[internal/session_manager]
-        Lifecycle[internal/lifecycle]
+        SessionMgr[internal/execution/session_manager]
+        Lifecycle[internal/execution/lifecycle]
         Observe[internal/observe/*]
     end
 
@@ -237,7 +237,7 @@ graph LR
     Controllers[HTTP Controllers] -->|call| Services
 
     Services --> Project[internal/identity/project<br/>Project CRUD]
-    Services --> Session[internal/service/session<br/>Session read-model assembly]
+    Services --> Session[internal/execution/session<br/>Session read-model assembly]
     Services --> PR[internal/quality/pr<br/>PR observation/actions]
     Services --> Review[internal/quality/service/review<br/>Code review]
 
@@ -265,7 +265,7 @@ graph LR
 
 ---
 
-### `internal/session_manager`
+### `internal/execution/session_manager`
 
 **Purpose:** Internal session command engine. Owns multi-step session mutations and resource orchestration.
 
@@ -307,7 +307,7 @@ graph TD
 
 ---
 
-### `internal/lifecycle`
+### `internal/execution/lifecycle`
 
 **Purpose:** Canonical write path for durable session lifecycle facts. Reduces observations into minimal persisted state.
 
@@ -874,7 +874,7 @@ flowchart LR
 ### Example: Adding a Session Command
 
 ```go
-// In internal/service/session/service.go
+// In internal/execution/session/service.go
 func (s *Service) MyNewCommand(ctx context.Context, id SessionID) (Result, error) {
     // 1. Validate input
     // 2. Call session_manager

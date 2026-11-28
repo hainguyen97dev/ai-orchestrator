@@ -143,7 +143,7 @@ Stage notes:
 
 ### The lifecycle boundary
 
-`lifecycle.Manager.ApplySCMObservation` (`backend/internal/lifecycle/reactions.go`)
+`lifecycle.Manager.ApplySCMObservation` (`backend/internal/execution/lifecycle/reactions.go`)
 is the only LCM entrypoint. It projects the observation into reaction logic
 (CI-failure injection, review-comment injection, merge-driven teardown) and
 emits/resolves notifications (PR merged, ready-to-merge). It ignores

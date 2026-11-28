@@ -45,8 +45,8 @@ Useful phases are `files-click`, `files-shell-painted`, `manifest-ready`,
 
 ```bash
 cd backend
-go test ./internal/service/session -run 'WorkspaceManifest|WorkspaceCache'
-go test -race ./internal/service/session -run 'WorkspaceManifest|WorkspaceCache'
+go test ./internal/execution/session -run 'WorkspaceManifest|WorkspaceCache'
+go test -race ./internal/execution/session -run 'WorkspaceManifest|WorkspaceCache'
 
 cd ../frontend
 npm test -- --run src/renderer/lib/file-viewer-performance.test.ts \

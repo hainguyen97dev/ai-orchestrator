@@ -18,7 +18,7 @@ import (
 	acpdriver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/acp"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/chatdriver/kimiacp"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/lifecycle"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

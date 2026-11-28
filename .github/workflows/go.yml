@@ -47,7 +47,7 @@ jobs:
         # tests actually touch — subprocesses, PATH contents, the network — so
         # a required check must still run every test. Compilation stays cached.
         run: |
-          packages=$(go list ./... | grep -v -e '/platform/persistence/sqlite$' -e '/internal/service/chat$' -e '/internal/session_manager$' -e '/platform/persistence/sqlite/store$')
+          packages=$(go list ./... | grep -v -e '/platform/persistence/sqlite$' -e '/internal/service/chat$' -e '/internal/execution/session_manager$' -e '/platform/persistence/sqlite/store$')
           selected=$(printf '%s\n' "$packages" | awk -v shard=${{ matrix.shard }} '((NR - 1) % 3) == shard')
           test -n "$selected"
           printf '%s\n' "$selected" | xargs go test -race -count=1 -timeout=10m
@@ -68,7 +68,7 @@ jobs:
           name: storage-race
 
       - name: Test SQLite, chat, session manager and SQLite store
-        run: ../.github/scripts/go-test-parallel.sh 4 ./platform/persistence/sqlite ./internal/service/chat ./internal/session_manager ./platform/persistence/sqlite/store
+        run: ../.github/scripts/go-test-parallel.sh 4 ./platform/persistence/sqlite ./internal/service/chat ./internal/execution/session_manager ./platform/persistence/sqlite/store
 
   lint:
     runs-on: ubuntu-latest

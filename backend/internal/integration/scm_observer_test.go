@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/lifecycle"
 	scmobserve "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/observe/scm"
 	scmmulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"

@@ -23,7 +23,7 @@
 
 | AO hiện có tại `070b255ce2` | Bằng chứng code | Phần cần thêm |
 |---|---|---|
-| Orchestrator có thể delegate worker | `backend/internal/service/session/delegation.go`, `docs/STATUS.md` | Definition/run/stage rõ ràng, thứ tự và handoff có kiểm tra |
+| Orchestrator có thể delegate worker | `backend/internal/execution/session/delegation.go`, `docs/STATUS.md` | Definition/run/stage rõ ràng, thứ tự và handoff có kiểm tra |
 | Kanban trạng thái worker, PR/CI/review | `frontend/src/renderer/components/SessionsBoard.tsx`, `backend/internal/domain/status.go` | View theo **một mission/workflow** và quan hệ giữa worker |
 | Automation định kỳ có run history | `backend/internal/domain/automation.go`, `service/automation` | Automation hiện là lịch chạy prompt/session, không phải stage pipeline |
 | Chat approvals và notifications | `docs/STATUS.md`, domain conversation/notification | Gate cấp stage/handoff, decision audit, blocked action |

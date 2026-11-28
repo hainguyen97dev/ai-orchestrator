@@ -31,6 +31,8 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
@@ -38,9 +40,7 @@ import (
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/previewserver"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
-	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/workspacewatch"
