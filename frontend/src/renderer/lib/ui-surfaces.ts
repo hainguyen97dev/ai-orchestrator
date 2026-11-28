@@ -17,7 +17,6 @@ export const UI_SURFACES = [
 	"inspector_summary",
 	"inspector_reviews",
 	"inspector_browser",
-	"inspector_device",
 	"inspector_files",
 	"inspector_artifacts",
 	"inspector_side_chat",
