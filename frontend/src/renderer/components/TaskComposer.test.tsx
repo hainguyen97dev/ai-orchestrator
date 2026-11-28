@@ -429,7 +429,7 @@ describe("TaskComposer", () => {
 
 	it("reuses a task request id after an uncertain response and changes it with the draft", async () => {
 		h.agentCatalog = { agents: [agentReadiness("opencode", "OpenCode")] };
-		h.remoteGet.mockImplementation(async (path: string) => {
+		h.get.mockImplementation(async (path: string) => {
 			if (path.includes("/models")) return { data: { agent: "opencode", selectionMode: "text", models: [], allowCustom: true } };
 			if (path === "/api/v1/settings") return { data: { defaultSessionMode: "chat", chatHarnesses: ["opencode"] } };
 			return {
@@ -439,28 +439,28 @@ describe("TaskComposer", () => {
 				},
 			};
 		});
-		h.remotePost.mockImplementation(async (path: string) => {
+		h.post.mockImplementation(async (path: string) => {
 			if (path === "/api/v1/agents/readiness/ensure") return { data: { agents: [agentReadiness("opencode", "OpenCode")] } };
 			if (path === "/api/v1/projects/{id}/tasks/prepare") return { data: { taskPreparation: "" } };
 			if (path === "/api/v1/orchestrators/delegate") return { error: { code: "SPAWN_TIMEOUT", message: "response lost" } };
 			return { data: {} };
 		});
-		render(<Wrap><TaskComposer hostId="box-a" projectId="project-a" onCreated={vi.fn()} /></Wrap>);
+		render(<Wrap><TaskComposer projectId="project-a" onCreated={vi.fn()} /></Wrap>);
 		await waitForTaskReady();
 		fireEvent.change(task(), { target: { value: "Fix it" } });
 		fireEvent.click(startTask());
 		await screen.findByText("response lost");
 		fireEvent.click(startTask());
-		await waitFor(() => expect(h.remotePost.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate")).toHaveLength(2));
-		const requests = h.remotePost.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate");
+		await waitFor(() => expect(h.post.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate")).toHaveLength(2));
+		const requests = h.post.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate");
 		const firstID = requests[0][1].body.clientRequestId;
 		expect(firstID).toBeTruthy();
 		expect(requests[1][1].body.clientRequestId).toBe(firstID);
 		await screen.findByText("response lost");
 		fireEvent.change(task(), { target: { value: "Fix something else" } });
 		fireEvent.click(startTask());
-		await waitFor(() => expect(h.remotePost.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate")).toHaveLength(3));
-		const changed = h.remotePost.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate")[2][1].body.clientRequestId;
+		await waitFor(() => expect(h.post.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate")).toHaveLength(3));
+		const changed = h.post.mock.calls.filter(([path]) => path === "/api/v1/orchestrators/delegate")[2][1].body.clientRequestId;
 		expect(changed).not.toBe(firstID);
 	});
 

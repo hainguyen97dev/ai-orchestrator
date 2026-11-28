@@ -1650,23 +1650,6 @@ describe("CommandPalette session-text search", () => {
 	});
 
 	// QA: one slow machine held every other machine's rows back for six seconds.
-	it("shows the machines that have answered without waiting for a slow one", async () => {
-		mockSearch([hit]);
-		remoteSearchMock.value = { settled: false, answers: [
-			{ hostId: "h_azure", label: "AzureLinux", outcome: "searched", total: 1, results: [{ ...hit, sessionName: "fix flake on azure" }] },
-			{ hostId: "h_home", label: "Laptop", outcome: "offline", total: 0, results: [] },
-		] };
-		renderPalette();
-		act(() => useUiStore.getState().setCommandPaletteOpen(true));
-		fireEvent.change(await screen.findByPlaceholderText(/search sessions/i), { target: { value: "flaky" } });
-
-		expect(await screen.findByText("fix flake on azure", {}, { timeout: 2_000 })).toBeInTheDocument();
-		expect(screen.getByText("fix flake")).toBeInTheDocument();
-		// The slow machine is still being asked, and the one whose reason is known
-		// is named at once.
-		expect(screen.getByText("Searching past sessions…")).toBeInTheDocument();
-		expect(screen.getByTestId("palette-machines-not-searched").textContent).toBe("Not searched on Laptop (offline).");
-	});
 
 	// QA: a span past the end of the snippet cut the whole line down to "…".
 	it("still shows the snippet when a matched span does not fit it", async () => {

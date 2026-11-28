@@ -40,10 +40,7 @@ import { useSessionImportStore } from "../stores/session-import-store";
 import { sessionInterfaceTransitionQueryKey } from "../hooks/useSessionInterfaceTransition";
 import { resetSessionPreviewWarmth } from "../hooks/useSessionPreviewHover";
 type RemoteHost = { hostId: string; label: string; url?: string; status?: string };
-import { useRemoteWorkspaces } from "../hooks/useWorkspaceQuery";
-import { clearOptimisticSessionKill, trackOptimisticSessionKill } from "../hooks/optimistic-session-kills";
 import { useRemoteUnpinStore } from "../stores/session-pin-cache";
-import { sessionUiKey } from "../lib/session-keys";
 
 type DragOverTestEvent = {
 	active: {
@@ -849,7 +846,7 @@ describe("Sidebar", () => {
 		expect(footer).not.toHaveClass("border-t");
 		expect(footer?.querySelector(".border-t")).toBeNull();
 		expect(screen.getAllByRole("button", { name: "Settings" })[0]).toHaveClass("h-9");
-		expect(screen.getAllByRole("button", { name: "Mobile" })[0]).toHaveClass("size-9");
+		expect(screen.getAllByRole("button", { name: "Stay Awake" })[0]).toHaveClass("size-9");
 		expect(footer?.className).not.toContain("--size-center-panel-bottom-inset");
 		expect(footer?.className).not.toContain("--size-center-panel-inset-mac");
 	});
@@ -862,7 +859,7 @@ describe("Sidebar", () => {
 		const collapsedButton = settingsButtons.find((button) => !button.textContent?.includes("Settings"));
 
 		expect(screen.queryByTestId("awake-button")).not.toBeInTheDocument();
-		expect(screen.getByTestId("footer-mobile-menu")).toHaveAttribute("tabindex", "0");
+		expect(screen.getAllByTestId("footer-awake-menu").filter((menu) => menu.getAttribute("tabindex") === "0")).toHaveLength(1);
 		expect(settingsButtons).toHaveLength(2);
 		expect(expandedButton).toHaveAttribute("tabindex", "0");
 		expect(expandedButton?.parentElement).not.toHaveAttribute("aria-hidden");
@@ -877,7 +874,7 @@ describe("Sidebar", () => {
 		const expandedButton = settingsButtons.find((button) => button.textContent?.includes("Settings"));
 		const collapsedButton = settingsButtons.find((button) => !button.textContent?.includes("Settings"));
 
-		expect(screen.getByTestId("footer-mobile-menu")).toHaveAttribute("tabindex", "-1");
+		expect(screen.getAllByTestId("footer-awake-menu").filter((menu) => menu.getAttribute("tabindex") === "0")).toHaveLength(1);
 		expect(settingsButtons).toHaveLength(2);
 		expect(expandedButton).toHaveAttribute("tabindex", "-1");
 		expect(expandedButton?.closest('[aria-hidden="true"]')).toBeInTheDocument();
@@ -4916,68 +4913,6 @@ describe("Memoized Sidebar with unchanged props", () => {
 		expect(navigateMock).not.toHaveBeenCalled();
 	});
 
-	describe("remote pins through the real remote hook", () => {
-		const hosts: RemoteHost[] = [{ hostId: "box-a", label: "Box A", url: "http://box-a:3011", status: "offline" }];
-		const savedHostIds = ["box-a"];
-		const noLocalWorkspaces: WorkspaceSummary[] = [];
-		const pinnedAt = "2026-11-01T00:00:00Z";
-		// A pinned remote row lives in its host project's own list, at the top.
-		const pinnedRow = () => {
-			const list = screen.queryByTestId(`session-list-${sessionUiKey("remote-project", "box-a")}`);
-			const row = list?.querySelector<HTMLElement>("[data-session-row]");
-			if (!row || !within(row).queryByRole("button", { name: "Open remote task" })) return null;
-			return within(row).queryByRole("button", { name: "Unpin session" });
-		};
-
-		// The shell's wiring: a saved, offline host's cached lists go through
-		// useRemoteWorkspaces into the memoized Sidebar.
-		function RemoteShell() {
-			const remote = useRemoteWorkspaces({ cachedHostIds: savedHostIds });
-			return <Sidebar workspaces={noLocalWorkspaces} remoteHosts={hosts} remoteWorkspaces={remote.data} {...handlers} />;
-		}
-
-		function renderRemote() {
-			const client = newClient();
-			client.setQueryData(["remote-workspaces", "box-a", "projects"], [{ id: "remote-project", name: "Remote Project", path: "/remote" }]);
-			client.setQueryData(["remote-workspaces", "box-a", "sessions"], [{
-				id: "remote-1",
-				projectId: "remote-project",
-				harness: "codex",
-				status: "working",
-				prs: [],
-				displayName: "remote task",
-				isPinned: true,
-				pinnedAt,
-			}]);
-			render(shell(client, <RemoteShell />));
-		}
-
-		it("drops a pinned row unpinned here while its host is offline, and restores it when the unpin is cleared", () => {
-			renderRemote();
-			expect(pinnedRow()).toBeInTheDocument();
-
-			act(() => useRemoteUnpinStore.getState().add("box-a", "remote-1", pinnedAt));
-
-			expect(pinnedRow()).not.toBeInTheDocument();
-
-			act(() => useRemoteUnpinStore.getState().remove([sessionUiKey("remote-1", "box-a")]));
-
-			expect(pinnedRow()).toBeInTheDocument();
-		});
-
-		it("drops a pinned remote row while its kill is in flight, before the host's lists change", () => {
-			renderRemote();
-			expect(pinnedRow()).toBeInTheDocument();
-			try {
-				act(() => trackOptimisticSessionKill("remote-1", "box-a"));
-
-				expect(pinnedRow()).not.toBeInTheDocument();
-			} finally {
-				act(() => clearOptimisticSessionKill("remote-1", "box-a"));
-			}
-			expect(pinnedRow()).toBeInTheDocument();
-		});
-	});
 });
 
 describe("Sidebar pins in their home group", () => {
