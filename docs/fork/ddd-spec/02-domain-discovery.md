@@ -16,7 +16,7 @@ version: 0.1
 Project Owner, Business Expert, Solution Architect, Developer, Reviewer, Operator, AI Agent.
 
 ## Câu hỏi mở
-Runtime hiện tại hỗ trợ resume không? Vault dùng chung hay theo project? Quy tắc ưu tiên giữa requirement và code? Ai được duyệt thay đổi knowledge? Adapter nào cho phép automation chính thức?
+Runtime hiện tại hỗ trợ resume không? (Có, ở mức session: `backend/e2e/chat_approval_restart_stub_test.go` kiểm approval đang chờ sống qua SIGKILL daemon và host ACP không bị thay.) Vault dùng chung hay theo project? Quy tắc ưu tiên giữa requirement và code? Ai được duyệt thay đổi knowledge? Adapter nào cho phép automation chính thức?
 
 ## Deliverable
-Feature gap matrix: feature ID, source, observed behavior, existing module, gap, risk, priority, acceptance criteria. Không đánh dấu feature đã có nếu chưa đọc code.
+Kết quả: [[17-feature-code-map]]. Feature gap matrix: feature ID, source, observed behavior, existing module, gap, risk, priority, acceptance criteria. Không đánh dấu feature đã có nếu chưa đọc code.
