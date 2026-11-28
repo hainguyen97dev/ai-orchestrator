@@ -75,7 +75,7 @@ Unreleased: `ao triage` collects bounded, redacted diagnostics and opens Claude 
 or Codex to draft a report. It works with the daemon down and never starts it.
 Files go under `$AO_DATA_DIR/triage` when set, otherwise `~/.ao/triage`.
 After the agent exits, review the text and answer `[y/N]` before posting.
-See the [command reference](../../backend/internal/skillassets/using-ao/commands/triage.md).
+See the [command reference](../../backend/internal/skill/skillassets/using-ao/commands/triage.md).
 
 ### Product commands
 

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/store"

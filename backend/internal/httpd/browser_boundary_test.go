@@ -21,7 +21,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/attachmentstore"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/attachmentstore"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 	shelltermsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"

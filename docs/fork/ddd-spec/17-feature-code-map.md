@@ -104,7 +104,7 @@ Script liệt kê mọi thứ không cụm nào nhận. Quyết định:
 
 Lá trước, theo bao đóng tăng dần; execution cuối (dời nguyên khối):
 
-1. F-08 skill (0k) → 2. F-09 artifact (15k) → 3. F-06 project/identity (21k) → 4. F-10 notification (23k) → 5. F-07 task (24k) → 6. F-18 browser (26k) → 7. F-04 budget (30k) → 8. F-03 provider (55k) → 9. F-19 systeminstall (114k) → 10. F-05 quality (131k) → 11. F-01 + F-02 execution/workspace (cuối).
+1. F-08 skill (0k) → 2. F-09 artifact (15k) → 3. F-06 project/identity (21k) → 4. F-10 notification (23k) **[1–4 đã dời, P3b đợt 1: `internal/{skill,artifact,identity,notification}`]** → 5. F-07 task (24k) → 6. F-18 browser (26k) → 7. F-04 budget (30k) → 8. F-03 provider (55k) → 9. F-19 systeminstall (114k) → 10. F-05 quality (131k) → 11. F-01 + F-02 execution/workspace (cuối).
 
 Cắt (L1, song song L2): F-15 device (2 importer) → F-14 cloud (frontend) → F-16 importer → F-13 mobile (sửa `push`, `systeminstall`) → F-17 telemetry remote (18 importer, no-op trước).
 

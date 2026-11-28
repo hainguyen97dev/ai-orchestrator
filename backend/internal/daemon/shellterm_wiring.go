@@ -7,7 +7,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
+	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	shelltermsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"

@@ -29,7 +29,7 @@ graph TB
     end
 
     subgraph Services["Service Layer"]
-        Project[internal/service/project]
+        Project[internal/identity/project]
         Session[internal/service/session]
         PR[internal/service/pr]
         Review[internal/service/review]
@@ -236,7 +236,7 @@ graph TD
 graph LR
     Controllers[HTTP Controllers] -->|call| Services
 
-    Services --> Project[internal/service/project<br/>Project CRUD]
+    Services --> Project[internal/identity/project<br/>Project CRUD]
     Services --> Session[internal/service/session<br/>Session read-model assembly]
     Services --> PR[internal/service/pr<br/>PR observation/actions]
     Services --> Review[internal/service/review<br/>Code review]
@@ -261,7 +261,7 @@ graph LR
 - HTTP routing, path parsing, status-code decisions
 - Concrete external adapter details
 
-**Example:** Project concepts live in `internal/service/project`, not in `domain` and not in `internal/project`.
+**Example:** Project concepts live in `internal/identity/project`, not in `domain` and not in `internal/project`.
 
 ---
 

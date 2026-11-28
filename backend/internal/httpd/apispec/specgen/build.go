@@ -20,10 +20,10 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
+	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentauth"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/githubpat"
 	importsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/importer"
-	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
 )
 

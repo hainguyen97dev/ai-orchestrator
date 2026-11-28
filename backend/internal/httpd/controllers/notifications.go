@@ -14,7 +14,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	notificationsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/notification"
+	notificationsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/notification"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

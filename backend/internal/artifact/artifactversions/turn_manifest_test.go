@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionartifacts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 )
 
 // A turn's artifacts stay readable however a later turn changes them. The

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/forkseed"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifactversions"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/artifactversions"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionfork"

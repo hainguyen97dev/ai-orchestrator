@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skill/skillassets"
 )
 
 // GitignoreSentinel marks a workspace .gitignore as AO-managed so
