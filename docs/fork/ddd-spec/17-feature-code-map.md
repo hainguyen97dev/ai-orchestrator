@@ -110,4 +110,4 @@ Cắt (L1, song song L2): F-15 device (2 importer) → F-14 cloud (frontend) →
 
 ## 6. `ai-orchestra`
 
-`git rev-parse bb18b82^{tree}` (commit import của `ai-orchestrator`) = tree `HEAD` của `ai-orchestra` = `433927439a1f…`. `ai-orchestra` chỉ còn thay đổi chưa commit ở `AGENTS.md`, `CLAUDE.md`, `.claude/skills/gitnexus-*` — bản tương đương đã vào `ai-orchestrator` ở #12. **Đề xuất:** chuyển `../ai-orchestra` vào `../archive/2026-11-27/` khi chủ sản phẩm duyệt PR này.
+`git rev-parse bb18b82^{tree}` (commit import của `ai-orchestrator`) = tree `HEAD` của `ai-orchestra` = `433927439a1f…`. `ai-orchestra` chỉ còn thay đổi chưa commit ở `AGENTS.md`, `CLAUDE.md`, `.claude/skills/gitnexus-*` — bản tương đương đã vào `ai-orchestrator` ở #12. **Đã làm (2026-11-28):** `../ai-orchestra` đã chuyển vào `../archive/2026-11-27/ai-orchestra`.
