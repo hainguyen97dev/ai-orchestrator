@@ -4,7 +4,7 @@ import test from 'node:test';
 import { assignPackages, assignRoutes, closureLoc, liveTables, parseRoutes, upSection } from './feature-map.mjs';
 
 const clusters = [
-  { id: 'A', httpPrefixes: ['/api/v1/sessions'], packages: ['internal/service/session', 'internal/adapters/agent/...'] },
+  { id: 'A', httpPrefixes: ['/api/v1/sessions'], packages: ['internal/execution/session', 'internal/adapters/agent/...'] },
   { id: 'B', httpPrefixes: ['/api/v1/sessions/{sessionId}/pr'], packages: [] },
 ];
 
@@ -20,10 +20,10 @@ test('assignRoutes: longest prefix wins, unmatched routes are reported', () => {
 
 test('assignPackages: exact path or "/..." subtree; first cluster owns a package', () => {
   const { byCluster, unassigned } = assignPackages(
-    ['internal/service/session', 'internal/service/sessionimport', 'internal/adapters/agent/codex', 'internal/devices'],
+    ['internal/execution/session', 'internal/service/sessionimport', 'internal/adapters/agent/codex', 'internal/devices'],
     clusters,
   );
-  assert.deepEqual(byCluster.get('A'), ['internal/service/session', 'internal/adapters/agent/codex']);
+  assert.deepEqual(byCluster.get('A'), ['internal/execution/session', 'internal/adapters/agent/codex']);
   assert.deepEqual(unassigned, ['internal/service/sessionimport', 'internal/devices']);
 });
 

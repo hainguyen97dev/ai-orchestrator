@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/filesnapshot"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/controllers"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/filesnapshot"
 )
 
 // The wire contract for the history operations.

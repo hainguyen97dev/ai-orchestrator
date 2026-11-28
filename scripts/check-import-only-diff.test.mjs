@@ -118,3 +118,17 @@ test('a parent that still exists is not inferred', () => {
   assert.deepEqual([...dirRenames(r, { gone: () => false })], [['internal/observe/artifacts', 'internal/artifact/observe/artifacts']]);
   assert.equal(checkDiff(r + diff('docs/x.md', ['-see internal/observe.', '+see internal/artifact/observe.']), { isGenerated, gone: () => false }).length, 2);
 });
+
+test('a moved path ending a grep regex ($) pairs', () => {
+  assert.deepEqual(check(
+    rename('backend/internal/session_manager/a.go', 'backend/internal/execution/session_manager/a.go'),
+    diff('.github/workflows/go.yml', ["-grep -v -e '/internal/session_manager$'", "+grep -v -e '/internal/execution/session_manager$'"]),
+  ), []);
+});
+
+test('a moved path glued to a template variable does not pair', () => {
+  assert.notDeepEqual(check(
+    rename('backend/internal/lifecycle/a.go', 'backend/internal/execution/lifecycle/a.go'),
+    diff('scripts/x.sh', ['-go test ./internal/lifecycle${S}', '+go test ./internal/execution/lifecycle${S}']),
+  ), []);
+});

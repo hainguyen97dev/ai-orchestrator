@@ -25,7 +25,7 @@ plus AO's telemetry defaults. The daemon, in turn, is the parent of every agent
 session (it execs `tmux`, which runs `claude`/`codex`, etc.), and the agent's
 `PATH` is derived from the daemon's own `PATH`
 (`runtimeEnv` -> `HookPATH(m.executable, os.Getenv, ...)` in
-`backend/internal/session_manager/manager.go`).
+`backend/internal/execution/session_manager/manager.go`).
 
 AO keeps an AO-only directory first after adding agent and Node runtime
 directories, including Codex Chat provider launches, and applies the same pin
@@ -215,7 +215,7 @@ it. We shell out once to the user's own shell and adopt its result.
 
 - `frontend/src/main.ts` - `daemonEnv()` (env forwarded to the daemon), daemon
   spawn.
-- `backend/internal/session_manager/manager.go` - `runtimeEnv` / `HookPATH`
+- `backend/internal/execution/session_manager/manager.go` - `runtimeEnv` / `HookPATH`
   (agent `PATH` derived from the daemon's `PATH`); `spawnEnv`.
 - `frontend/scripts/build-tmux.mjs` - pinned, checksum-verified static dependency
   build copied into the macOS/Linux package.
@@ -227,6 +227,6 @@ it. We shell out once to the user's own shell and adopt its result.
   then the packaged `resources/tmux/bin/tmux`, then `PATH`, then on macOS
   `/opt/homebrew/bin/tmux`, `/usr/local/bin/tmux`, and `/opt/local/bin/tmux`.
 - `backend/internal/observe/reaper/reaper.go`,
-  `backend/internal/lifecycle/runtime.go` - liveness -> termination
+  `backend/internal/execution/lifecycle/runtime.go` - liveness -> termination
   (`ProbeFailed` never terminates, so a daemon that cannot run `tmux` strands
   sessions).

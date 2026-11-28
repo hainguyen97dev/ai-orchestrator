@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devimport"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/legacyimport"
@@ -15,7 +16,6 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/computeruse"
 	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionimport"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systemcheck"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"

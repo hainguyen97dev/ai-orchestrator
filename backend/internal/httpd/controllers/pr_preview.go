@@ -10,7 +10,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/prpreview"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/prpreview"
 )
 
 // PRPreviewService reads any GitHub pull request a chat links to.

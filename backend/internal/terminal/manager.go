@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionguard"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionguard"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/eventbus/cdc"

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
+	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/pr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
+	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/pr"
 )
 
 // commentWithFiles is a comment body linking each file, as the composer sends it.

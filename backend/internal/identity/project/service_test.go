@@ -17,13 +17,13 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/gitworktree"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/gitdefault"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/importer"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitdefault"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitworktree"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"
 )

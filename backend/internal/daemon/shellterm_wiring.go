@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	shelltermsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"

@@ -13,7 +13,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/githubpat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/githubpat"
 )
 
 type invalidGitHubPATService struct{}

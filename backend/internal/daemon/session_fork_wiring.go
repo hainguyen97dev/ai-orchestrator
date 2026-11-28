@@ -8,14 +8,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/forkseed"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/artifactversions"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session_manager"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionfork"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/sessionfork"
-	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/forkseed"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 

@@ -50,7 +50,7 @@ export function dirRenames(text, { gone = () => false } = {}) {
 
 function normalizer(renames) {
   const moved = [...renames].sort((x, y) => y[0].length - x[0].length)
-    .map(([a, b]) => [new RegExp(`(?<![\\w.-])${escape(a)}(?=[/"'\`\\s\\]),;.<:*]|$)`, 'g'), b]);
+    .map(([a, b]) => [new RegExp(`(?<![\\w.-])${escape(a)}(?=[/"'\`\\s\\]),;.<:*]|\\$(?![{\\w])|$)`, 'g'), b]);
   const module = (s) => MODULE_PATHS.reduce((acc, p) => acc.split(p).join('<module>'), s);
   return {
     minus: (s) => moved.reduce((acc, [re, b]) => acc.replace(re, b), module(s)),

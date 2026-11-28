@@ -7,9 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

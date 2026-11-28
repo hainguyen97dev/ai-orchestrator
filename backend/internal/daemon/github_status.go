@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/multi"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/githubpat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/githubpat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 

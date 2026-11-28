@@ -55,7 +55,7 @@ function assertRace(args) {
   assert.ok(args.includes('-timeout=10m'));
 }
 
-const DEDICATED = ['example/backend/platform/persistence/sqlite', 'example/backend/internal/service/chat', 'example/backend/internal/session_manager', 'example/backend/platform/persistence/sqlite/store'];
+const DEDICATED = ['example/backend/platform/persistence/sqlite', 'example/backend/internal/service/chat', 'example/backend/internal/execution/session_manager', 'example/backend/platform/persistence/sqlite/store'];
 
 test('three core shards execute every non-dedicated package exactly once', t => {
   const block = job(go, 'backend-core');

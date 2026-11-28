@@ -62,7 +62,7 @@ Google's Gemini CLI independently uses the same design: native confirmation deta
 
 ### 1. Approval is not a draft
 
-AO's Claude inspector already has independent work and composer facts, but its confirmation recognizer is tied to one exact question and one exact footer (`backend/internal/adapters/agent/claudecode/terminal_surface.go:99-118`). More importantly, handoff currently returns `errDrainDraftPresent` before it evaluates `WorkBlocked` (`backend/internal/session_manager/interface_transition.go:599-618`). Therefore even a correctly recognized approval can lose to a false draft.
+AO's Claude inspector already has independent work and composer facts, but its confirmation recognizer is tied to one exact question and one exact footer (`backend/internal/adapters/agent/claudecode/terminal_surface.go:99-118`). More importantly, handoff currently returns `errDrainDraftPresent` before it evaluates `WorkBlocked` (`backend/internal/execution/session_manager/interface_transition.go:599-618`). Therefore even a correctly recognized approval can lose to a false draft.
 
 Required behavior:
 

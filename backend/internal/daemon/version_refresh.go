@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
-	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

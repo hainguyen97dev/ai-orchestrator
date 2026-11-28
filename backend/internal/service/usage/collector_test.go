@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/lifecycle"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

@@ -11,10 +11,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/filesnapshot"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/filesnapshot"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/store"
 )

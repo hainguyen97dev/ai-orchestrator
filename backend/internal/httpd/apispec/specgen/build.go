@@ -22,7 +22,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
 	projectsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/identity/project"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/provider/agentauth"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/githubpat"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/githubpat"
 	importsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/importer"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/systeminstall"
 )

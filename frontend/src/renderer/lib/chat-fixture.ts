@@ -172,7 +172,7 @@ export const chatFixture: ConversationSnapshot = {
 				command: "git status --short",
 				rawCommand: "/bin/zsh -lc 'git status --short'",
 				cwd: "/Users/dhruv/.ao/data/worktrees/agent-orchestrator-1/ao-14",
-				output: " M backend/internal/session_manager/manager.go\n M backend/internal/ports/chat.go\n",
+				output: " M backend/internal/execution/session_manager/manager.go\n M backend/internal/ports/chat.go\n",
 				outputMayBePartial: true,
 				outputSource: "aggregate",
 				exitCode: 0,
@@ -196,7 +196,7 @@ export const chatFixture: ConversationSnapshot = {
 			detail: {
 				files: [
 					{
-						path: "backend/internal/session_manager/manager.go",
+						path: "backend/internal/execution/session_manager/manager.go",
 						status: "modified",
 						additions: 4,
 						deletions: 1,

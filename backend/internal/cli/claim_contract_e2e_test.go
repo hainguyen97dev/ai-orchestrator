@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/sqlitetest"

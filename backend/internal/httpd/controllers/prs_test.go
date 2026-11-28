@@ -13,7 +13,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
-	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/pr"
+	prsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/pr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

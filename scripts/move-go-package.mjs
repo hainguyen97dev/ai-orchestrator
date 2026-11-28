@@ -16,7 +16,7 @@ export function rewrite(text, moves) {
   if (moves.length === 0) return text;
   const sorted = [...moves].sort((a, b) => b[0].length - a[0].length);
   const to = new Map(sorted);
-  const re = new RegExp(`(?<![\\w.-])(${sorted.map(([from]) => escape(from)).join('|')})(?=["/\`'\\s,;.<)\\]:*]|$)`, 'gm');
+  const re = new RegExp(`(?<![\\w.-])(${sorted.map(([from]) => escape(from)).join('|')})(?=["/\`'\\s,;.<)\\]:*]|\\$(?![{\\w])|$)`, 'gm');
   return text.replace(re, (from) => to.get(from));
 }
 
@@ -28,6 +28,9 @@ const HISTORICAL = [
   /^docs\/superpowers\/plans\//,
   /^\.ao-rescue\//,
   /^docs\/fork\/ddd-spec\/1[67]-/,
+  // Applied migrations are history too; editing one changes a file that has
+  // already run on users' databases.
+  /\/migrations\/[^/]+\.sql$/,
   // Path fixtures of this tool and of the import-only checker.
   /^scripts\/(move-go-package|check-import-only-diff)(\.test)?\.mjs$/,
 ];

@@ -98,7 +98,7 @@ surface (`npm run sqlc`, `npm run api`).
   Worker, Chat, and reviewer registries are separate. Experimental reviewer
   selection must be explicit; native modes and prompts are not OS or network
   isolation. See the [public catalog](../frontend/src/docs/content/plugins/agents/index.mdx)
-  and `internal/adapters/reviewer/registry.go` for the current set.
+  and `internal/quality/reviewer/registry.go` for the current set.
 - The provider-neutral interactive-reviewer capability gateway and neutral
   AO-owned working-directory contract are available. The experimental
   host-trusted adapters remain candidates for future contained execution once
@@ -110,7 +110,7 @@ surface (`npm run sqlc`, `npm run api`).
   acknowledgement API. The desktop presents one newest-first feed; opening it
   acknowledges loaded unread items. It has clear-one/clear-all controls, not
   separate Unread/All tabs or per-item mark-read buttons.
-- SCM observer (`internal/observe/scm`) wired into the daemon: GitHub and GitLab providers; the GitHub path has
+- SCM observer (`internal/quality/observe/scm`) wired into the daemon: GitHub and GitLab providers; the GitHub path has
   lazy/non-blocking auth, per-PR polling with ETag guards and semantic diffing,
   feeding PR facts into lifecycle, which sends agent nudges for CI failures,
   review feedback, and merge conflicts

@@ -16,7 +16,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hooksjson"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/providerenv"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionid"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/execution/sessionid"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )

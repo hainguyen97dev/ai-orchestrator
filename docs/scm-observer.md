@@ -8,7 +8,7 @@ Scope: the provider-neutral SCM subsystem — adapters, the polling observer,
 PR storage/identity, and the read models that feed the UI. The lifecycle
 manager (LCM) is covered only at its SCM boundary. Per-provider field-mapping
 rules (how GitHub's `mergeStateStatus` becomes `MergeBlocked`, etc.) are
-documented in `backend/internal/adapters/scm/github/doc.go` and the GitLab
+documented in `backend/internal/quality/scm/github/doc.go` and the GitLab
 equivalent; this doc does not duplicate them.
 
 ## Table of Contents
@@ -96,7 +96,7 @@ built from a renamed origin still matches the tracked PR.
 
 ## The Polling Pipeline
 
-`Observer.Poll` (`backend/internal/observe/scm/observer.go`) runs every 30s
+`Observer.Poll` (`backend/internal/quality/observe/scm/observer.go`) runs every 30s
 (`DefaultTickInterval`). Cadence knobs: review refresh 2m
 (`DefaultReviewInterval`), unconditional re-fetch after 5m
 (`DefaultPRMaxAge`), GraphQL batches of 25 (`BatchSize`), incremental
@@ -143,7 +143,7 @@ Stage notes:
 
 ### The lifecycle boundary
 
-`lifecycle.Manager.ApplySCMObservation` (`backend/internal/lifecycle/reactions.go`)
+`lifecycle.Manager.ApplySCMObservation` (`backend/internal/execution/lifecycle/reactions.go`)
 is the only LCM entrypoint. It projects the observation into reaction logic
 (CI-failure injection, review-comment injection, merge-driven teardown) and
 emits/resolves notifications (PR merged, ready-to-merge). It ignores
@@ -268,7 +268,7 @@ identity dedupe makes the clobber structurally impossible.)
 *Implemented in PR
 [#4090](https://github.com/Untrivial-ai/agent-orchestrator/pull/4090) —
 `identityPRKey` / `keyForTrackedPR` in
-`backend/internal/observe/scm/observer.go`, plus the positional
+`backend/internal/quality/observe/scm/observer.go`, plus the positional
 `FetchPullRequests` contract below. The observer is net smaller than before
 the fix: fetched observations are never re-keyed from their content, so the
 entire dispatch-matching layer (including the interim URL fallback) was

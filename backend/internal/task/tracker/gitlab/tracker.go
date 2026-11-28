@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/gitlab"
+	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/scm/gitlab"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/httpkit"
