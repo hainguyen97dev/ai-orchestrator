@@ -62,3 +62,8 @@ test('the move tool never rewrites its own or the checker\'s fixtures', () => {
   for (const f of ['scripts/move-go-package.test.mjs', 'scripts/move-go-package.mjs',
     'scripts/check-import-only-diff.test.mjs', 'scripts/check-import-only-diff.mjs']) assert.equal(isHistorical(f), true, f);
 });
+
+test('the move tool never rewrites an applied SQL migration', () => {
+  assert.equal(isHistorical('backend/platform/persistence/sqlite/migrations/0013_review_run_unique_sha.sql'), true);
+  assert.equal(isHistorical('backend/platform/persistence/sqlite/queries/review.sql'), false);
+});
