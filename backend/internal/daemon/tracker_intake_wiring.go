@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	trackerintake "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/trackerintake"
 	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	trackerintake "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/observe/trackerintake"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 

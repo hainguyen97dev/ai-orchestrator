@@ -30,7 +30,7 @@
     "uiRoutes": ["_shell.projects.$projectId.tsx", "_shell.projects.$projectId_.settings.tsx", "_shell.index.tsx"],
     "tables": ["projects"] },
   { "id": "F-07", "name": "Board, delegation, tracker", "bc": "task", "ui": "Tasks", "action": "Giữ, sau nối với WorkflowRun",
-    "packages": ["internal/adapters/tracker/...", "internal/observe/trackerintake"],
+    "packages": ["internal/task/tracker/...", "internal/task/observe/trackerintake"],
     "httpPrefixes": [],
     "uiRoutes": [],
     "tables": [] },
