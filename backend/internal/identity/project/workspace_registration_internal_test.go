@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/gitdefault"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitdefault"
 )
 
 func TestInitWorkspaceParentRollsBackWhenDefaultMarkerFails(t *testing.T) {

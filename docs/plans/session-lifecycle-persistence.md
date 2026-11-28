@@ -69,9 +69,9 @@ commit-tree`) so tracked + staged + new (non-ignored) files are captured,
 
 ## Key files
 
-- `backend/internal/adapters/workspace/gitworktree/workspace.go` — Destroy,
+- `backend/internal/workspace/gitworktree/workspace.go` — Destroy,
   Restore, isDirty, findWorktree (re-add logic lives here)
-- `backend/internal/adapters/workspace/gitworktree/commands.go` — git arg
+- `backend/internal/workspace/gitworktree/commands.go` — git arg
   builders (`worktreeRemoveArgs` deliberately omits `--force`)
 - `backend/internal/ports/outbound.go` — `Workspace` interface (~line 120)
 - `backend/internal/session_manager/manager.go` — Kill (~411-446), Cleanup

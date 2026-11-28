@@ -19,12 +19,12 @@ import (
 	"golang.org/x/text/unicode/norm"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/gitdefault"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/reqid"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitdefault"
 )
 
 // Manager is the controller-facing contract for the /api/v1/projects surface.

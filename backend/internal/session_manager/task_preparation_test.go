@@ -11,10 +11,10 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/gitworktree"
 	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browser"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitworktree"
 )
 
 func TestTaskPreparationIsClaimedWithoutCreatingAnotherWorktree(t *testing.T) {

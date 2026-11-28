@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/filesnapshot"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/gitdefault"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/filesnapshot"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitdefault"
 )
 
 const (

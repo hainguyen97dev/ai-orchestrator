@@ -17,11 +17,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/gitdefault"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/legacyimport"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitdefault"
 )
 
 // Store is the storage slice the import runs through; *sqlite.Store satisfies it.

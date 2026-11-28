@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/forkseed"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/forkseed"
 )
 
 // forkSeedApplier writes a fork source's captured files into the fork.

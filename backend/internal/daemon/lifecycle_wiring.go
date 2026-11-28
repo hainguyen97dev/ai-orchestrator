@@ -17,9 +17,6 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/container/dockerreap"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/runtime/runtimeselect"
 	telemetryadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/telemetry"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/gitworktree"
-	workspacerouter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/router"
-	scratchworkspace "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/scratch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/artifactversions"
 	artifactsobserver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/observe/artifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
@@ -36,6 +33,9 @@ import (
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitworktree"
+	workspacerouter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/router"
+	scratchworkspace "github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/scratch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 

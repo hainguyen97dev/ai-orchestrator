@@ -24,12 +24,12 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/memcode"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/gitworktree"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/workspace/scratch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/gitworktree"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/scratch"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 

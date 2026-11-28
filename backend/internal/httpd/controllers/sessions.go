@@ -43,7 +43,7 @@ import (
 	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspacewatch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/workspacewatch"
 )
 
 const (

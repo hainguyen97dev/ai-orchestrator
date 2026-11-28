@@ -30,7 +30,7 @@ import (
 	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspacewatch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspace/workspacewatch"
 )
 
 const (

@@ -1,6 +1,6 @@
 [
   { "id": "F-01", "name": "Session, worker, worktree, lifecycle", "bc": "execution + workspace", "ui": "Agents / Terminals", "action": "Giữ",
-    "packages": ["internal/service/session", "internal/session_manager", "internal/lifecycle", "internal/sessionguard", "internal/sessionid", "internal/adapters/workspace/...", "internal/workspacewatch", "internal/gitdefault", "internal/filesnapshot", "internal/service/sessionfork", "internal/service/sessionsearch"],
+    "packages": ["internal/service/session", "internal/session_manager", "internal/lifecycle", "internal/sessionguard", "internal/sessionid", "internal/workspace/...", "internal/workspace/workspacewatch", "internal/workspace/gitdefault", "internal/workspace/filesnapshot", "internal/service/sessionfork", "internal/service/sessionsearch"],
     "httpPrefixes": ["/api/v1/sessions", "/api/v1/orchestrators", "/api/v1/task-preparations", "/api/v1/search", "/api/v1/desktop"],
     "uiRoutes": ["_shell.sessions*", "_shell.projects.$projectId_.sessions.$sessionId.tsx", "_shell.new.tsx"],
     "tables": ["sessions", "session_worktrees", "session_forks", "session_cleanup_facts", "session_num_floors", "session_search_deleted", "session_search_owner", "workspace_repos", "worker_idle_events", "orchestrator_reengagements", "session_interface_transitions", "session_interface_transition_messages", "session_harness_releases", "session_commit_attribution"] },
