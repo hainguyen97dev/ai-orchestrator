@@ -124,6 +124,6 @@
 //
 //   - Webhook ingestion (this package is polling-only).
 //   - Linear / GitLab providers (separate PRs).
-//   - Issue tracking (separate lane, see internal/adapters/tracker).
+//   - Issue tracking (separate lane, see internal/task/tracker).
 //   - Comment-injection-into-session-context (Messenger lane, not SCM).
 package github

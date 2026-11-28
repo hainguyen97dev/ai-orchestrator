@@ -7,7 +7,7 @@
 // deleted and binary files fail. Usage: node scripts/check-import-only-diff.mjs <baseRef>
 import { execFileSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const MODULE_PATHS = [
@@ -23,7 +23,9 @@ const IMPORT_SPEC = /^\s*(?:import\s+)?(?:[A-Za-z_]\w*\s+|[_.]\s+)?"[^"\s]+"\s*$
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // Directories moved by this diff, relative to backend/, from its rename headers.
-export function dirRenames(text) {
+// A parent with the same last segment on both sides is inferred too, but only
+// when `gone(oldParent)` says it no longer exists (it moved as a whole).
+export function dirRenames(text, { gone = () => false } = {}) {
   const map = new Map();
   let from = null;
   for (const line of text.split('\n')) {
@@ -31,7 +33,15 @@ export function dirRenames(text) {
     else if (line.startsWith('rename to ') && from) {
       const strip = (p) => dirname(p.replace(/^backend\//, ''));
       const [a, b] = [strip(from), strip(line.slice(10))];
-      if (a !== b && a !== '.') map.set(a, b);
+      if (a !== b && a !== '.') {
+        map.set(a, b);
+        let [x, y] = [a, b];
+        while (basename(x) === basename(y) && dirname(x) !== dirname(y)) {
+          [x, y] = [dirname(x), dirname(y)];
+          if (x === '.' || basename(x) !== basename(y) || !gone(x)) break;
+          if (!map.has(x)) map.set(x, y);
+        }
+      }
       from = null;
     }
   }
@@ -67,8 +77,8 @@ function unpaired(hunk, norm) {
   return hunk.filter((h, i) => !paired.has(i) && h.line.slice(1).trim() !== '');
 }
 
-export function checkDiff(text, { isGenerated = isGeneratedPath } = {}) {
-  const norm = normalizer(dirRenames(text));
+export function checkDiff(text, { isGenerated = isGeneratedPath, gone } = {}) {
+  const norm = normalizer(dirRenames(text, { gone }));
   const violations = [];
   let file = null;
   let skip = false;
@@ -129,7 +139,16 @@ if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToP
     encoding: 'utf8',
     maxBuffer: 1 << 30,
   });
-  const violations = checkDiff(text);
+  const head = process.argv[3] ?? 'HEAD';
+  const gone = (dir) => {
+    try {
+      execFileSync('git', ['cat-file', '-e', `${head}:backend/${dir}`], { stdio: 'ignore' });
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  const violations = checkDiff(text, { gone });
   for (const v of violations) console.log(v);
   console.log(violations.length === 0 ? 'import-only: ok' : `import-only: ${violations.length} violation(s)`);
   process.exitCode = violations.length === 0 ? 0 : 1;

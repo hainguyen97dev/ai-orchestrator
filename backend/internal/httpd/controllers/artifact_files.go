@@ -27,7 +27,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	previewutil "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/preview"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/renderpage"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/workspacewatch"

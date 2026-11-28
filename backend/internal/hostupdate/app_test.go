@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserruntime"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browserruntime"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 

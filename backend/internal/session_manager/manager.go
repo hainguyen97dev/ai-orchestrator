@@ -28,7 +28,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/artifact/sessionartifacts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/providerkeys"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/provider/providerkeys"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionguard"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

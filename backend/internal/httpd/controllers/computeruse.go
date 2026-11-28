@@ -8,7 +8,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/computeruse"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/computeruse"
 )
 
 // ComputerUse is the controller-facing contract for the Cua Driver integration.

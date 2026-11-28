@@ -10,11 +10,11 @@ import (
 	"runtime"
 	"testing"
 
-	trackergitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/gitlab"
-	trackermulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	trackergitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/gitlab"
+	trackermulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/multi"
 )
 
 // TestNewGitLabTracker_PassesAllowedHosts verifies that AllowedHosts from

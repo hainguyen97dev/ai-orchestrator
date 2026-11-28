@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentauth"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/provider/agentauth"
 )
 
 type fakeProviderKeyService struct {

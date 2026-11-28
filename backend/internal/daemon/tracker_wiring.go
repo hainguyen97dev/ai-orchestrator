@@ -9,13 +9,13 @@ import (
 	"time"
 
 	scmgitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/scm/gitlab"
-	trackergithub "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/github"
-	trackergitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/gitlab"
-	trackermulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/tracker/multi"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
 	aoprocess "github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	trackergithub "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/github"
+	trackergitlab "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/gitlab"
+	trackermulti "github.com/hainguyen97dev/ai-orchestrator/backend/internal/task/tracker/multi"
 )
 
 func newGitHubTracker() (ports.Tracker, error) {

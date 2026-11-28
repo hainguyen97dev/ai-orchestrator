@@ -11,7 +11,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apispec"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/envelope"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentauth"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/provider/agentauth"
 )
 
 // AgentAuthService exposes only fixed, daemon-owned authentication plans.

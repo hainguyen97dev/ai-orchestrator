@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentaccounts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/provider/agentaccounts"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"

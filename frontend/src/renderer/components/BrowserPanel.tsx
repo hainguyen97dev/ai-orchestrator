@@ -1993,7 +1993,7 @@ function agentActivityLabel(activity: BrowserViewModel["agentBrowserActivity"], 
 	return appI18n.t("browser.agentAction", { verb: browserActionVerb(action) });
 }
 
-// The daemon's refusal codes (backend/internal/browserruntime/broker.go). Name a
+// The daemon's refusal codes (backend/internal/quality/browserruntime/broker.go). Name a
 // cause only for a code that identifies one; any other refusal stays generic.
 function browserRuntimeRejectedKey(code: string | undefined): MessageKey {
 	switch (code) {

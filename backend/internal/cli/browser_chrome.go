@@ -13,7 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserchrome"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browserchrome"
 )
 
 type browserChromeChannelDTO struct {

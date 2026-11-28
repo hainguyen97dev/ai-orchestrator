@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/lifecycle"
-	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/browser"
+	browsersvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/quality/browser"
 	chatsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/chat"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionguard"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
