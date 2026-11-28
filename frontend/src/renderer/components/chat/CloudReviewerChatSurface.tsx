@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { AlertTriangle, Loader2 } from "@/components/app-icons";
 import { useTranslation } from "react-i18next";
 import { useCloudReviewerConversation } from "../../hooks/useCloudReviewerConversation";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { useSessionLinkNavigation } from "../../lib/use-session-link-navigation";
 import type { WorkspaceSession } from "../../types/workspace";
 import { ChatWorkspace } from "./ChatWorkspace";

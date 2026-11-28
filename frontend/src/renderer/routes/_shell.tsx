@@ -1,5 +1,6 @@
 import { AoError } from "../../../../packages/shared/telemetry/ao-error";
 import { apiErrorException } from "../lib/api-error-exception";
+import { clientForHost, openRemoteOrchestrator } from "../lib/local-daemon-client";
 import { useWindowZoomFactor } from "../hooks/useWindowZoomFactor";
 import { useAutoSpawnPauseNotice } from "../hooks/useAutoSpawnPauseNotice";
 import { AppBrowserLinkContext } from "../components/AppLink";
@@ -40,8 +41,6 @@ import { RestartToUpdateDialog } from "../components/RestartToUpdateDialog";
 import { SessionImportDialog } from "../components/SessionImportDialog";
 import { Sidebar } from "../components/Sidebar";
 import type { CreateProjectInput } from "../components/CreateProjectFlow";
-import { useRemoteHosts } from "../hooks/useRemoteHosts";
-import { useHostUpdatePolling } from "../hooks/useHostUpdates";
 import { useSettingsPolling } from "../hooks/useSettings";
 import { SidebarProvider } from "../components/ui/sidebar";
 import { TitlebarNav, useCanGoForward } from "../components/TitlebarNav";
@@ -57,7 +56,7 @@ import { useDaemonStatus } from "../hooks/useDaemonStatus";
 import { useOpenShellTerminal } from "../hooks/useShellTerminals";
 import { useDocumentFlag } from "../hooks/useElementFlag";
 import { useWindowFullScreen } from "../hooks/useWindowFullScreen";
-import { useRemoteWorkspaces, useWorkspacePolling, useWorkspaceQuery, workspaceQueryKey, toWorkspaceSession, workspaceQueryOptions } from "../hooks/useWorkspaceQuery";
+import { useWorkspacePolling, useWorkspaceQuery, workspaceQueryKey, toWorkspaceSession, workspaceQueryOptions } from "../hooks/useWorkspaceQuery";
 import { useCloudCp } from "../hooks/useCloudCp";
 import { useCloudOrg } from "../hooks/useCloudOrg";
 import { apiClient, apiErrorCode, apiErrorDetails, apiErrorMessage, apiErrorRequestId, hasTrustedApiBaseUrl } from "../lib/api-client";
@@ -92,18 +91,12 @@ import { useAgentInventoryTelemetry, useSetupCheckedTelemetry } from "../hooks/u
 import { useSessionSwitchSnap } from "../hooks/useSessionSwitchSnap";
 import { useHeldSession } from "../hooks/useHeldSession";
 import { useSwitchHistoryRead } from "../hooks/useSwitchHistoryRead";
-import { useLinkThisComputerOnSignIn } from "../hooks/useLinkThisComputerOnSignIn";
 import { remoteWorkspaceQueryKey } from "../hooks/useWorkspaceQuery";
-import { clientForHost } from "../lib/host-clients";
 import { useCloudSession } from "../lib/cloud-session";
 import { useCloudAccountSwitchReset } from "../hooks/useCloudAccountSwitchReset";
-import { openRemoteOrchestrator } from "../lib/remote-orchestrator";
 import { projectNavigateTarget, sessionNavigateTarget } from "../lib/navigate-to-session";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { pageHasTopbar } from "../lib/shell-topbar";
-import { forgetRemoteHost, syncRemoteCache } from "../lib/remote-chat-cache";
-import { watchRemoteUnpins } from "../lib/remote-session-unpins";
-import { useRemoteUnpinStore } from "../stores/remote-unpin-store";
 import { buildSidebarSessionOrder, sessionWantsAttention, stepSessionNav, type SidebarNavSession } from "../lib/sidebar-order";
 import { useSidebarOrderStore } from "../stores/sidebar-order-store";
 import { useAppMenuAvailable } from "../hooks/useAppMenuCommand";
@@ -365,7 +358,6 @@ function ShellLayout() {
 	useAgentInventoryTelemetry();
 	useSetupCheckedTelemetry();
 	useSessionSwitchSnap();
-	useLinkThisComputerOnSignIn();
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const router = useRouter();
@@ -381,26 +373,17 @@ function ShellLayout() {
 	useSettingsPolling();
 	const workspaceQuery = useWorkspaceQuery();
 	const workspaces = workspaceQuery.data ?? [];
-	const { hosts: remoteHosts, listed: remoteHostsListed, settled: remoteHostsSettled, retryNow: retryRemoteHostsNow } = useRemoteHosts();
-	useHostUpdatePolling(remoteHosts);
-	const remoteHostIdsKey = remoteHosts.map((host) => host.hostId).join("\0");
-	const remoteHostIds = useMemo(() => remoteHostIdsKey ? remoteHostIdsKey.split("\0") : [], [remoteHostIdsKey]);
-	// What each host showed last stays only for the hosts still saved, and shows
-	// while they connect or are offline.
-	useEffect(() => {
-		if (!remoteHostsListed) return;
-		void syncRemoteCache(queryClient, remoteHostIds);
-		// Pins removed here for a host that is no longer saved have no row left to hide.
-		useRemoteUnpinStore.getState().keepHosts(remoteHostIds);
-	}, [queryClient, remoteHostIds, remoteHostsListed]);
-	// Pins removed here while a host was unreachable reach it once its list loads.
-	useEffect(() => watchRemoteUnpins(queryClient), [queryClient]);
-	const refusedRemoteHostKey = remoteHosts.filter((host) => host.failureReason === "unauthorized").map((host) => host.hostId).join("\0");
-	useEffect(() => {
-		for (const hostId of refusedRemoteHostKey ? refusedRemoteHostKey.split("\0") : []) void forgetRemoteHost(queryClient, hostId);
-	}, [queryClient, refusedRemoteHostKey]);
-	const { data: remoteWorkspaces, failedHostIds: remoteFailedHostIds, loadedProjectHostIds: remoteLoadedProjectHostIds, loadedSessionHostIds: remoteLoadedSessionHostIds } = useRemoteWorkspaces({ cachedHostIds: remoteHostIds });
-	useAutoSpawnPauseNotice([...(workspaceQuery.data ?? EMPTY_PAUSE_PROJECTS), ...(remoteWorkspaces ?? EMPTY_PAUSE_PROJECTS)]);
+	const remoteHosts: { hostId: string; label: string; status?: string }[] = [];
+	const remoteHostsListed = true;
+	const remoteHostsSettled = true;
+	const retryRemoteHostsNow = () => undefined;
+	const remoteHostIds: string[] = [];
+	const remoteWorkspaces: WorkspaceSummary[] = [];
+	const remoteFailedHostIds: string[] = [];
+	const remoteLoadedProjectHostIds: string[] = [];
+	const remoteLoadedSessionHostIds: string[] = [];
+	useAutoSpawnPauseNotice(workspaceQuery.data ?? EMPTY_PAUSE_PROJECTS);
+	// The host-qualified session model remains optional for compatibility; B1 no longer creates host IDs.
 	// Global shortcut listeners need the latest workspace list, but recreating
 	// those subscriptions for every streamed activity update is avoidable.
 	const workspacesRef = useRef(workspaces);
@@ -506,11 +489,10 @@ function ShellLayout() {
 	const openShellTerminal = useOpenShellTerminal(routeParams.hostId);
 	const routeParamsRef = useRef(routeParams);
 	routeParamsRef.current = routeParams;
-	const remoteHostsEnabled = useUiStore((state) => state.remoteHosts);
-	const { status: accountStatus, session: cloudAccount } = useCloudSession();
+		const { status: accountStatus, session: cloudAccount } = useCloudSession();
 	useEffect(() => {
-		if ((!remoteHostsEnabled || accountStatus === "unauthenticated") && routeParams.hostId) void navigate({ to: "/", replace: true });
-	}, [accountStatus, navigate, remoteHostsEnabled, routeParams.hostId]);
+		if (routeParams.hostId) void navigate({ to: "/", replace: true });
+	}, [navigate, routeParams.hostId]);
 	useCloudAccountSwitchReset({
 		userId: cloudAccount?.user.id ?? null,
 		ready: accountStatus !== "loading",
@@ -1215,8 +1197,7 @@ const replacementErrorCount = Object.keys(orchestratorReplacementErrors).length;
 		[openProjectSettings],
 	);
 	const retryRemoteHosts = useCallback(() => {
-		void retryRemoteHostsNow();
-		void queryClient.invalidateQueries({ queryKey: ["remote-workspaces"] });
+			void queryClient.invalidateQueries({ queryKey: ["remote-workspaces"] });
 	}, [queryClient, retryRemoteHostsNow]);
 	// A new handler on every shell render would rebuild the sidebar context and
 	// re-render every row button that reads it.

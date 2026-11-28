@@ -8,7 +8,7 @@ import { FilesActionsHostContext, FilesTopbarHostContext } from "./files-topbar-
 import { TooltipProvider } from "./ui/tooltip";
 import { useUiStore } from "../stores/ui-store";
 import { sessionSourceFileQueryOptions, type ReviewTarget, type WorkspaceBranches, type WorkspaceCommitSummary, type WorkspaceHistoryResponse } from "../hooks/useSessionWorkspaceFiles";
-import { sessionUiKey } from "../lib/hosts";
+
 import type { TreeNode } from "../hooks/useSessionWorkspaceTree";
 
 const { getMock, postMock, hostAGetMock, hostBGetMock } = vi.hoisted(() => ({ getMock: vi.fn(), postMock: vi.fn(), hostAGetMock: vi.fn(), hostBGetMock: vi.fn() }));
@@ -25,7 +25,7 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorCode: () => undefined,
 }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForHost: (hostId: string) => {
 		if (hostId === "host-a") return { GET: hostAGetMock };
 		if (hostId === "host-b") return { GET: hostBGetMock };
@@ -141,39 +141,6 @@ describe("SessionFileExplorer", () => {
 		expect(fileCalls()).toHaveLength(1);
 		await client.fetchQuery(sessionSourceFileQueryOptions("hover-session", { kind: "workspace" }, "src/App.tsx"));
 		expect(fileCalls()).toHaveLength(1);
-	});
-
-	it("keeps same-id remote file state on A and B separate while opening center tabs", async () => {
-		const response = (content: string) => ({
-			data: {
-				sessionId: "same-id",
-				files: [{ path: "src/App.tsx", status: "modified", additions: 1, deletions: 0, size: 10, binary: false, content }],
-				sections: { committed: [], staged: [], unstaged: [{ path: "src/App.tsx", status: "modified", additions: 1, deletions: 0, size: 10, binary: false }], untracked: [] },
-				commits: [], summary: { additions: 1, deletions: 0, files: 1 }, truncated: false, workspaceVersion: content,
-			},
-		});
-		hostAGetMock.mockImplementation(async (path: string) => path.endsWith("/pr") ? { data: { prs: [] } } : response("A"));
-		hostBGetMock.mockImplementation(async (path: string) => path.endsWith("/pr") ? { data: { prs: [] } } : response("B"));
-		const openOnA = vi.fn();
-		const openOnB = vi.fn();
-		const { client } = renderWithQuery(<>
-			<SessionFileExplorer hostId="host-a" onOpenFile={openOnA} sessionId="same-id" />
-			<SessionFileExplorer hostId="host-b" onOpenFile={openOnB} sessionId="same-id" />
-		</>);
-		await waitFor(() => {
-			expect(client.getQueryData(["session-workspace-files", "host-a", "same-id"])).toMatchObject({ workspaceVersion: "A" });
-			expect(client.getQueryData(["session-workspace-files", "host-b", "same-id"])).toMatchObject({ workspaceVersion: "B" });
-		});
-		const [a, b] = screen.getAllByRole("region", { name: "Session files" });
-		await userEvent.click(within(a).getByRole("tab", { name: "Files" }));
-		expect(useUiStore.getState().inspectorSessions[sessionUiKey("same-id", "host-a")]?.filesChangedOnly).toBe(false);
-		expect(useUiStore.getState().inspectorSessions[sessionUiKey("same-id", "host-b")]?.filesChangedOnly).toBeUndefined();
-		await userEvent.click(within(a).getByRole("button", { name: "select src/App.tsx" }));
-		expect(openOnA).toHaveBeenCalledWith("src/App.tsx", { mode: "file" });
-		expect(openOnB).not.toHaveBeenCalled();
-		expect(within(a).queryByTestId("content-pane")).not.toBeInTheDocument();
-		expect(within(b).queryByTestId("content-pane")).not.toBeInTheDocument();
-		expect(getMock).not.toHaveBeenCalled();
 	});
 
 	it("keeps the filtered tree visible and opens a selected file in the center", async () => {

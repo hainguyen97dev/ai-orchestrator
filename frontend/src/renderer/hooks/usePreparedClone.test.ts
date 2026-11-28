@@ -4,7 +4,7 @@ import { usePreparedClone } from "./usePreparedClone";
 
 const api = vi.hoisted(() => ({ POST: vi.fn() }));
 vi.mock("../lib/api-client", () => ({ apiClient: api, apiErrorMessage: () => "Request failed" }));
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost: () => api }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost: () => api }));
 
 beforeEach(() => { api.POST.mockReset(); });
 

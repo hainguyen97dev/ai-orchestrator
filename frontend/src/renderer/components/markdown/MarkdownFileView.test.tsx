@@ -6,7 +6,7 @@ import { TooltipProvider } from "../ui/tooltip";
 import { MarkdownFileView } from "./MarkdownFileView";
 
 const { baseUrlForHostMock } = vi.hoisted(() => ({ baseUrlForHostMock: vi.fn((_hostId: string): string | undefined => undefined) }));
-vi.mock("../../lib/host-clients", () => ({ baseUrlForHost: baseUrlForHostMock }));
+vi.mock("../../lib/local-daemon-client", () => ({ baseUrlForHost: baseUrlForHostMock }));
 vi.mock("../../lib/api-client", () => ({
 	getApiBaseUrl: () => "http://127.0.0.1:4567",
 }));

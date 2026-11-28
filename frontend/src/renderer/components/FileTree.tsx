@@ -9,7 +9,7 @@ import {
 	type TreeNode,
 	type WorkspaceTreeEntry,
 } from "../hooks/useSessionWorkspaceTree";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { type FilesSource, sessionWorkspaceSearchQueryOptions } from "../hooks/useSessionWorkspaceFiles";
 import { markFileViewerPerformance } from "../lib/file-viewer-performance";
 import { Skeleton } from "./ui/skeleton";

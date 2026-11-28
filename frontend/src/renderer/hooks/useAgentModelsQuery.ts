@@ -5,8 +5,8 @@ import { apiClient } from "../lib/api-client";
 import { foldClaudeAliasDefault } from "../lib/agent-model-choices";
 import { cacheAgentModels, clearCachedAgentModels, readCachedAgentModels, withCachedModelUsage } from "../lib/agent-model-cache";
 import { modelCatalogScope } from "../lib/cloud-agents";
-import { clientForHost } from "../lib/host-clients";
-import { LOCAL_HOST } from "../lib/hosts";
+import { clientForHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST } from "../lib/session-keys";
 
 export type AgentModelCatalog = components["schemas"]["AgentModelsResponse"];
 

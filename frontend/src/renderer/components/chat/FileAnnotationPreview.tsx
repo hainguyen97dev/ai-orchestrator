@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { ChatFileReference, OpenFileAnnotation } from "../../../shared/chat-file-reference";
 import { CapturedFileAnnotation } from "./CapturedFileAnnotation";
 import { Button } from "../ui/button";
-import { clientForSessionHost } from "../../lib/host-clients";
+import { clientForSessionHost } from "../../lib/local-daemon-client";
 import { subscribeWorkspaceFileChanges } from "../../lib/workspace-file-events";
 
 export const FileAnnotationContext = createContext<

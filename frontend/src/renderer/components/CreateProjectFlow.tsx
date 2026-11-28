@@ -49,9 +49,8 @@ import { useCloudOrg } from "../hooks/useCloudOrg";
 import { useProjectAgentDefaults } from "../hooks/useAgentReadinessQuery";
 import { useSettings } from "../hooks/useSettings";
 import type { ProjectAgentDefaults } from "../lib/agent-select-options";
-import type { RemoteHost } from "../hooks/useRemoteHosts";
 import { type CloneProgress, usePreparedClone } from "../hooks/usePreparedClone";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { cloudProjectsQueryKey } from "../hooks/useWorkspaceQuery";
 import { apiClient, apiErrorCode, apiErrorMessage } from "../lib/api-client";
 import { aoBridge } from "../lib/bridge";
@@ -72,7 +71,6 @@ import {
 import { cn } from "../lib/utils";
 import type { ProjectKind } from "../types/workspace";
 import { CreateProjectAgentSheet, type CreateProjectSetup } from "./CreateProjectAgentSheet";
-import { RemoteDirectoryPicker } from "./RemoteDirectoryPicker";
 import { GitHubSetupPanel, WithGitHubState } from "./FirstRunSteps";
 import { GitHubIcon } from "./GitHubIcon";
 import CloneRepositoryDialog, { type CloneRepositoryDetails, type CloneRepositorySelection } from "./CloneRepositoryDialog";
@@ -182,7 +180,7 @@ export function CreateProjectFlow({
 	idleLabel?: string;
 	hostId?: string;
 	hostLabel?: string;
-	remoteHosts?: readonly RemoteHost[];
+	remoteHosts?: readonly { hostId: string; label: string; url?: string; status?: string }[];
 	initialOpen?: boolean;
 	mode?: CreateProjectFlowMode;
 	onCloneProject?: (input: CloneProjectInput) => Promise<void>;
@@ -1072,19 +1070,7 @@ export function CreateProjectFlow({
 				repositorySetupNeeded={repositorySetup !== null}
 				repositorySetupWarning={repositorySetupWarning}
 			/>
-			{hostId && hostLabel && remoteBrowse ? <RemoteDirectoryPicker
-				key={`${hostId}:${remoteBrowse.kind}`}
-				hostId={hostId}
-				hostLabel={hostLabel}
-				connected={connected}
-				initialPath={remoteBrowse.kind === "clone_destination" ? cloneDetails.destinationParent : ""}
-				onClose={() => setRemoteBrowse(null)}
-				onChoose={(path) => {
-					setRemoteBrowse(null);
-					if (remoteBrowse.kind === "clone_destination") setCloneDetails((current) => ({ ...current, destinationParent: path }));
-					else void chooseDirectory(remoteBrowse.kind, path, remoteBrowse.preserveCurrentDialog);
-				}}
-			/> : null}
+
 
 			{error && !hasModePicker && (
 				<span className="sr-only" role="status">
@@ -1288,7 +1274,7 @@ function CreateProjectSourceDialog({
 	disabled: boolean;
 	hostLabel?: string;
 	hostId?: string;
-	remoteHosts: readonly RemoteHost[];
+	remoteHosts: readonly { hostId: string; label: string; url?: string; status?: string }[];
 	offering: ProjectOffering;
 	localChosen: boolean;
 	onLocalChosenChange: (chosen: boolean) => void;
@@ -1760,7 +1746,7 @@ function ImportSourcePicker({
 	disabled: boolean;
 	hostLabel?: string;
 	hostId?: string;
-	remoteHosts?: readonly RemoteHost[];
+	remoteHosts?: readonly { hostId: string; label: string; url?: string; status?: string }[];
 	onCloudSelect?: () => void;
 	onClose?: () => void;
 	onCreateStandaloneAgent?: () => void;

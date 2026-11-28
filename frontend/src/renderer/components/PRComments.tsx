@@ -10,7 +10,7 @@ import { workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
 import { useAddTextToChat } from "../lib/chat-context-bus";
 import { formatTimeCompact } from "../lib/format-time";
 import { getGitHubStatus } from "../lib/github-daemon";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { prCheckedOut, prThreadDiffUrl } from "../lib/pr-display";
 import { usesPreviewWorkspaceData as usePreviewData } from "../lib/preview-mode";
 import { cn } from "../lib/utils";

@@ -1,5 +1,5 @@
 import { captureRendererEvent, isDeniedEvent } from "./telemetry";
-import { sessionUiKey } from "./hosts";
+import { sessionUiKey } from "./session-keys";
 
 const STORAGE_KEY = "ao.telemetry.sessionManagement.v1";
 const CHECKPOINT_MS = 5 * 60_000;

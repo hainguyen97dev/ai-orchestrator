@@ -5,7 +5,7 @@ import { useCloudProjectsQuery, useCloudSessionsQuery, remoteWorkspaceQueryKey, 
 import { useCloudOrg } from "../hooks/useCloudOrg";
 import { useUiStore } from "../stores/ui-store";
 import type { WorkspaceSummary } from "../types/workspace";
-import { LOCAL_HOST } from "./hosts";
+import { LOCAL_HOST } from "./session-keys";
 import { useNavigateToSession } from "./navigate-to-session";
 import { parseArtifactLink, parseSessionLink, resolveSessionLink } from "./session-links";
 

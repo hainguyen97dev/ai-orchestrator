@@ -36,12 +36,9 @@ import { NAV_ROW_HIGHLIGHT_HOST_CLASS, NavRowHighlight } from "./NavRowHighlight
 import { Button } from "./ui/button";
 import { CloseButton } from "./ui/close-button";
 import { Pressable } from "./ui/pressable";
-import { labelForHost } from "../lib/host-clients";
-import { LOCAL_HOST, refKey } from "../lib/hosts";
+import { labelForHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST, refKey } from "../lib/session-keys";
 import { globalSettingsItem, teamsPageFor, type TeamsPage, visibleGlobalSettings } from "./settings/settingsCatalog";
-import { fetchMobileStatus, mobileStatusQueryKey } from "./settings/ConnectMobileContent";
-import { fetchDevices, mobileDevicesQueryKey } from "./settings/MobileDevicesSection";
-import { fetchPairingCode, mobilePairingCodeQueryKey, PAIRING_CODE_REFRESH_MS } from "../lib/mobile-pairing-code";
 import { findSettingsTarget, highlightSettingsTarget, SETTINGS_FOCUS_HIGHLIGHT_MS } from "../lib/settings-focus";
 import { useEdgeFade } from "../hooks/useEdgeFade";
 import { SettingsBrowserLinkContext, SettingsBrowserOverlay } from "./settings/SettingsBrowserOverlay";
@@ -271,13 +268,7 @@ function useSettingsLayer(settingsModal: SettingsModal | null) {
 		}
 		if (globalSettingsWasOpen.current) return;
 		globalSettingsWasOpen.current = true;
-		// Warm Mobile as soon as global Settings opens: its pairing state and Keep
-		// awake are known before the page is first drawn, so nothing pops in or
-		// flips after it opens.
-		void queryClient.prefetchQuery({ queryKey: mobileStatusQueryKey, queryFn: fetchMobileStatus });
-		void queryClient.prefetchQuery({ queryKey: mobileDevicesQueryKey, queryFn: fetchDevices });
-		// Fails quietly while Connect Mobile is off; the page fetches it once on.
-		void queryClient.prefetchQuery({ queryKey: mobilePairingCodeQueryKey, queryFn: fetchPairingCode, staleTime: PAIRING_CODE_REFRESH_MS });
+
 	}, [queryClient, settingsModal?.scope]);
 
 	const selectProjectSection = (id: ProjectSettingsSection, navigate = () => projectHistory.visit(id)) => {

@@ -1,6 +1,6 @@
 import { cloudAttachmentReference } from "../../lib/cloud-attachments";
 import { isMacPlatform } from "../../lib/platform";
-import { clientForSessionHost } from "../../lib/host-clients";
+import { clientForSessionHost } from "../../lib/local-daemon-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { captureFileReference } from "../../../shared/chat-file-reference";
 import { FileAnnotationPreview } from "./FileAnnotationPreview";

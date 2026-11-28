@@ -1,5 +1,5 @@
 import { toKanbanColumn, type WorkspaceSession, type WorkspaceSummary } from "../types/workspace";
-import { LOCAL_HOST, refKey } from "../lib/hosts";
+import { LOCAL_HOST, refKey } from "../lib/session-keys";
 
 /** Host-qualified sessions with an in-flight optimistic kill. */
 const optimisticKillIds = new Set<string>();

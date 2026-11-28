@@ -34,9 +34,6 @@ import type { DaemonStatus } from "./shared/daemon-status";
 import type { AgentLoginRequest, AgentLoginResponse } from "./main/agent-login-ipc";
 import type { DictationEvent } from "./shared/dictation";
 import { OPEN_SESSION_DEEP_LINK_CHANNEL } from "./shared/deep-links";
-import type { RemoteHostView } from "./main/remotes-ipc";
-import type { ConnectedHostView } from "./main/remote-registry";
-import type { HostUpdateView, RemoteHealth } from "./main/remote-request";
 import type {
 	EditorHandoffState,
 	EditorHandoffStateOptions,
@@ -1038,41 +1035,7 @@ const api = {
 		list: () => ipcRenderer.invoke("featureBuilds:list") as Promise<FeatureBuild[]>,
 		getActive: () => ipcRenderer.invoke("featureBuilds:getActive") as Promise<{ pr: number } | null>,
 	},
-	// Saved AO daemons in ~/.ao/remotes.json. Everything the renderer receives
-	// back is password-free (see main/remotes-ipc.ts); a password only travels
-	// renderer -> main on add or credential edit. Account host tokens stay in main.
-	remotes: {
-		list: () => ipcRenderer.invoke("remotes:list", true) as Promise<RemoteHostView[] | { code: string; message: string; expected?: true }>,
-		// Saves the account's machines from AO Cloud and forgets the ones it no longer lists.
-		syncAccountHosts: (accountId: string) => ipcRenderer.invoke("remotes:syncAccountHosts", accountId) as Promise<void>,
-		// Lists a paired host under the signed-in account.
-		linkAccountHost: (url: string) => ipcRenderer.invoke("remotes:linkAccountHost", url) as Promise<void>,
-		add: (input: { label: string; url: string; password: string }) =>
-			ipcRenderer.invoke("remotes:add", input) as Promise<RemoteHealth>,
-		// An edit carries only what changed: an omitted password keeps the saved
-		// one, so a rotated credential is fixed without the renderer ever holding
-		// the old one.
-		update: (url: string, changes: { label?: string; url?: string; password?: string }) =>
-			ipcRenderer.invoke("remotes:update", url, changes) as Promise<RemoteHealth>,
-		remove: (url: string) => ipcRenderer.invoke("remotes:remove", url) as Promise<void>,
-		connect: (url: string, hostId?: string) => ipcRenderer.invoke("remotes:connect", url, hostId) as Promise<ConnectedHostView>,
-		disconnect: (url: string) => ipcRenderer.invoke("remotes:disconnect", url) as Promise<void>,
-		hostUpdate: (url: string) => ipcRenderer.invoke("remotes:hostUpdate", url) as Promise<HostUpdateView | null>,
-		checkHostUpdate: (url: string) => ipcRenderer.invoke("remotes:checkHostUpdate", url) as Promise<string>,
-		startHostUpdate: (url: string, version?: string) => ipcRenderer.invoke("remotes:startHostUpdate", url, version) as Promise<HostUpdateView | null>,
-		// The name this machine is listed under on the account's other devices.
-		computerName: () => ipcRenderer.invoke("remotes:computerName") as Promise<string>,
-		previewUrl: (hostId: string, sessionId: string, sourceUrl: string) =>
-			ipcRenderer.invoke("remotes:previewUrl", hostId, sessionId, sourceUrl) as Promise<string>,
-		resolvePreviewUrl: (hostId: string, sessionId: string, viewedUrl: string) =>
-			ipcRenderer.invoke("remotes:resolvePreviewUrl", hostId, sessionId, viewedUrl) as Promise<string>,
-		// The host's agent browser for the session's agent tab ("" when none).
-		agentBrowserUrl: (hostId: string, sessionId: string) =>
-			ipcRenderer.invoke("remotes:agentBrowserUrl", hostId, sessionId) as Promise<string>,
-		// A preview's address for a browser outside AO; any other URL unchanged.
-		externalUrl: (hostId: string, url: string) =>
-			ipcRenderer.invoke("remotes:externalUrl", hostId, url) as Promise<string>,
-	},
+
 	cloud: {
 		getSession: () => ipcRenderer.invoke("cloud:getSession") as Promise<CloudAccount | null>,
 		signIn: () => ipcRenderer.invoke("cloud:signIn") as Promise<void>,

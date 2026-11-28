@@ -12,7 +12,7 @@ const { baseUrlForHostMock, lineScrollIntoView } = vi.hoisted(() => ({
 	lineScrollIntoView: vi.fn(),
 }));
 vi.mock("../lib/api-client", () => ({ getApiBaseUrl: () => "" }));
-vi.mock("../lib/host-clients", () => {
+vi.mock("../lib/local-daemon-client", () => {
 	const snapshots = new Map<string, { base: string }>();
 	return {
 		connectedHost: (hostId: string) => {

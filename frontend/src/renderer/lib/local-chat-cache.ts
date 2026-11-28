@@ -4,12 +4,18 @@ import { workspaceQueryKey } from "../hooks/useWorkspaceQuery";
 import type { ConversationSnapshot } from "../types/conversation";
 import type { WorkspaceSummary } from "../types/workspace";
 import { DEV_BUILD_INFO } from "./dev-build-info";
-import { done } from "./remote-chat-cache";
 
 const DB_NAME = "ao-local-chats";
 const STORE = "pages";
 const MAX_PAGE_CHARS = 4 * 1024 * 1024;
 const WRITE_DELAY_MS = 1_000;
+
+function done<T>(request: IDBRequest<T>): Promise<T> {
+	return new Promise((resolve, reject) => {
+		request.onsuccess = () => resolve(request.result);
+		request.onerror = () => reject(request.error);
+	});
+}
 
 type Entry = { sessionId: string; createdAt: string; build: string; page: ConversationSnapshot };
 

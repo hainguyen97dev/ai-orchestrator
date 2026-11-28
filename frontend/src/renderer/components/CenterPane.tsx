@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useTabListTabStop } from "../hooks/useTabListTabStop";
 import { useTabScrollEdges } from "../hooks/useTabScrollEdges";
 import { workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
-import { useHostConnection } from "../hooks/useHostConnection";
+import { useHostConnection } from "../hooks/useLocalHostConnection";
 import { useSidebarChromeClearanceRef } from "../hooks/useSidebarChromeGeometry";
 import { MAX_SESSION_DISPLAY_NAME_LEN, useSessionRename } from "../hooks/useSessionRename";
 import { useTruncatedText } from "../hooks/useTruncatedText";

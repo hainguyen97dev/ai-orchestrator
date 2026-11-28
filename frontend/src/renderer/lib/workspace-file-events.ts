@@ -1,8 +1,8 @@
 import type { InvalidateQueryFilters, QueryClient } from "@tanstack/react-query";
 import { eventStreamBaseUrl, getApiBaseUrl, hasTrustedApiBaseUrl, subscribeApiBaseUrl } from "./api-client";
-import { baseUrlForHost, subscribeConnectedHosts } from "./host-clients";
-import { sessionUiKey } from "./hosts";
-import { probeRemoteSse } from "./remote-sse-probe";
+import { baseUrlForHost, subscribeConnectedHosts } from "./local-daemon-client";
+import { sessionUiKey } from "./session-keys";
+import { probeRemoteSse } from "./local-daemon-client";
 import { computeSseRetryDelayMs } from "./sse-backoff";
 
 const INVALIDATE_DEBOUNCE_MS = 150;

@@ -13,7 +13,7 @@ import { useCloudSessionStartRequestInFlight, useCloudWorkspaceReady } from "../
 import { WORKER_STARTING_CODE, cloudWorkerReadRetry, cloudWorkerRequest, cloudWorkerStartingRetryDelay, cloudWorkerStartingWaits, recordCloudWorkspaceStartupEvent } from "../../lib/cloud-worker-starting";
 import { useChatMessageFocus, useChatNavigationRequest, type ChatMessageFocusTarget } from "../../hooks/useChatMessageFocus";
 import { useCloudPromptSuggestion } from "../../hooks/useCloudPromptSuggestion";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { useCloudSessionLive } from "../../hooks/useCloudSessionLive";
 import { useSessionBrowserLink } from "../../hooks/useSessionBrowserLink";
 import { useCloudSessionEventStream } from "../../hooks/useCloudSessionEvents";

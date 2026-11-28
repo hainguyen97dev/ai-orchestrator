@@ -16,8 +16,8 @@ import {
 	Pencil,
 } from "@/components/app-icons";
 import { sessionWorkspaceFilesQueryOptions, type WorkspaceFileSummary } from "../hooks/useSessionWorkspaceFiles";
-import { clientForSessionHost } from "../lib/host-clients";
-import { sessionUiKey } from "../lib/hosts";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { sessionUiKey } from "../lib/session-keys";
 import { sessionBranchPresentation } from "../lib/session-branch";
 import { BranchNamingLabel } from "./BranchNamingLabel";
 import { usesPreviewWorkspaceData as usePreviewData } from "../lib/preview-mode";

@@ -76,7 +76,7 @@ vi.mock("../lib/api-client", () => ({
 const hostMocks = vi.hoisted(() => ({
 	aGet: vi.fn(), aPost: vi.fn(), bGet: vi.fn(), bPost: vi.fn(),
 }));
-vi.mock("../lib/host-clients", () => {
+vi.mock("../lib/local-daemon-client", () => {
 	const client = (hostId: string) => hostId === "host-a"
 		? { GET: hostMocks.aGet, POST: hostMocks.aPost }
 		: { GET: hostMocks.bGet, POST: hostMocks.bPost };
@@ -535,20 +535,6 @@ describe("first run project actions", () => {
 });
 
 describe("CreateProjectFlow remote host", () => {
-	it("switches the shared picker back to this computer", async () => {
-		const user = userEvent.setup();
-		const onSelectHost = vi.fn();
-		renderChooseFlow({
-			initialOpen: true,
-			hostId: "host-a",
-			hostLabel: "Host A",
-			remoteHosts: [{ hostId: "host-a", label: "Host A", url: "https://a.test", status: "connected" }],
-			onSelectHost,
-		});
-		await user.click(screen.getByRole("combobox", { name: "Machine" }));
-		await user.click(screen.getByRole("option", { name: "This computer" }));
-		expect(onSelectHost).toHaveBeenCalledWith(undefined);
-	});
 
 	it("shows safe Git clone guidance from a failed host clone", async () => {
 		const user = userEvent.setup();
@@ -2186,24 +2172,6 @@ describe("CreateProjectFlow project import validation", () => {
 		screen.getByRole("button", { name: "Back" }).focus();
 		await user.keyboard("{Enter}");
 		await waitFor(() => expect(screen.getByRole("button", { name: "On this computer" })).toHaveFocus());
-	});
-
-	it("names the local tile for remote machines when any are connected", () => {
-		cloudMocks.cloudEnabled = true;
-		cloudMocks.sessionStatus = "authenticated";
-		render(
-			<CreateProjectFlow
-				embedded
-				mode="choose"
-				remoteHosts={[{ hostId: "box-a", label: "Box A", url: "http://box-a:3011", status: "connected" }]}
-				onSelectHost={vi.fn()}
-				{...noop}
-			/>,
-			{ wrapper: CloudTestProviders },
-		);
-
-		expect(screen.getByRole("button", { name: "On your machines" })).toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: "On this computer" })).not.toBeInTheDocument();
 	});
 
 	it("starts with connecting a repository, with no project name or manual setup", async () => {

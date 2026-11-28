@@ -15,11 +15,11 @@ import { formatOrchestratorStartupError } from "../lib/orchestrator-startup-erro
 import { addRendererExceptionStep, captureRendererException } from "../lib/telemetry";
 import { useUiStore } from "../stores/ui-store";
 import { useCanResumeAgent } from "./useCanResumeAgent";
-import { openRemoteOrchestrator } from "../lib/remote-orchestrator";
+import { openRemoteOrchestrator } from "../lib/local-daemon-client";
 import { apiErrorCode } from "../lib/api-client";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { sessionNavigateTarget } from "../lib/navigate-to-session";
-import { useConnectedHosts } from "./useHostConnection";
+import { useConnectedHosts } from "./useLocalHostConnection";
 import { FREESTYLE_PROVIDER } from "../lib/cloud-offering";
 import type { CloudCpSession } from "../lib/cloud-cp";
 

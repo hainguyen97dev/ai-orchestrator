@@ -1,5 +1,5 @@
 import { useUiStore } from "../stores/ui-store";
-import { sessionUiKey, type HostId } from "./hosts";
+import { sessionUiKey, type HostId } from "./session-keys";
 
 /**
  * Carries a search result's match into the session that result opens.

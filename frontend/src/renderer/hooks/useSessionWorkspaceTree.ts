@@ -1,6 +1,6 @@
 import { apiErrorException } from "../lib/api-error-exception";
 import type { components } from "../../api/schema";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { snapshotQuery, WorkspaceRequestError, retryWorkspaceRead, type FilesSource, isChangedWorkspaceFile, type WorkspaceFileSummary } from "./useSessionWorkspaceFiles";
 
 export type WorkspaceTreeEntry = components["schemas"]["WorkspaceTreeEntry"];

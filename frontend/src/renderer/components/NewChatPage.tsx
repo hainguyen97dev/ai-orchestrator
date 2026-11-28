@@ -2,7 +2,7 @@ import { useTelemetrySurface } from "../lib/ui-usage-telemetry";
 import { apiErrorException } from "../lib/api-error-exception";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Cloud, Folder, Plus, Smartphone, StickyNote } from "@/components/app-icons";
+import { Cloud, Folder, Plus, StickyNote } from "@/components/app-icons";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRemoteWorkspaces, useWorkspaceQuery, workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
@@ -12,7 +12,7 @@ import { apiErrorMessage } from "../lib/api-client";
 import { PLAN_REFUSAL_CODES } from "../lib/cloud-cp/client";
 import { dropReportPrompt, sessionNameFromBrief } from "../lib/report-problem";
 import { chatDraftScopeKey, newChatDraftScope, readChatSessionDraft, writeChatAttachments, writeChatComposerText } from "../lib/chat-drafts";
-import { labelForHost } from "../lib/host-clients";
+import { labelForHost } from "../lib/local-daemon-client";
 import { sessionNavigateTarget } from "../lib/navigate-to-session";
 import { openComposerModelPicker, toggleComposerDictation } from "../lib/composer-shortcuts";
 import { useSessionShortcut } from "../hooks/useAppShortcut";
@@ -26,12 +26,11 @@ import { agentModelDisplayLabel } from "../lib/agent-model-choices";
 import { ChatWorkspace } from "./chat/ChatWorkspace";
 import type { ChatComposerHandle } from "./chat/ChatComposer";
 import { handOffComposerDraft } from "../lib/chat-context-bus";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { startingConversationSnapshot } from "./chat/OrchestratorStartingChat";
 import { LaunchSettingsBar, rememberLaunchSettings, rememberOpeningStart, type LaunchSettings } from "./chat/LaunchSettingsBar";
 import { hasProviderPermissionMode, partitionConfigOptions, TRIGGER_CLASS, TurnSettingsBar } from "./chat/TurnSettingsBar";
 import { SettingsOptionMenu } from "./settings/SettingsOptionMenu";
-import { fetchDevices, isPhone, mobileDevicesQueryKey } from "./settings/MobileDevicesSection";
 import { useUiStore } from "../stores/ui-store";
 import { BareTopbarDragStrip } from "./BareTopbarDragStrip";
 import { SessionTabsTopbar } from "./PageTopbar";
@@ -526,7 +525,6 @@ export function NewChatPage({ projectId, hostId, report }: { projectId: string; 
 				composerTray={
 					<>
 						<NewChatProjectPicker projectId={projectId} hostId={hostId} disabled={frozen || report} onChange={(project) => void navigate({ to: "/new", search: { project, host: hostId }, replace: true })} />
-						{hostId ? null : <MobileConnected />}
 					</>
 				}
 				onSend={send}
@@ -780,26 +778,4 @@ function NewChatProjectPicker({ projectId, hostId, disabled, onChange }: { proje
 function ProjectIcon({ projectId, cloud, className }: { projectId: string; cloud?: boolean; className: string }) {
 	const Icon = projectId === STANDALONE_WORKSPACE_ID ? StickyNote : cloud ? Cloud : Folder;
 	return <Icon aria-hidden="true" className={cn("shrink-0", className)} />;
-}
-
-/** Shown while a paired phone has the app open, so a task started here can be followed there. */
-function MobileConnected() {
-	const { t } = useTranslation();
-	const openGlobalSettings = useUiStore((state) => state.openGlobalSettings);
-	const { data } = useQuery({ queryKey: mobileDevicesQueryKey, queryFn: fetchDevices, refetchInterval: 10_000, retry: false });
-	const live = data?.filter((device) => device.live && isPhone(device)) ?? [];
-	if (live.length === 0) return null;
-	return (
-		<Button
-			type="button"
-			variant="quiet"
-			size="sm"
-			className="ml-auto w-fit"
-			title={live.map((device) => device.deviceName).filter(Boolean).join(", ") || undefined}
-			onClick={() => openGlobalSettings("mobile")}
-		>
-			<Smartphone aria-hidden="true" className="size-3.5 shrink-0" />
-			{t("newTask.phoneConnected", { count: live.length })}
-		</Button>
-	);
 }

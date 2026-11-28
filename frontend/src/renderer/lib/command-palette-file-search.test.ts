@@ -14,7 +14,7 @@ import {
 
 const { localGet, remoteGet } = vi.hoisted(() => ({ localGet: vi.fn(), remoteGet: vi.fn() }));
 
-vi.mock("./host-clients", () => ({
+vi.mock("./local-daemon-client", () => ({
 	clientForSessionHost: (hostId?: string) => ({ GET: hostId ? remoteGet : localGet }),
 }));
 

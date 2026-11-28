@@ -118,7 +118,7 @@ import { createTerminalMux, muxUrlFromApiBase } from "../../lib/terminal-mux";
 import { isLinuxPlatform, isMacPlatform } from "../../lib/platform";
 import { handleTerminalTabListKeyDown } from "../../lib/terminal-tabs";
 import { agentLabel } from "../../lib/agent-options";
-import { labelForHost } from "../../lib/host-clients";
+import { labelForHost } from "../../lib/local-daemon-client";
 import type { ApprovalMode } from "../../types/conversation";
 import type { ConversationLocalEcho } from "../../hooks/useConversation";
 import type { ShellTerminal } from "../../hooks/useShellTerminals";
@@ -227,7 +227,6 @@ import { ComposerModeItems, TurnSettingsBar, type ApprovalModeLimits } from "./T
 import { ElicitationDock, ElicitationHistory } from "./ElicitationDock";
 import { ChatLoginBand, type ChatLoginBandProps } from "./ChatLoginBand";
 import { ImportedAgentBlocked, McpServerBanner, ReauthBanner, ThreadStateBanner, VersionSwitchChip } from "./ChatStatusBanners";
-import { HostAwayBanner } from "../HostOfflineStatus";
 import type { AgentBlock } from "../../lib/session-import";
 import type { OutgoingAttachment } from "../../lib/attachment-uploads";
 import { UsageLimitNotice } from "./UsageLimitNotice";
@@ -2316,7 +2315,7 @@ function ChatWorkspaceContent({
 					) : null}
 					{/* An archived chat reads as an ordinary one: sending to it restores it, and the
 					    composer, not a banner, says so until the agent is back. */}
-					{savedCopy && activeRemoteHostId ? <HostAwayBanner hostId={activeRemoteHostId} /> : resumeHidden ? null : (
+					{resumeHidden ? null : (
 						<ControllerBanner
 							controller={snapshot.controller}
 							quietConnect={Boolean(openingStartedAt) && !firstTurnSettled(snapshot)}

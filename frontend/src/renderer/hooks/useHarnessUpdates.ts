@@ -6,8 +6,8 @@ import type { components } from "../../api/schema";
 import { appI18n } from "../i18n";
 import { AGENT_OPTIONS, agentLabel, type AgentId } from "../lib/agent-options";
 import { apiErrorCode, apiErrorDetails, apiErrorMessage } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
-import { LOCAL_HOST } from "../lib/hosts";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST } from "../lib/session-keys";
 import type { AgentAuthPlan } from "./useAgentAuth";
 import type { AgentReadiness } from "./useAgentReadinessQuery";
 

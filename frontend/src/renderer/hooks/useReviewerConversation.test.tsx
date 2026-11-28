@@ -5,7 +5,7 @@ import { expect, it, vi } from "vitest";
 import { reviewerConversationQueryKey, useReviewerConversationCommands } from "./useReviewerConversation";
 
 const mocks = vi.hoisted(() => ({ patch: vi.fn(), post: vi.fn(), client: vi.fn() }));
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost: mocks.client }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost: mocks.client }));
 
 it("keeps a settings response scoped to the review host that submitted it", async () => {
 	let finish!: (value: { data: object }) => void;

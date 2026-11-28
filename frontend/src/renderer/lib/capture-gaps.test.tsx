@@ -5,7 +5,6 @@ import { createMemoryHistory, createRootRoute, createRoute, createRouter, notFou
 import { afterEach, expect, it, vi } from "vitest";
 import { queryClient } from "./query-client";
 import { apiClient, setApiBaseUrl } from "./api-client";
-import { clientForHost } from "./host-clients";
 import { apiErrorException } from "./api-error-exception";
 import { RouteErrorCapture, reportRouteError } from "../components/RouteErrorCapture";
 import { captureRendererException } from "./telemetry";
@@ -105,13 +104,5 @@ it.each(["Sign in to AO Cloud to use this feature", "Unexpected handler failure"
 	await expect(mutation.execute(undefined)).rejects.toBe(wrapped);
 	reportRouteError(wrapped);
 	await Promise.resolve();
-	expect(capture).not.toHaveBeenCalled();
-});
-
-it("does not report expected disconnected-host query or mutation failures", async () => {
-	const queryFn = () => clientForHost("disconnected-private-host");
-	await expect(queryClient.fetchQuery({ queryKey: ["disconnected-host"], retry: false, queryFn })).rejects.toThrow("is not connected");
-	const mutation = queryClient.getMutationCache().build(queryClient, { retry: false, mutationFn: async () => queryFn() });
-	await expect(mutation.execute(undefined)).rejects.toThrow("is not connected");
 	expect(capture).not.toHaveBeenCalled();
 });

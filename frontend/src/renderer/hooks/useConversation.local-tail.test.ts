@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ConversationItem, ConversationSnapshot, ConversationTurn } from "../types/conversation";
 
 const { getMock } = vi.hoisted(() => ({ getMock: vi.fn() }));
-vi.mock("../lib/host-clients", () => ({ baseUrlForHost: () => undefined, clientForSessionHost: () => ({ GET: getMock }) }));
+vi.mock("../lib/local-daemon-client", () => ({ baseUrlForHost: () => undefined, clientForSessionHost: () => ({ GET: getMock }) }));
 
 import { conversationQueryKey, refreshLocalConversationTail } from "./useConversation";
 

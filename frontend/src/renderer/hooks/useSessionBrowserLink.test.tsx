@@ -8,7 +8,7 @@ import { useSessionBrowserLink } from "./useSessionBrowserLink";
 
 const { getMock, postMock } = vi.hoisted(() => ({ getMock: vi.fn(), postMock: vi.fn() }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForSessionHost: () => ({ GET: getMock, POST: postMock }),
 }));
 

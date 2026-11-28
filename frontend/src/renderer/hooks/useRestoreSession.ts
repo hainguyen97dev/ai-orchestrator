@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { apiClient, apiErrorMessage } from "../lib/api-client";
-import { clientForHost } from "../lib/host-clients";
+import { clientForHost } from "../lib/local-daemon-client";
 import { aoBridge } from "../lib/bridge";
 import { CloudCpError, type CloudCpSession } from "../lib/cloud-cp";
 import { restoreCloudSession } from "../lib/cloud-lifecycle";

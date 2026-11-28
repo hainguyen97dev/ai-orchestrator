@@ -22,7 +22,7 @@ import {
 import { usePierreFileHighlightReady } from "../hooks/usePierreFileHighlight";
 import { workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
 import { subscribeWorkspaceFileChanges } from "../lib/workspace-file-events";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { cn } from "../lib/utils";
 import { markFileViewerPerformance } from "../lib/file-viewer-performance";
 import { fileMediaKind, type FileMediaKind } from "../lib/file-media";

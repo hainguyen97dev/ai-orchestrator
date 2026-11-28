@@ -30,7 +30,7 @@ import {
 	subscribeChatDraftBoundaries,
 	type ChatDraftBoundaryKind,
 } from "../lib/chat-draft-boundary";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { agentSwitchTarget, useIsCloudSessionCreator } from "./useCloudAgentSwitch";
 import type { WorkspaceSession } from "../types/workspace";
 import { ComposerErrorNotice } from "../components/chat/AgentSwitchPicker";

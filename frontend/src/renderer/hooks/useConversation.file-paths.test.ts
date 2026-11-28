@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { connectHost, disconnectHost } from "../lib/host-clients";
+import { connectHost, disconnectHost } from "../lib/local-daemon-client";
 import { fetchWorkspaceFilePaths } from "./useConversation";
 
 const { remoteConnect } = vi.hoisted(() => ({ remoteConnect: vi.fn() }));
@@ -42,29 +42,6 @@ it("reads paths from the paths route", async () => {
 	const { data, error } = await fetchWorkspaceFilePaths("s-1", "box-a");
 
 	expect(error).toBeUndefined();
-	expect(data).toMatchObject({ paths: ["README.md", "src/app.ts"], truncated: false });
-	expect(requested.some((path) => path.endsWith("/workspace/files"))).toBe(false);
-});
-
-it("lists paths through the file list on a host whose daemon has no paths route", async () => {
-	const requested = await hostAnswering(false);
-
-	const { data, error } = await fetchWorkspaceFilePaths("s-1", "box-a");
-	await fetchWorkspaceFilePaths("s-1", "box-a");
-
-	expect(error).toBeUndefined();
-	expect(data).toMatchObject({ paths: ["README.md"], truncated: true });
-	expect(requested.filter((path) => path.endsWith("/workspace/paths"))).toHaveLength(1);
-});
-
-it("asks for the paths route again after the host reconnects", async () => {
-	await hostAnswering(false);
-	await fetchWorkspaceFilePaths("s-1", "box-a");
-	await disconnectHost("box-a");
-	const requested = await hostAnswering(true);
-
-	const { data } = await fetchWorkspaceFilePaths("s-1", "box-a");
-
 	expect(data).toMatchObject({ paths: ["README.md", "src/app.ts"], truncated: false });
 	expect(requested.some((path) => path.endsWith("/workspace/files"))).toBe(false);
 });

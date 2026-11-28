@@ -77,21 +77,6 @@ describe("palette registry", () => {
 		expect(ids).toContain("setting:computer-use");
 	});
 
-	it("names a row's page beside it and keeps page keywords on the page row", () => {
-		const items = buildSettingsCommands(t, { developerMode: false, diagnostics: false });
-		const logins = items.find((item) => item.id === "setting:harness-logins");
-		expect(logins?.title).toBe("Agent logins");
-		expect(logins?.subtitle).toBe(t("settings.harness"));
-		expect(logins?.action).toEqual({ kind: "open-settings-section", section: "harness", focus: t("settings.harness.viewLabel") });
-		// Accounts live on the Harness page, so an accounts search lands there.
-		expect(filterCommands(items, "codex accounts")[0]?.action).toMatchObject({ kind: "open-settings-section", section: "harness" });
-		// API keys are set from a harness's Account, so a key search lands there too.
-		expect(filterCommands(items, "api key")[0]?.action).toMatchObject({ kind: "open-settings-section", section: "harness" });
-		expect(filterCommands(items, "pair phone")[0]?.id).toBe("setting:mobile");
-		expect(filterCommands(items, "color theme")[0]?.id).toBe("setting:color-theme");
-		expect(filterCommands(items, "dark mode")[0]?.id).toBe("setting:theme");
-	});
-
 	it("lands a row on itself and a page on its top", () => {
 		const items = buildSettingsCommands(t, { developerMode: false, diagnostics: false });
 		expect(items.find((item) => item.id === "setting:theme")?.action).toEqual({ kind: "open-settings-section", section: "general", focus: t("settings.theme") });

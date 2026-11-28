@@ -20,7 +20,7 @@ const { localGet, localPut, hostAGet, hostAPut, hostBGet, hostBPut } = vi.hoiste
 	localGet: vi.fn(), localPut: vi.fn(), hostAGet: vi.fn(), hostAPut: vi.fn(), hostBGet: vi.fn(), hostBPut: vi.fn(),
 }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForSessionHost: (hostId?: string) => {
 		if (hostId === "host-a") return { GET: hostAGet, PUT: hostAPut };
 		if (hostId === "host-b") return { GET: hostBGet, PUT: hostBPut };

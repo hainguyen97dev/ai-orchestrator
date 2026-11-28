@@ -6,7 +6,7 @@ import { chatFixtureEmpty } from "../lib/chat-fixture";
 import type { ConversationMessage, ConversationSnapshot } from "../types/conversation";
 
 const { clientForSessionHost, post } = vi.hoisted(() => ({ clientForSessionHost: vi.fn(), post: vi.fn() }));
-vi.mock("../lib/host-clients", () => ({ clientForSessionHost }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForSessionHost }));
 import { useConversationPromptSuggestion } from "./useConversationPromptSuggestion";
 
 const settled: ConversationSnapshot = {

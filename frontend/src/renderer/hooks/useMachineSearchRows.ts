@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import {
 	isQueryRefinement,
 	MACHINE_SEARCH_GATHER_MS,
@@ -11,7 +11,7 @@ import {
 	type MachineSearchResult,
 } from "../lib/session-search-machines";
 import type { SessionSearchResponse } from "./usePaletteSessionSearch";
-import type { RemoteMachineSearch } from "./useRemoteMachineSearch";
+type RemoteMachineSearch = { query: string; answers: MachineSearchAnswer[]; settled: boolean };
 
 export type MachineSearchRowsInput = {
 	/** The words searched; empty for recents. */

@@ -8,7 +8,7 @@ import { prStackQueryKey, usePRStack } from "../hooks/usePRStack";
 import type { SessionPRSummary } from "../hooks/useSessionScmSummary";
 import { sessionScmSummaryQueryKey } from "../hooks/useSessionScmSummary";
 import { workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { prMergeQueueDetail, prMergeQueueEntry, prSummaryBlockReason, type PRBlockReason, type PRMergeQueueEntry } from "../lib/pr-display";
 import { stackBlocker, stackLayersToLand, type StackBlockReason } from "../lib/pr-stack";
 import { usesPreviewWorkspaceData as usePreviewData } from "../lib/preview-mode";

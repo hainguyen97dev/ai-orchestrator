@@ -1,4 +1,4 @@
-import { LOCAL_HOST } from "./hosts";
+import { LOCAL_HOST } from "./session-keys";
 
 // Serialize startup and disposal across panel instances. In particular, a late
 // response must be disposed before another panel can recover the same login.

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useHostConnection } from "../hooks/useHostConnection";
+import { useHostConnection } from "../hooks/useLocalHostConnection";
 import { snapshotBlobUrl, type FilesSource } from "../hooks/useSessionWorkspaceFiles";
 import { getApiBaseUrl } from "../lib/api-client";
 import { artifactContentUrl } from "../lib/artifact-content-url";

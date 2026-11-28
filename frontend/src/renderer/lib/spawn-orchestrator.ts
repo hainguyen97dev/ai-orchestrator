@@ -5,8 +5,8 @@ import { aoBridge } from "./bridge";
 import { resumeOnce } from "../hooks/useCanResumeAgent";
 import type { OrchestratorSpawnSource } from "./orchestrator-spawn-sources";
 import { captureRendererEvent } from "./telemetry";
-import { clientForSessionHost } from "./host-clients";
-import { sessionUiKey } from "./hosts";
+import { clientForSessionHost } from "./local-daemon-client";
+import { sessionUiKey } from "./session-keys";
 import type { SessionMode } from "../types/conversation";
 
 // Every UI entry point that spawns an orchestrator: the board CTA, the topbar

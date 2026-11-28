@@ -56,9 +56,7 @@ export type NavigateTarget =
 	| { to: "/projects/$projectId"; params: { projectId: string } }
 	| { to: "/projects/$projectId/settings"; params: { projectId: string } }
 	| { to: "/projects/$projectId/sessions/$sessionId"; params: { projectId: string; sessionId: string } }
-	| { to: "/sessions/$sessionId"; params: { sessionId: string } }
-	| { to: "/host/$hostId/project/$projectId/session/$sessionId"; params: { hostId: string; projectId: string; sessionId: string } }
-	| { to: "/host/$hostId/session/$sessionId"; params: { hostId: string; sessionId: string } };
+	| { to: "/sessions/$sessionId"; params: { sessionId: string } };
 
 export type WorkspaceFileSearchTarget = {
 	projectId: string;
@@ -228,22 +226,8 @@ export type WorkspaceSessionContext = {
 };
 
 function jumpTarget(workspace: WorkspaceSummary, session: WorkspaceSession): NavigateTarget {
-	if (workspace.hostId) {
-		if (workspace.id === STANDALONE_WORKSPACE_ID) {
-			return { to: "/host/$hostId/session/$sessionId", params: { hostId: workspace.hostId, sessionId: session.id } };
-		}
-		return {
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: workspace.hostId, projectId: workspace.id, sessionId: session.id },
-		};
-	}
-	if (workspace.id === STANDALONE_WORKSPACE_ID) {
-		return { to: "/sessions/$sessionId", params: { sessionId: session.id } };
-	}
-	return {
-		to: "/projects/$projectId/sessions/$sessionId",
-		params: { projectId: workspace.id, sessionId: session.id },
-	};
+	if (workspace.id === STANDALONE_WORKSPACE_ID) return { to: "/sessions/$sessionId", params: { sessionId: session.id } };
+	return { to: "/projects/$projectId/sessions/$sessionId", params: { projectId: workspace.id, sessionId: session.id } };
 }
 
 export function workspaceFileSearchTarget(

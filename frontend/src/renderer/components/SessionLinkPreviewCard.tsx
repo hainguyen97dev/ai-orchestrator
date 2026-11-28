@@ -19,7 +19,7 @@ import { getSessionStatusDotView, getSessionStatusView } from "../lib/session-pr
 import { prCanMerge, prCardPresentation, sessionPRDisplaySummaries, type PRDisplayTone } from "../lib/pr-display";
 import { useSessionLinkSource } from "../lib/use-session-link-navigation";
 import { isInlineArtifactUrl } from "../../shared/agent-page-url";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import type { SessionArtifact, WorkspaceSession } from "../types/workspace";
 import { AgentAvatar } from "./AgentAvatar";
 import { HoverCardContent, useHoverCardDismiss } from "./ui/hover-card";

@@ -26,7 +26,7 @@ vi.mock("../lib/api-client", () => ({
 	hasTrustedApiBaseUrl: () => true,
 }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForSessionHost: (hostId?: string) => hostId === "host-a" ? remoteA : hostId === "host-b" ? remoteB : {
 		DELETE: deleteMock, GET: getMock, PATCH: patchMock, POST: postMock,
 	},

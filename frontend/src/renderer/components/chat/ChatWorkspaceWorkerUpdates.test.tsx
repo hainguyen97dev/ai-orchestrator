@@ -14,7 +14,7 @@ import { ChatLinkProvider, useChatLinkWorkspaces } from "./ChatMarkdown";
 import { usePlainReferences } from "./WorkerUpdates";
 import { workspaceQueryKey } from "../../hooks/useWorkspaceQuery";
 import { chatFixtureEmpty } from "../../lib/chat-fixture";
-import { clientForSessionHost } from "../../lib/host-clients";
+import { clientForSessionHost } from "../../lib/local-daemon-client";
 import type { ConversationActivity, ConversationItem, ConversationMessage, ConversationSnapshot } from "../../types/conversation";
 import type { WorkspaceSummary } from "../../types/workspace";
 import { TooltipProvider } from "../ui/tooltip";

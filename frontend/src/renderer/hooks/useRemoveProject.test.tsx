@@ -16,7 +16,7 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorCode: (error: { code?: string } | undefined) => error?.code,
 	apiErrorMessage: (error: { message?: string } | undefined, fallback?: string) => error?.message ?? fallback ?? "",
 }));
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForHost: (hostId: string) => ({ DELETE: (...args: unknown[]) => remoteDeleteMock(hostId, ...args) }),
 }));
 vi.mock("../lib/telemetry", () => ({

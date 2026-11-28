@@ -7,8 +7,8 @@ import { CloudCpError } from "../lib/cloud-cp/errors";
 import { useHostServesMediaVersions, useRestoreArtifactVersion } from "./useArtifactVersions";
 
 const { hostGetMock } = vi.hoisted(() => ({ hostGetMock: vi.fn() }));
-vi.mock("../lib/host-clients", async (importOriginal) => ({
-	...(await importOriginal<typeof import("../lib/host-clients")>()),
+vi.mock("../lib/local-daemon-client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../lib/local-daemon-client")>()),
 	clientForSessionHost: () => ({ GET: hostGetMock }),
 }));
 

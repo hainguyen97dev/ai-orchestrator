@@ -6,7 +6,6 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncEx
 import { useTranslation } from "react-i18next";
 import { apiClient, getApiBaseUrl, subscribeApiBaseUrl } from "../../lib/api-client";
 import { subscribeArtifactFileChanges } from "../../lib/artifact-file-events";
-import { aoBridge } from "../../lib/bridge";
 import {
 	clampRenderHeight,
 	measuredRenderHeight,
@@ -237,32 +236,7 @@ async function fetchRender(url: string, signal?: AbortSignal): Promise<Response>
  */
 function useRemoteRenderUrl(path: string | undefined): string | null | undefined {
 	const remote = useChatRemoteSession();
-	const hostId = remote?.hostId;
-	const sessionId = remote?.sessionId;
-	// The proxy's base changes when it reconnects, and with it the render's origin.
-	const baseUrl = remote?.baseUrl;
-	// A result counts only for the inputs that produced it.
-	const key = JSON.stringify([hostId, sessionId, baseUrl, path]);
-	const [lookup, setLookup] = useState<{ key: string; url: string | null }>();
-	useEffect(() => {
-		if (!sessionId || !path || !hostId || !baseUrl) return;
-		let live = true;
-		aoBridge.remotes.previewUrl(hostId, sessionId, path).then(
-			(next) => {
-				if (live) setLookup({ key, url: /^http:\/\//.test(next) ? next : null });
-			},
-			(error: unknown) => {
-				console.error("remote render url", error);
-				if (live) setLookup({ key, url: null });
-			},
-		);
-		return () => {
-			live = false;
-		};
-	}, [hostId, sessionId, baseUrl, path, key]);
-	if (!sessionId || !path) return undefined;
-	if (!hostId || !baseUrl) return null;
-	return lookup?.key === key ? lookup.url : undefined;
+	return remote?.hostId && path ? null : undefined;
 }
 
 /** The served page, bootstrap included, so the saved file renders on its own. */

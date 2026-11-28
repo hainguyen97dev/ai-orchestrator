@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import type { InstallJob } from "../../../hooks/useHarnessUpdates";
 import { fetchSessionMemory, formatCPU, formatMemory, sessionMemoryQueryOptions } from "../../../hooks/useSessionMemory";
 import { agentLabel, type AgentId } from "../../../lib/agent-options";
-import type { clientForSessionHost } from "../../../lib/host-clients";
+import type { clientForSessionHost } from "../../../lib/local-daemon-client";
 import type { HarnessDetails } from "./describe-harness";
 
 // The copied reports stay in English: they are read by whoever fixes the bug.

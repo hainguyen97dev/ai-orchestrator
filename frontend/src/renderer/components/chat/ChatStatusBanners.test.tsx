@@ -14,8 +14,8 @@ vi.mock("../../hooks/useAgentAccounts", async (importOriginal) => ({
 	...(await importOriginal<typeof import("../../hooks/useAgentAccounts")>()),
 	useSessionAgentAccounts: (sessionId?: string) => ({ data: sessionId ? sessionAccounts.bound : undefined, isPending: Boolean(sessionId) && !sessionAccounts.bound }),
 }));
-vi.mock("../../lib/host-clients", async (importOriginal) => ({
-	...(await importOriginal<typeof import("../../lib/host-clients")>()),
+vi.mock("../../lib/local-daemon-client", async (importOriginal) => ({
+	...(await importOriginal<typeof import("../../lib/local-daemon-client")>()),
 	labelForHost: (hostId: string) => (hostId === "host-air" ? "Macbook Air M1" : undefined),
 }));
 

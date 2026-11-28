@@ -39,11 +39,11 @@ import { useSidebarOrderStore } from "../stores/sidebar-order-store";
 import { useSessionImportStore } from "../stores/session-import-store";
 import { sessionInterfaceTransitionQueryKey } from "../hooks/useSessionInterfaceTransition";
 import { resetSessionPreviewWarmth } from "../hooks/useSessionPreviewHover";
-import type { RemoteHost } from "../hooks/useRemoteHosts";
+type RemoteHost = { hostId: string; label: string; url?: string; status?: string };
 import { useRemoteWorkspaces } from "../hooks/useWorkspaceQuery";
 import { clearOptimisticSessionKill, trackOptimisticSessionKill } from "../hooks/optimistic-session-kills";
-import { useRemoteUnpinStore } from "../stores/remote-unpin-store";
-import { sessionUiKey } from "../lib/hosts";
+import { useRemoteUnpinStore } from "../stores/session-pin-cache";
+import { sessionUiKey } from "../lib/session-keys";
 
 type DragOverTestEvent = {
 	active: {
@@ -678,64 +678,6 @@ describe("Sidebar", () => {
 		}
 	});
 
-	it("creates local or remote projects from the header button", async () => {
-		const user = userEvent.setup();
-		renderSidebar({
-			workspaces: [],
-			remoteHosts: [
-				{ hostId: "box-a", label: "Host A", url: "http://box-a:3011", status: "connected" },
-				{ hostId: "box-b", label: "Host B", url: "http://box-b:3011", status: "connected" },
-			],
-		});
-
-		await user.click(screen.getByRole("button", { name: "New project" }));
-		const chooser = await screen.findByRole("dialog");
-		// Remote machines are connected, so the local tile covers them too.
-		await user.click(within(chooser).getByRole("button", { name: "On your machines" }));
-		expect(screen.queryByRole("button", { name: "New project on Host B" })).not.toBeInTheDocument();
-		await user.click(within(chooser).getByRole("combobox", { name: "Machine" }));
-		await user.click(screen.getByRole("option", { name: "Host B" }));
-		expect(screen.getByRole("dialog")).toBe(chooser);
-		expect(within(chooser).getByRole("combobox", { name: "Machine" })).toHaveTextContent("Host B");
-		await user.click(within(chooser).getByRole("combobox", { name: "Machine" }));
-		await user.click(screen.getByRole("option", { name: "This computer" }));
-		expect(screen.getByRole("dialog")).toBe(chooser);
-	});
-
-	it("lists remote projects beside local and Cloud projects with host-qualified sessions", () => {
-		mockParams.hostId = "box-b";
-		mockParams.projectId = "proj-1";
-		mockParams.sessionId = "proj-1-1";
-		const remoteSession = (hostId: string, title: string): WorkspaceSession => ({
-			...session, hostId, title,
-		});
-		renderSidebar({
-			workspaces: [{ ...workspace, sessions: [session] }],
-			remoteHosts: [
-				{ hostId: "box-a", label: "Host A", url: "http://box-a:3001", status: "connected" },
-				{ hostId: "box-b", label: "Host B", url: "http://box-b:3001", status: "connected" },
-			],
-			remoteWorkspaces: [
-				{ ...workspace, hostId: "box-a", sessions: [remoteSession("box-a", "Task on A")] },
-				{ ...workspace, hostId: "box-b", sessions: [remoteSession("box-b", "Task on B")] },
-			],
-		});
-
-		const projects = screen.getByTestId("sidebar-projects-scroller");
-		expect(within(projects).getByText("Host A")).toBeInTheDocument();
-		expect(within(projects).getByText("Host B")).toBeInTheDocument();
-		expect(screen.queryByText("Remote hosts")).not.toBeInTheDocument();
-		const remoteSessions = within(projects).getAllByTestId("remote-session-row");
-		expect(remoteSessions).toHaveLength(2);
-		expect(remoteSessions[0]).not.toHaveAttribute("aria-current");
-		expect(remoteSessions[1]).toHaveAttribute("aria-current", "page");
-		fireEvent.click(remoteSessions[0]);
-		expect(navigateMock).toHaveBeenCalledWith({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "box-a", projectId: "proj-1", sessionId: "proj-1-1" },
-		});
-	});
-
 	it("shows the cloud sign-in entry point while signed out", () => {
 		cloudSessionState.configured = true;
 		renderSidebar();
@@ -837,24 +779,6 @@ describe("Sidebar", () => {
 
 		expect(cloudSessionState.signOut).not.toHaveBeenCalled();
 		expect(await screen.findByRole("menuitem", { name: "Sign out" })).toBeVisible();
-	});
-
-	it("keeps AO account controls visible for remote hosts when Cloud execution is off", () => {
-		cloudGateState.cloudEnabled = false;
-		cloudSessionState.configured = true;
-		cloudSessionState.status = "authenticated";
-		cloudSessionState.session = { user: { email: "user@example.com" } };
-		renderSidebar();
-
-		expect(screen.getAllByLabelText("Signed in as user@example.com")).toHaveLength(2);
-	});
-
-	it("shows AO sign-in for remote hosts when Cloud execution is off", () => {
-		cloudGateState.cloudEnabled = false;
-		cloudSessionState.configured = true;
-		renderSidebar();
-
-		expect(screen.getAllByLabelText("Sign in")).toHaveLength(2);
 	});
 
 	it("shows the Artifacts row under Automations with a count of every listed artifact, archived sessions' included", async () => {
@@ -1194,22 +1118,6 @@ describe("Sidebar", () => {
 		const request = useUiStore.getState().newTaskRequest;
 		expect(request?.projectId).toBe(STANDALONE_WORKSPACE_ID);
 		expect(request?.nonce ?? 0).toBeGreaterThan(before);
-	});
-
-	it("opens a new ad hoc agent on a remote host from its Scratchpad row", async () => {
-		const user = userEvent.setup();
-		renderSidebar({
-			remoteHosts: [{ hostId: "box-a", label: "Host A", url: "http://box-a:3011", status: "connected" }],
-			remoteWorkspaces: [
-				{ id: STANDALONE_WORKSPACE_ID, name: "Scratchpad", kind: STANDALONE_PROJECT_KIND, path: "", hostId: "box-a", sessions: [] },
-			],
-		});
-		const row = document.querySelector<HTMLElement>(`li[data-project-id="${STANDALONE_WORKSPACE_ID}"][data-host-id="box-a"]`)!;
-
-		expect(within(row).queryByLabelText("Project actions for Scratchpad · Host A")).not.toBeInTheDocument();
-		await user.click(within(row).getByRole("button", { name: "Open a new agent" }));
-
-		expect(useUiStore.getState().newTaskRequest).toMatchObject({ projectId: STANDALONE_WORKSPACE_ID, hostId: "box-a" });
 	});
 
 	it("lists ad hoc agents in their own Scratchpad section, not under a project row", () => {
@@ -2642,35 +2550,6 @@ describe("Sidebar", () => {
 		const collapsedRailContainer = collapsedRailSettings?.closest('[aria-hidden="true"]');
 		expect(collapsedRailContainer).toBeInTheDocument();
 		expect(collapsedRailContainer).not.toBe(settingsBackRow);
-	});
-
-	it("opens the Mobile settings page from the footer and starts pairing", async () => {
-		const user = userEvent.setup();
-		renderSidebar();
-		await user.click((await screen.findAllByRole("button", { name: "Mobile" }))[0]);
-		await user.click(await screen.findByRole("menuitem", { name: "Connect mobile" }));
-		expect(useUiStore.getState().settingsModal).toEqual({ scope: "global", section: "mobile", startPairing: true });
-		expect(navigateMock).not.toHaveBeenCalled();
-	});
-
-	it("always shows the Mobile menu", () => {
-		renderSidebar();
-
-		expect(screen.getByRole("button", { name: "Mobile" })).toBeVisible();
-	});
-
-	it("keeps Stay Awake inside the Mobile menu", async () => {
-		const user = userEvent.setup();
-		renderSidebar();
-
-		expect(screen.queryByRole("button", { name: "Stay Awake" })).not.toBeInTheDocument();
-		await user.click(screen.getByRole("button", { name: "Mobile" }));
-		const awake = await screen.findByTestId("awake-menu-item");
-		expect(awake).toHaveTextContent("Stay Awake");
-		// A switch row, not a nested control: the row itself carries the checked state.
-		expect(awake).toHaveAttribute("role", "menuitemcheckbox");
-		expect(awake).toHaveAttribute("aria-checked", "false");
-		expect(within(awake).queryByRole("switch")).not.toBeInTheDocument();
 	});
 
 	it("opens the command palette when Search is clicked", async () => {
@@ -4175,39 +4054,6 @@ describe("Sidebar", () => {
 		expect(navigateMock).not.toHaveBeenCalledWith(expect.objectContaining({ to: "/projects/$projectId" }));
 	});
 
-	it("keeps pinned sessions with the same ID distinct across local and two hosts", () => {
-		mockParams.hostId = "box-b";
-		mockParams.projectId = "proj-1";
-		mockParams.sessionId = "shared";
-		const pinned = { ...session, id: "shared", title: "shared task", isPinned: true, pinnedAt: "2026-06-30T01:00:00Z" };
-		renderSidebar({
-			workspaces: [{ ...workspace, sessions: [pinned] }],
-			remoteHosts: [
-				{ hostId: "box-a", label: "Host A", url: "http://box-a:3011", status: "connected" },
-				{ hostId: "box-b", label: "Host B", url: "http://box-b:3011", status: "connected" },
-			],
-			remoteWorkspaces: [
-				{ ...workspace, hostId: "box-a", sessions: [{ ...pinned, hostId: "box-a" }] },
-				{ ...workspace, hostId: "box-b", sessions: [{ ...pinned, hostId: "box-b" }] },
-			],
-		});
-		// Each copy is listed once, at the top of its own host's project.
-		const local = within(screen.getByTestId("session-list-proj-1")).getByRole("button", { name: "Open shared task" });
-		const hostA = within(screen.getByTestId(`session-list-${sessionUiKey("proj-1", "box-a")}`)).getByRole("button", { name: "Open shared task" });
-		const hostB = within(screen.getByTestId(`session-list-${sessionUiKey("proj-1", "box-b")}`)).getByRole("button", { name: "Open shared task" });
-		expect(screen.getAllByRole("button", { name: "Open shared task" })).toHaveLength(3);
-		expect(screen.queryByTestId("pinned-session-list")).not.toBeInTheDocument();
-		expect(local).not.toHaveAttribute("aria-current");
-		expect(hostA).not.toHaveAttribute("aria-current");
-		expect(hostB).toHaveAttribute("aria-current", "page");
-		fireEvent.click(hostA);
-		expect(navigateMock).toHaveBeenLastCalledWith({ to: "/host/$hostId/project/$projectId/session/$sessionId", params: { hostId: "box-a", projectId: "proj-1", sessionId: "shared" } });
-		fireEvent.click(hostB);
-		expect(navigateMock).toHaveBeenLastCalledWith({ to: "/host/$hostId/project/$projectId/session/$sessionId", params: { hostId: "box-b", projectId: "proj-1", sessionId: "shared" } });
-		fireEvent.click(local);
-		expect(navigateMock).toHaveBeenLastCalledWith({ to: "/projects/$projectId/sessions/$sessionId", params: { projectId: "proj-1", sessionId: "shared" } });
-	});
-
 	it("shifts to the adjacent session when killing an active pinned session with multiple remaining sessions", async () => {
 		mockParams.projectId = "proj-1";
 		mockParams.sessionId = "proj-1-1";
@@ -5258,26 +5104,6 @@ describe("Sidebar pins in their home group", () => {
 		expect(titlesIn("session-list-alpha")).toEqual(["pin a", "pin b", "plain"]);
 		view.rerender([project("alpha", "Alpha", [worker("p-a", "pin a", 1, 1), worker("p-b", "pin b", 2, 9), plain])]);
 		expect(titlesIn("session-list-alpha")).toEqual(["pin b", "pin a", "plain"]);
-	});
-
-	it("opens a collapsed remote project to reveal a session opened on that host", async () => {
-		const hosts: RemoteHost[] = [{ hostId: "box-a", label: "Host A", url: "http://box-a:3011", status: "connected" }];
-		const remoteProject = (): WorkspaceSummary => {
-			const base = project("rproj", "Remote Project", [worker("r-1", "remote plain", 9), worker("r-2", "remote pin", 1, 1)]);
-			return { ...base, hostId: "box-a", sessions: base.sessions.map((item) => ({ ...item, hostId: "box-a" })) };
-		};
-		const view = mount([], [], { hosts, workspaces: [remoteProject()] });
-		fireEvent.click(screen.getByLabelText("Toggle Remote Project · Host A sessions"));
-		expect(screen.getByLabelText("Toggle Remote Project · Host A sessions")).toHaveAttribute("aria-expanded", "false");
-		expect(screen.queryByRole("button", { name: /^Open remote pin/ })).not.toBeInTheDocument();
-
-		mockParams.hostId = "box-a";
-		mockParams.projectId = "rproj";
-		mockParams.sessionId = "r-2";
-		view.rerender([]);
-		await settle();
-		expect(screen.getByLabelText("Toggle Remote Project · Host A sessions")).toHaveAttribute("aria-expanded", "true");
-		expect(titlesIn(`session-list-${sessionUiKey("rproj", "box-a")}`).map((title) => title?.split(" · ")[0])).toEqual(["remote pin", "remote plain"]);
 	});
 
 	it("keeps every pin listed past the session cutoff and counts only the rest behind Show more", () => {

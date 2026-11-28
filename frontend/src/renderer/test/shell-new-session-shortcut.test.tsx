@@ -6,7 +6,7 @@ import type { AppShortcutEvent, KeybindingOverrides } from "../../shared/shortcu
 import { TooltipProvider } from "../components/ui/tooltip";
 import { useSidebarOrderStore } from "../stores/sidebar-order-store";
 import { useUiStore } from "../stores/ui-store";
-import { STANDALONE_WORKSPACE_ID, type WorkspaceSummary } from "../types/workspace";
+import { type WorkspaceSummary } from "../types/workspace";
 
 const shellMocks = vi.hoisted(() => {
 	const state = {
@@ -212,7 +212,7 @@ vi.mock("../hooks/useWorkspaceQuery", () => ({
 	toWorkspaceSession: (session: { id: string }, project: { id: string; name: string }) => ({ ...session, workspaceId: project.id, workspaceName: project.name }),
 }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForHost: () => ({ DELETE: shellMocks.remoteDelete }),
 	connectHost: vi.fn(),
 	connectedHosts: () => [],
@@ -223,20 +223,6 @@ vi.mock("../lib/host-clients", () => ({
 // Remote-hosts-off (the beforeEach default) looks like listed: false, as the
 // real hook leaves it. When a test leaves remoteHostsState null, the real
 // hook runs (used by the startup recheck test through the bridge mock).
-vi.mock("../hooks/useRemoteHosts", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("../hooks/useRemoteHosts")>();
-	return {
-		...actual,
-		useRemoteHosts: (): { hosts: Array<{ hostId: string; status: string }>; listed: boolean; settled: boolean; refresh: () => Promise<void> } =>
-			shellMocks.state.remoteHostsState ?? actual.useRemoteHosts(),
-	};
-});
-
-vi.mock("../hooks/useHostUpdates", async (importOriginal) => ({
-	...(await importOriginal<typeof import("../hooks/useHostUpdates")>()),
-	useHostUpdatePolling: () => {},
-}));
-
 vi.mock("../lib/cloud-session", () => ({
 	useCloudSession: () => ({
 		status: shellMocks.state.cloudSessionStatus,
@@ -536,7 +522,7 @@ beforeEach(() => {
 		globalToast: null,
 		isSidebarOpen: true,
 		newTaskRequest: null,
-		remoteHosts: false,
+		
 		newShellTerminalNonce: 0,
 		activeShellTerminalHandleId: null,
 		settingsModal: null,
@@ -572,36 +558,6 @@ describe("shell workspace startup", () => {
 		expect(screen.getByTestId("daemon-startup-loader")).toBeInTheDocument();
 		await new Promise((resolve) => setTimeout(resolve, 100));
 		expect(shellMocks.reportSessionsShown).not.toHaveBeenCalled();
-	});
-
-	it("opens the shared Project settings dialog for the selected remote host", async () => {
-		shellMocks.state.remoteWorkspaces = [
-			{ hostId: "box-a", id: "shared", name: "Shared", path: "/a", sessions: [] },
-			{ hostId: "box-b", id: "shared", name: "Shared", path: "/b", sessions: [] },
-		] as WorkspaceSummary[];
-		await renderShell();
-
-		act(() => shellMocks.state.configureRemoteProject?.("box-b", "shared"));
-		expect(useUiStore.getState().settingsModal).toEqual({ scope: "project", projectId: "shared", hostId: "box-b" });
-	});
-
-	it("leaves a remote session only when removing its project on the same host", async () => {
-		useUiStore.setState({ developerMode: true, remoteHosts: true });
-		shellMocks.state.routeParams = { hostId: "box-a", sessionId: "same-session" };
-		shellMocks.state.remoteWorkspaces = [
-			{ hostId: "box-a", id: "project-a", sessions: [{ id: "same-session" }] },
-			{ hostId: "box-b", id: "project-b", sessions: [{ id: "same-session" }] },
-		] as WorkspaceSummary[];
-		await renderShell();
-
-		// Removal is optimistic and runs in the background; the page is left
-		// before the project disappears, and only when it shows that project.
-		act(() => shellMocks.state.removeRemoteProject?.("box-b", "project-b"));
-		await waitFor(() => expect(shellMocks.remoteDelete).toHaveBeenCalledTimes(1));
-		expect(shellMocks.navigate).not.toHaveBeenCalled();
-		act(() => shellMocks.state.removeRemoteProject?.("box-a", "project-a"));
-		await waitFor(() => expect(shellMocks.remoteDelete).toHaveBeenCalledTimes(2));
-		expect(shellMocks.navigate).toHaveBeenCalledWith({ to: "/", replace: true });
 	});
 
 	it("resyncs Developer Mode when an attached daemon restarts on the same port", async () => {
@@ -1142,19 +1098,6 @@ describe("shell new-shell-terminal shortcut subscription", () => {
 		expect(useUiStore.getState().newShellTerminalNonce).toBe(2);
 		expect(shellMocks.openShellTerminal).toHaveBeenCalledTimes(2);
 	});
-
-	// Regression: ⌘T did nothing on a remote machine's session.
-	it("opens the terminal on the remote host that owns the session on screen", async () => {
-		shellMocks.state.routeParams = { hostId: "box-a", projectId: "remote-proj", sessionId: "remote-sess" };
-		await renderShell();
-
-		pressNewShellTerminal();
-
-		expect(shellMocks.openShellTerminal).toHaveBeenCalledWith(
-			expect.objectContaining({ projectId: "remote-proj", sessionId: "remote-sess" }),
-		);
-		expect(shellMocks.openShellTerminalHost).toHaveBeenLastCalledWith("box-a");
-	});
 });
 
 describe("shell keyboard-shortcuts help subscription", () => {
@@ -1562,44 +1505,6 @@ describe("shell application shortcut subscriptions", () => {
 			params: { sessionId: "standalone-2" },
 		});
 	});
-
-	it("cycles only sessions on the selected remote host when IDs collide", async () => {
-		shellMocks.state.routeParams = { hostId: "box-b", sessionId: "sess-1" };
-		shellMocks.state.remoteWorkspaces = [
-			{ hostId: "box-a", id: "proj-1", sessions: [
-				{ id: "sess-1", status: "working" }, { id: "box-a-next", status: "idle" },
-			] },
-			{ hostId: "box-b", id: "proj-1", sessions: [
-				{ id: "sess-1", status: "working" }, { id: "box-b-next", status: "idle" },
-			] },
-		] as WorkspaceSummary[];
-		await renderShell();
-
-		act(() => shellMocks.state.nextSessionListener?.());
-
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "box-b", projectId: "proj-1", sessionId: "box-b-next" },
-		});
-	});
-
-	it("cycles remote standalone sessions on their host", async () => {
-		shellMocks.state.routeParams = { hostId: "box-b", sessionId: "standalone-1" };
-		shellMocks.state.remoteWorkspaces = [{
-			hostId: "box-b", id: "__standalone__", sessions: [
-				{ id: "standalone-1", status: "working" },
-				{ id: "standalone-2", status: "idle" },
-			],
-		}] as WorkspaceSummary[];
-		await renderShell();
-
-		act(() => shellMocks.state.previousSessionListener?.());
-
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/session/$sessionId",
-			params: { hostId: "box-b", sessionId: "standalone-2" },
-		});
-	});
 });
 
 describe("shell folder drag-and-drop", () => {
@@ -1817,143 +1722,6 @@ describe("shell session deep links", () => {
 		});
 	});
 
-	it("keeps the workspace that resolved the session, not a same-id local project", async () => {
-		// Local project `proj-1` lacks `sess-x`; the remote host's `proj-1` has
-		// it. The remote workspace must win route and hostId, not a local
-		// project picked by id alone (CodeRabbit round 2).
-		shellMocks.state.workspaces = [
-			{ id: "proj-1", name: "Local", path: "/local", sessions: [{ id: "sess-other", status: "idle" }] },
-		] as unknown as WorkspaceSummary[];
-		shellMocks.state.workspaceQuery = { data: shellMocks.state.workspaces, dataUpdatedAt: 0, isError: false, isSuccess: true };
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-1", hostId: "box-a", sessions: [{ id: "sess-x", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-1/sess-x");
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "box-a", projectId: "proj-1", sessionId: "sess-x" },
-		});
-	});
-
-	it("refuses a link whose session id matches local and remote machines", async () => {
-		// Session ids are <project>-<n> per daemon, so a paired machine running
-		// the same repo can host a session with the same id; the URL carries no
-		// host, so honoring either side could open the wrong one (round 5).
-		shellMocks.state.workspaces = [
-			{ id: "proj-1", name: "Local", path: "/local", sessions: [{ id: "sess-1", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		shellMocks.state.workspaceQuery = { data: shellMocks.state.workspaces, dataUpdatedAt: 0, isError: false, isSuccess: true };
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-1", hostId: "box-a", sessions: [{ id: "sess-1", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-1/sess-1");
-		expect(shellMocks.navigate).not.toHaveBeenCalled();
-		expect(useUiStore.getState().globalToast?.title).toContain("more than one machine");
-	});
-
-	it("holds a remote-targeted link until the host's workspace data settles", async () => {
-		useUiStore.setState({ remoteHosts: true });
-		shellMocks.state.remoteHostsState = { hosts: [{ hostId: "box-a", status: "connecting" }], listed: true, settled: true, refresh: async () => undefined };
-		shellMocks.state.remoteWorkspaces = [];
-		const view = await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-remote/sess-remote");
-		expect(shellMocks.navigate).not.toHaveBeenCalled();
-		expect(useUiStore.getState().globalToast).toBeNull();
-
-		// The host connects and its project and session queries land.
-		shellMocks.state.remoteHostsState = { hosts: [{ hostId: "box-a", status: "connected" }], listed: true, settled: true, refresh: async () => undefined };
-		shellMocks.state.remoteLoadedProjectHostIds = ["box-a"];
-		shellMocks.state.remoteLoadedSessionHostIds = ["box-a"];
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-remote", hostId: "box-a", sessions: [{ id: "sess-remote", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		await act(async () => {
-			view.rerender(
-				<Suspense fallback={null}>
-					<ShellRoute />
-				</Suspense>,
-			);
-		});
-
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "box-a", projectId: "proj-remote", sessionId: "sess-remote" },
-		});
-	});
-
-	it("handles links while signed out, when remote hosts can never be listed", async () => {
-		// The remote-hosts preference defaults to on, but useRemoteHosts only
-		// lists for an authenticated account. Signed out, the remote wait must
-		// not hold local links forever (CodeRabbit round 4).
-		useUiStore.setState({ remoteHosts: true });
-		shellMocks.state.cloudSessionStatus = "unauthenticated";
-		await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-1/sess-1");
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/projects/$projectId/sessions/$sessionId",
-			params: { projectId: "proj-1", sessionId: "sess-1" },
-		});
-	});
-
-	it("holds a remote link until the host's session query lands, not just its project query", async () => {
-		// A host's project and session queries settle independently; with only
-		// the project loaded its workspaces still have sessions: [], and an
-		// immediate lookup would drop the link with a false not-found
-		// (CodeRabbit round 4).
-		useUiStore.setState({ remoteHosts: true });
-		shellMocks.state.remoteHostsState = { hosts: [{ hostId: "box-a", status: "connected" }], listed: true, settled: true, refresh: async () => undefined };
-		shellMocks.state.remoteLoadedProjectHostIds = ["box-a"];
-		shellMocks.state.remoteLoadedSessionHostIds = [];
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-remote", hostId: "box-a", sessions: [] },
-		] as unknown as WorkspaceSummary[];
-		const view = await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-remote/sess-remote");
-		expect(shellMocks.navigate).not.toHaveBeenCalled();
-		expect(useUiStore.getState().globalToast).toBeNull();
-
-		// The session query lands and the held link resolves.
-		shellMocks.state.remoteLoadedSessionHostIds = ["box-a"];
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-remote", hostId: "box-a", sessions: [{ id: "sess-remote", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		await act(async () => {
-			view.rerender(
-				<Suspense fallback={null}>
-					<ShellRoute />
-				</Suspense>,
-			);
-		});
-
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "box-a", projectId: "proj-remote", sessionId: "sess-remote" },
-		});
-	});
-
-	it("finds a standalone session on a later host sharing the standalone project id", async () => {
-		// Every connected host contributes its own __standalone__ workspace to
-		// one merged list, so the first id match is not necessarily the one
-		// holding the session (CodeRabbit round 4).
-		useUiStore.setState({ remoteHosts: true });
-		shellMocks.state.remoteHostsState = { hosts: [{ hostId: "box-a", status: "connected" }, { hostId: "box-b", status: "connected" }], listed: true, settled: true, refresh: async () => undefined };
-		shellMocks.state.remoteLoadedProjectHostIds = ["box-a", "box-b"];
-		shellMocks.state.remoteLoadedSessionHostIds = ["box-a", "box-b"];
-		shellMocks.state.remoteWorkspaces = [
-			{ id: STANDALONE_WORKSPACE_ID, hostId: "box-a", sessions: [{ id: "sess-a", status: "working" }] },
-			{ id: STANDALONE_WORKSPACE_ID, hostId: "box-b", sessions: [{ id: "sess-b", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		await renderShellWithReadyDaemon();
-		emitSessionDeepLink(`ao-app://sessions/${STANDALONE_WORKSPACE_ID}/sess-b`);
-		// A standalone session takes the host-scoped scratchpad route.
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/session/$sessionId",
-			params: { hostId: "box-b", sessionId: "sess-b" },
-		});
-	});
-
 	it("refuses a terminated session with the same toast as in-app ao:// links", async () => {
 		await renderShellWithReadyDaemon();
 		emitSessionDeepLink("ao-app://sessions/proj-1/sess-2");
@@ -1967,35 +1735,6 @@ describe("shell session deep links", () => {
 		emitSessionDeepLink("ao-app://sessions/proj-1/sess-gone");
 		expect(shellMocks.navigate).not.toHaveBeenCalled();
 		expect(useUiStore.getState().globalToast?.title).toContain("Session not found");
-	});
-
-	it("reports a failed remote host as unavailable, not a missing session", async () => {
-		// A host whose session query failed settles the gate with empty session
-		// lists (CodeRabbit round 4). A miss on such a project is "could not
-		// load", not "does not exist" — the session may still exist there.
-		useUiStore.setState({ remoteHosts: true });
-		shellMocks.state.remoteHostsState = { hosts: [{ hostId: "box-a", status: "connected" }], listed: true, settled: true, refresh: async () => undefined };
-		shellMocks.state.remoteFailedHostIds = ["box-a"];
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-remote", hostId: "box-a", sessions: [] },
-		] as unknown as WorkspaceSummary[];
-		await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-remote/sess-remote");
-		expect(shellMocks.navigate).not.toHaveBeenCalled();
-		expect(useUiStore.getState().globalToast?.title).toContain("host");
-		expect(useUiStore.getState().globalToast?.title).not.toContain("Session not found");
-	});
-
-	it("falls back to a remote workspace when the session is not local", async () => {
-		shellMocks.state.remoteWorkspaces = [
-			{ id: "proj-remote", hostId: "box-a", sessions: [{ id: "sess-remote", status: "working" }] },
-		] as unknown as WorkspaceSummary[];
-		await renderShellWithReadyDaemon();
-		emitSessionDeepLink("ao-app://sessions/proj-remote/sess-remote");
-		expect(shellMocks.navigate).toHaveBeenCalledWith({
-			to: "/host/$hostId/project/$projectId/session/$sessionId",
-			params: { hostId: "box-a", projectId: "proj-remote", sessionId: "sess-remote" },
-		});
 	});
 
 	it("opens an artifact link in the destination session", async () => {

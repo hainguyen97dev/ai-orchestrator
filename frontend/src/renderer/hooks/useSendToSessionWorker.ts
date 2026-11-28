@@ -1,6 +1,6 @@
 import { apiErrorException } from "../lib/api-error-exception";
 import type { WorkspaceSession } from "../types/workspace";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { useCloudCp } from "./useCloudCp";
 
 /**

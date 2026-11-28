@@ -22,7 +22,7 @@ vi.mock("./api-client", () => ({
 	hasTrustedApiBaseUrl: hasTrustedApiBaseUrlMock,
 	subscribeApiBaseUrl: subscribeApiBaseUrlMock,
 }));
-vi.mock("./host-clients", () => ({
+vi.mock("./local-daemon-client", () => ({
 	baseUrlForHost: baseUrlForHostMock,
 	subscribeConnectedHosts: subscribeConnectedHostsMock,
 }));
@@ -179,34 +179,6 @@ describe("subscribeWorkspaceFileChanges", () => {
 		expect(queryClient.invalidateQueries).not.toHaveBeenCalled();
 		stop();
 		expect(EventSourceStub.instances[0].closed).toBe(true);
-	});
-
-	it("stops polling a remote host whose stream fails and reopens it with backoff", async () => {
-		vi.useFakeTimers();
-		vi.spyOn(Math, "random").mockReturnValue(0.5);
-		baseUrlForHostMock.mockReturnValue("http://127.0.0.1:4000/host-a");
-		const queryClient = fakeQueryClient();
-		const stop = subscribeWorkspaceFileChanges("failing", queryClient, "host-a");
-		const paths = () => vi.mocked(queryClient.invalidateQueries).mock.calls.filter(([filters]) => filters?.queryKey?.[0] === "remote-workspace-file-paths").length;
-		await vi.advanceTimersByTimeAsync(4_150);
-		expect(paths()).toBeGreaterThanOrEqual(3);
-		EventSourceStub.instances[0].onerror?.();
-		await vi.advanceTimersByTimeAsync(150);
-		const afterFailure = paths();
-		const retryMs = computeSseRetryDelayMs(1, () => 0.5);
-		await vi.advanceTimersByTimeAsync(retryMs - 151);
-		expect(paths()).toBe(afterFailure);
-		expect(EventSourceStub.instances).toHaveLength(1);
-		await vi.advanceTimersByTimeAsync(1);
-		expect(EventSourceStub.instances).toHaveLength(2);
-		EventSourceStub.instances[1].dispatch("ready");
-		await vi.advanceTimersByTimeAsync(150);
-		const afterReady = paths();
-		await vi.advanceTimersByTimeAsync(60_000);
-		expect(paths()).toBe(afterReady);
-		expect(EventSourceStub.instances).toHaveLength(2);
-		expect(getWorkspaceFileConnectionState("failing", "host-a")).toBe("connected");
-		stop();
 	});
 
 	it("never restarts a slow remote read while polling", async () => {

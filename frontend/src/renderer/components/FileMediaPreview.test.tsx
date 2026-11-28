@@ -5,7 +5,7 @@ import { aoBridge } from "../lib/bridge";
 import { FileMediaPreview } from "./FileMediaPreview";
 
 vi.mock("../lib/api-client", () => ({ getApiBaseUrl: () => "http://127.0.0.1:3001" }));
-vi.mock("../hooks/useHostConnection", () => ({
+vi.mock("../hooks/useLocalHostConnection", () => ({
 	useHostConnection: (hostId?: string) => ({ baseUrl: hostId === "remote" ? "http://127.0.0.1:4000/token" : undefined }),
 }));
 

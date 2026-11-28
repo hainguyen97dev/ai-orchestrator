@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import type { components } from "../../api/schema";
 import { appI18n } from "../i18n";
-import { LOCAL_HOST, type HostId } from "./hosts";
+import { LOCAL_HOST, type HostId } from "./session-keys";
 
 /**
  * Search across machines: this machine's daemon and every connected remote AO

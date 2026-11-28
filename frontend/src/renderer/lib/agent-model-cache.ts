@@ -1,5 +1,5 @@
 import type { components } from "../../api/schema";
-import { LOCAL_HOST } from "./hosts";
+import { LOCAL_HOST } from "./session-keys";
 
 type AgentModelCatalog = components["schemas"]["AgentModelsResponse"];
 

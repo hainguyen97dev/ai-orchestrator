@@ -27,8 +27,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import type { components } from "../../api/schema";
 import { appI18n } from "../i18n";
 import { apiErrorCode, apiErrorMessage } from "../lib/api-client";
-import { baseUrlForHost, clientForSessionHost } from "../lib/host-clients";
-import { HOST_UNREACHABLE_CODES, sessionUiKey } from "../lib/hosts";
+import { baseUrlForHost, clientForSessionHost } from "../lib/local-daemon-client";
+import { HOST_UNREACHABLE_CODES, sessionUiKey } from "../lib/session-keys";
 import { subscribeWorkspaceFileChanges } from "../lib/workspace-file-events";
 import { savedConversationQueryKey } from "../lib/local-chat-cache";
 import { toWireAttachments, type OutgoingAttachment } from "../lib/attachment-uploads";

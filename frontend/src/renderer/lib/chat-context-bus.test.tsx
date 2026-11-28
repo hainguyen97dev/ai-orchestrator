@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { FileCodeReference } from "../../shared/file-annotations";
 import { sendReferenceToChat, subscribeChatComposerReferences, subscribeChatReveal, useAskInChat } from "./chat-context-bus";
 import { captureFileReference } from "../../shared/chat-file-reference";
-import { sessionUiKey } from "./hosts";
+import { sessionUiKey } from "./session-keys";
 
 const range: FileCodeReference = {
 	path: "src/retry.ts",

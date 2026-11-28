@@ -9,7 +9,7 @@ import {
 	type WorkspaceSession,
 	type WorkspaceSummary,
 } from "../types/workspace";
-import { sessionUiKey } from "./hosts";
+import { sessionUiKey } from "./session-keys";
 
 /**
  * Items listed in `order` keep that order; items it has never seen are placed

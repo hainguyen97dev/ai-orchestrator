@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { AlertTriangle, Loader2 } from "@/components/app-icons";
 import { useTranslation } from "react-i18next";
 import { useReviewerConversation, useReviewerConversationCommands, useReviewerConversationModels } from "../../hooks/useReviewerConversation";
-import { useHostConnection } from "../../hooks/useHostConnection";
+import { useHostConnection } from "../../hooks/useLocalHostConnection";
 import { useChatMessageFocus, useChatNavigationRequest, type ChatMessageFocusTarget } from "../../hooks/useChatMessageFocus";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { useSessionLinkNavigation } from "../../lib/use-session-link-navigation";
 import { ChatWorkspace } from "./ChatWorkspace";
 

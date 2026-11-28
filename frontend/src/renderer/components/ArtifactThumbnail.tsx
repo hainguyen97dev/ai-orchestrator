@@ -19,7 +19,7 @@ import { TableFileView } from "./TableFileView";
 import { CloudArtifactFrame } from "./CloudArtifactFrame";
 import { cloudCpFetch } from "../lib/cloud-cp/renderer-client";
 import { useDownscaledImage } from "../lib/downscaled-image";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 
 const PAGE_WIDTH = 1000;
 const PAGE_HEIGHT = 625;

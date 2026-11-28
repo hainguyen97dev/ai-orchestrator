@@ -100,7 +100,7 @@ vi.mock("../lib/api-client", () => ({
 	apiErrorMessage: (error: { message?: string }, fallback = "err") => error?.message ?? fallback,
 }));
 
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForSessionHost: (host?: string) => ({ GET: host ? h.remoteGet : h.get }),
 	clientForHost: () => ({ GET: h.remoteGet, POST: h.remotePost, DELETE: h.remoteDelete }),
 	connectedHosts: () => h.connectedHostIds,
@@ -237,7 +237,7 @@ async function waitForTaskReady() {
 
 beforeEach(() => {
 	h.realPermissionDiscovery = false;
-	useUiStore.setState({ developerMode: true, remoteHosts: true });
+	useUiStore.setState({ developerMode: true, });
 	h.agentCatalog = { agents: AGENT_OPTIONS.map((id) => agentReadiness(id, agentLabel(id))) };
 	// An older control plane, unless a test says otherwise.
 	h.cloudListUserAgentModels.mockRejectedValue(new CloudCpError("404 page not found", { status: 404 }));
@@ -260,7 +260,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	cleanup();
-	useUiStore.setState({ developerMode: false, remoteHosts: false });
+	useUiStore.setState({ developerMode: false, });
 	h.delete.mockReset();
 	h.get.mockReset();
 	h.post.mockReset();
@@ -405,21 +405,6 @@ describe("TaskComposer", () => {
 		fireEvent.click(startTask());
 		expect(await screen.findByText("Choose a base branch in project settings, then start again.")).toBeInTheDocument();
 	});
-	it("does not launch a remote project task without a ready agent", async () => {
-		h.agentCatalog = { agents: [] };
-		h.remoteGet.mockImplementation(async (path: string) => path === "/api/v1/settings"
-			? { data: { defaultSessionMode: "chat", chatHarnesses: [] } }
-			: { data: { status: "ok", project: { id: "project-a", config: {} } } });
-		h.remotePost.mockImplementation(async (path: string) => path === "/api/v1/agents/readiness/ensure"
-			? { data: { agents: [] } }
-			: { data: {} });
-		render(<Wrap><TaskComposer hostId="box-a" projectId="project-a" onCreated={vi.fn()} /></Wrap>);
-		await screen.findByText("No agent is ready on this host. Configure one there first.");
-		// A remote host's agents are set up on that host, not in this computer's Settings.
-		expect(screen.queryByRole("button", { name: "Open Agent Harnesses" })).not.toBeInTheDocument();
-		expect(startTask()).toBeDisabled();
-		expect(h.remotePost.mock.calls.some(([path]) => path === "/api/v1/orchestrators/delegate")).toBe(false);
-	});
 
 	it("does not start a remote task with the project's uninstalled default agent", async () => {
 		h.agentCatalog = { agents: [
@@ -440,32 +425,6 @@ describe("TaskComposer", () => {
 		await waitFor(() => expect(screen.getByTestId("agent-field")).toBeEnabled());
 		expect(startTask()).toBeDisabled();
 		expect(screen.queryByText("No agent is ready on this host. Configure one there first.")).not.toBeInTheDocument();
-	});
-
-	it("creates a remote project task through its host, not the local daemon", async () => {
-		h.agentCatalog = { agents: [agentReadiness("opencode", "OpenCode", { authentication: "unknown" })] };
-		const onCreated = vi.fn();
-		h.remoteGet.mockImplementation(async (path: string) => {
-			if (path.includes("/models")) return { data: { agent: "opencode", selectionMode: "text", models: [], allowCustom: true } };
-			if (path === "/api/v1/settings") return { data: { defaultSessionMode: "chat", chatHarnesses: ["opencode"] } };
-			return { data: { status: "ok", project: { id: "project-a", config: { worker: { agent: "opencode" } } } } };
-		});
-		h.remotePost.mockImplementation(async (path: string) => {
-			if (path === "/api/v1/agents/readiness/ensure") return { data: { agents: [agentReadiness("opencode", "OpenCode", { authentication: "unknown" })] } };
-			if (path === "/api/v1/projects/{id}/tasks/prepare") return { data: { taskPreparation: "" } };
-			if (path === "/api/v1/orchestrators/delegate") return { data: { workerId: "remote-task" } };
-			return { data: {} };
-		});
-		render(<Wrap><TaskComposer hostId="box-a" projectId="project-a" onCreated={onCreated} /></Wrap>);
-		await waitFor(() => expect(startTask()).toBeEnabled());
-		expect(screen.queryByText("No agent is ready on this host. Configure one there first.")).not.toBeInTheDocument();
-		fireEvent.change(task(), { target: { value: "Fix the issue" } });
-		fireEvent.click(startTask());
-		await waitFor(() => expect(onCreated).toHaveBeenCalledWith("remote-task"));
-		expect(h.remotePost).toHaveBeenCalledWith("/api/v1/orchestrators/delegate", expect.objectContaining({
-			body: expect.objectContaining({ projectId: "project-a", brief: "Fix the issue" }),
-		}));
-		expect(h.post.mock.calls.some(([path]) => path === "/api/v1/orchestrators/delegate")).toBe(false);
 	});
 
 	it("reuses a task request id after an uncertain response and changes it with the draft", async () => {
@@ -2879,28 +2838,6 @@ describe("TaskComposer", () => {
 			expect(await screen.findByText("Sonnet 5.5")).toBeInTheDocument();
 			expect(screen.queryByTestId("model-catalog-notice")).not.toBeInTheDocument();
 			expect(screen.queryByText("the saved Claude Code login token expired")).not.toBeInTheDocument();
-		});
-
-		// A remote host may run an older daemon that still refuses the spawn for a
-		// stale catalog, so it keeps the notice and its Log in shortcut.
-		it("keeps the expired-login notice for a remote host", async () => {
-			const claude = agentReadiness("claude-code", "Claude Code", { authentication: "configured" });
-			h.agentCatalog = { agents: [claude] };
-			h.remoteGet.mockImplementation(async (path: string) => {
-				if (path.includes("/models")) return { data: claudeCatalog({ warning: "the saved Claude Code login token expired", warningCode: "auth_expired" }) };
-				if (path === "/api/v1/settings") return { data: { defaultSessionMode: "chat", chatHarnesses: [] } };
-				return { data: { status: "ok", project: { id: "project-a", config: { worker: { agent: "claude-code" } } } } };
-			});
-			h.remotePost.mockImplementation(async (path: string) => path === "/api/v1/agents/readiness/ensure"
-				? { data: { agents: [claude] } }
-				: { data: {} });
-			render(<Wrap><TaskComposer hostId="box-a" projectId="project-a" onCreated={vi.fn()} /></Wrap>);
-			const notice = await screen.findByTestId("model-catalog-notice");
-			// The host's login only expired, so say that rather than "not logged in
-			// on this computer".
-			expect(notice).toHaveTextContent("Claude Code's saved login has expired.");
-			expect(notice).not.toHaveTextContent("isn't logged in on this computer");
-			expect(screen.getByRole("button", { name: "Log in again" })).toBeInTheDocument();
 		});
 
 		it("recognizes a login error from a daemon that predates warning codes", async () => {

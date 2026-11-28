@@ -2,7 +2,7 @@ import { uiUsage, useTelemetrySurface } from "../lib/ui-usage-telemetry";
 import { apiErrorException } from "../lib/api-error-exception";
 import { keepPreviousData, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Bell, Check, ChevronRight, CircleAlert, Coffee, Loader2, Smartphone } from "@/components/app-icons";
+import { ArrowLeft, Bell, Check, ChevronRight, CircleAlert, Coffee, Loader2 } from "@/components/app-icons";
 import { effectiveShortcutBindings, shortcutBindingKeys, type AppShortcutId } from "../../shared/shortcuts";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type AnimationEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -68,18 +68,15 @@ import { useCopyToClipboard, useSessionMenuEntries } from "./SessionContextMenuI
 import type { MenuEntry } from "./menu-model";
 import { useSplitPanesEnabled } from "../lib/split-panes";
 import { isDialogOrMenuOpen } from "../lib/dom-selectors";
-import { LOCAL_HOST } from "../lib/hosts";
+import { LOCAL_HOST } from "../lib/session-keys";
 import { isMacPlatform } from "../lib/platform";
 import { revealSessionSearchMatch } from "../lib/session-search-reveal";
 import { PALETTE_SESSION_SEARCH_LIMIT, usePaletteSessionSearch, useSessionSearchIndexStatus } from "../hooks/usePaletteSessionSearch";
-import { useConnectedHosts } from "../hooks/useHostConnection";
 import { useMachineSearchRows } from "../hooks/useMachineSearchRows";
-import { useRemoteMachineSearch } from "../hooks/useRemoteMachineSearch";
-import { machinesNotSearched } from "../lib/session-search-machines";
 import { sessionReviewsQueryOptions, type PRReviewState } from "../lib/session-reviews";
 import { spawnOrchestrator } from "../lib/spawn-orchestrator";
 import { useShell } from "../lib/shell-context";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { beginModalHandoff } from "../lib/modal-handoff";
 import { cn } from "../lib/utils";
 import { getSessionRowIndicator } from "../lib/session-presentation";
@@ -112,7 +109,6 @@ const PALETTE_FILE_SEARCH_DEBOUNCE_MS = 150;
 // pause: each search goes to every machine, and at 150 ms a steady typist (about
 // 200 ms between keys) sends one per keystroke to each of them. At 250 ms only
 // the word they stop on is searched; this machine alone keeps the quicker one.
-const PALETTE_MACHINE_SEARCH_DEBOUNCE_MS = 250;
 /** Rows the file view lists; beside commands each search group shows a few. */
 const PALETTE_FILE_VIEW_ROWS = 50;
 const isMac = isMacPlatform();
@@ -275,16 +271,15 @@ export const CommandPalette = memo(function CommandPalette() {
 		const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), PALETTE_FILE_SEARCH_DEBOUNCE_MS);
 		return () => window.clearTimeout(timer);
 	}, [isOpen, query, view.mode]);
-	const otherMachinesConnected = useConnectedHosts().length > 0;
 	useEffect(() => {
 		if (!isOpen) {
 			setDebouncedSessionQuery("");
 			return;
 		}
-		const delay = otherMachinesConnected ? PALETTE_MACHINE_SEARCH_DEBOUNCE_MS : PALETTE_FILE_SEARCH_DEBOUNCE_MS;
+		const delay = PALETTE_FILE_SEARCH_DEBOUNCE_MS;
 		const timer = window.setTimeout(() => setDebouncedSessionQuery(query.trim()), delay);
 		return () => window.clearTimeout(timer);
-	}, [isOpen, otherMachinesConnected, query, view.mode]);
+	}, [isOpen, query, view.mode]);
 
 	const activeFileTarget = view.mode === "file-search"
 		? view.target
@@ -354,35 +349,18 @@ export const CommandPalette = memo(function CommandPalette() {
 			|| normalizedSessionQuery.length >= PALETTE_SESSION_SEARCH_MIN_CHARS);
 	const sessionSearchQuery = usePaletteSessionSearch(normalizedSessionQuery, LOCAL_HOST, sessionSearchEnabled);
 	const sessionSearchIndexStatus = useSessionSearchIndexStatus(LOCAL_HOST, isOpen && sessionSearchEnabled);
-	// The same words on every connected remote AO machine, merged with this
-	// machine's answer as the machines answer (see useMachineSearchRows). Recents
-	// (no words) stay this machine's.
-	const remoteSessionSearch = useRemoteMachineSearch(
-		{ query: normalizedSessionQuery, limit: PALETTE_SESSION_SEARCH_LIMIT },
-		sessionSearchEnabled,
-	);
-	// This machine's search finished and failed (its index is off or could not
-	// be opened). That is one machine not answering, not a pending answer: the
-	// machines that did answer still show, beside the local error notice.
 	const localSessionSearchFailed = sessionSearchQuery.isError && !sessionSearchQuery.isFetching;
 	const sessionSearchRows = useMachineSearchRows({
 		query: normalizedSessionQuery,
 		local: sessionSearchQuery.isPlaceholderData ? undefined : sessionSearchQuery.data,
 		localFailed: localSessionSearchFailed,
-		remote: remoteSessionSearch,
+		remote: { query: normalizedSessionQuery, answers: [], settled: true },
 		limit: PALETTE_SESSION_SEARCH_LIMIT,
 	});
 	const sessionSearchHits = sessionSearchRows.rows;
 	// Machines are named as soon as their reason is known: one that is offline
 	// does not wait for a slow one to time out.
-	const sessionSearchMachinesNotSearched = useMemo(
-		() => (remoteSessionSearch.query === normalizedSessionQuery ? machinesNotSearched(remoteSessionSearch.answers, t) : []),
-		[normalizedSessionQuery, remoteSessionSearch, t],
-	);
-	const sessionSearchPending = sessionSearchQuery.isFetching
-		|| !sessionSearchRows.current
-		|| remoteSessionSearch.query !== normalizedSessionQuery
-		|| !remoteSessionSearch.settled;
+	const sessionSearchPending = sessionSearchQuery.isFetching || !sessionSearchRows.current;
 
 	const sessionsWithOpenPRs = useMemo(
 		() =>
@@ -522,7 +500,6 @@ export const CommandPalette = memo(function CommandPalette() {
 			...(isMac && stayAwake.supported
 				? [{ id: "global-stay-awake", group: "global" as const, title: t("awake.title"), icon: <Coffee aria-hidden="true" />, keywords: ["awake", "sleep", "caffeinate", "lid closed", "keep awake"], searchOnly: true, toggled: stayAwake.on, keepOpen: true, action: { kind: "run" as const, run: () => stayToggleRef.current() } }]
 				: []),
-			{ id: "global-connect-mobile", group: "global" as const, title: t("settings.connectMobile"), icon: <Smartphone aria-hidden="true" />, keywords: ["phone", "pair", "ios", "android", "qr code"], searchOnly: true, action: { kind: "run" as const, run: () => useUiStore.getState().openGlobalSettings("mobile", { startPairing: true }) } },
 		],
 		[workspaces, currentProjectId, currentSession, params.hostId, params.sessionId, restartingProjectIds, reviewStatesForCommands, cloudReady, developerMode, diagnostics, splitPanes, prefs, stayAwake.on, stayAwake.supported, t, i18n.resolvedLanguage],
 	);
@@ -903,8 +880,6 @@ export const CommandPalette = memo(function CommandPalette() {
 					useUiStore.getState().openProjectSettings(target.params.projectId, { cloudOrgId: workspaces.find((workspace) => workspace.id === target.params.projectId)?.cloudOrgId });
 					break;
 				case "/projects/$projectId/sessions/$sessionId":
-				case "/host/$hostId/project/$projectId/session/$sessionId":
-				case "/host/$hostId/session/$sessionId":
 					void navigate({ to: target.to, params: target.params });
 					break;
 			}
@@ -922,18 +897,7 @@ export const CommandPalette = memo(function CommandPalette() {
 		[],
 	);
 
-	// A session on another machine opens on that machine's route.
-	const hostSessionRoute = useCallback((hostId: string | undefined, projectId: string, sessionId: string): NavigateTarget => {
-		if (hostId) {
-			return !projectId || projectId === STANDALONE_WORKSPACE_ID
-				? { to: "/host/$hostId/session/$sessionId", params: { hostId, sessionId } }
-				: {
-					to: "/host/$hostId/project/$projectId/session/$sessionId",
-					params: { hostId, projectId, sessionId },
-				};
-		}
-		return sessionRoute(projectId, sessionId);
-	}, [sessionRoute]);
+	const hostSessionRoute = useCallback((_hostId: string | undefined, projectId: string, sessionId: string): NavigateTarget => sessionRoute(projectId, sessionId), [sessionRoute]);
 
 	const fileSessionRoute = useCallback(
 		(target: WorkspaceFileSearchTarget): NavigateTarget => hostSessionRoute(target.hostId, target.projectId, target.sessionId),
@@ -1485,9 +1449,9 @@ export const CommandPalette = memo(function CommandPalette() {
 									))}
 								</CommandGroup>
 							))}
-							{sessionSearchEnabled && sessionSearchSettled && sessionSearchMachinesNotSearched.length > 0 && (
+							{sessionSearchEnabled && sessionSearchSettled && false && (
 								<div role="status" className="px-[var(--size-command-pad-x)] py-2 text-caption text-muted-foreground" data-testid="palette-machines-not-searched">
-									{t("command.machinesNotSearched", { machines: sessionSearchMachinesNotSearched.join(", ") })}
+									{t("command.machinesNotSearched", { machines: "" })}
 								</div>
 							)}
 							{sessionSearchEnabled && sessionSearchSettled && sessionSearchPending && (

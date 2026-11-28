@@ -22,7 +22,7 @@ vi.mock("../lib/api-client", () => ({
 vi.mock("./useCloudCp", () => ({
 	createRendererCloudCpClient: createCloudClientMock,
 }));
-vi.mock("../lib/host-clients", () => ({
+vi.mock("../lib/local-daemon-client", () => ({
 	clientForHost: (hostId: string) => ({ POST: (...args: unknown[]) => remotePostMock(hostId, ...args) }),
 }));
 

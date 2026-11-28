@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef } from "react";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import type { ConversationMessage, ConversationSnapshot } from "../types/conversation";
 
 const inactiveQueryKey = ["conversation-prompt-suggestion", "inactive"] as const;

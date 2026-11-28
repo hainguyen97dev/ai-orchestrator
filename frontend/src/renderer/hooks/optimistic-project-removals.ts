@@ -1,5 +1,5 @@
 import { CLOUD_PROJECT_KIND, type WorkspaceSummary } from "../types/workspace";
-import { LOCAL_HOST, refKey } from "../lib/hosts";
+import { LOCAL_HOST, refKey } from "../lib/session-keys";
 
 /**
  * Host-qualified projects the user removed whose removal the server has not

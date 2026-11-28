@@ -2,7 +2,7 @@ import { StrictMode, useEffect, type ReactNode } from "react";
 import { noPRDetails } from "../lib/pr-display";
 import { queryShown } from "../lib/dom-selectors";
 import type { SessionPRSummary } from "../hooks/useSessionScmSummary";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { createPortal } from "react-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render as rtlRender, renderHook, screen, waitFor, within } from "@testing-library/react";

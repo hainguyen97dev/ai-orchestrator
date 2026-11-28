@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import type { components } from "../../api/schema";
-import { clientForSessionHost } from "../lib/host-clients";
-import { LOCAL_HOST, type HostId } from "../lib/hosts";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { LOCAL_HOST, type HostId } from "../lib/session-keys";
 import type { AgentReadinessSnapshot } from "./useAgentReadinessQuery";
 import { sessionInterfaceTransitionQueryKey } from "./useSessionInterfaceTransition";
 

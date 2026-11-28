@@ -4,7 +4,6 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { AgentLoginSnapshot } from "../../../hooks/useAgentAuth";
 import { apiClient } from "../../../lib/api-client";
 import { aoBridge } from "../../../lib/bridge";
-import { clientForHost, connectHost, disconnectHost } from "../../../lib/host-clients";
 import { HarnessLoginPanel } from "./HarnessLoginPanel";
 
 afterEach(async () => {
@@ -14,18 +13,11 @@ afterEach(async () => {
 });
 
 it.each([
-	{ hostId: "recovery-remote", method: "browser", opensAutomatically: false, showsLink: false },
-	{ hostId: "recovery-remote", method: "device_code", opensAutomatically: true, showsLink: true },
 	{ hostId: undefined, method: "browser", opensAutomatically: false, showsLink: true },
 	{ hostId: "local", method: "browser", opensAutomatically: false, showsLink: true },
 	{ hostId: undefined, method: "device_code", opensAutomatically: true, showsLink: true },
 ])("restricts browser opening for a recovered $method login on $hostId", async ({ hostId, method, opensAutomatically, showsLink }) => {
-	const remote = hostId === "recovery-remote";
-	if (remote) {
-		vi.spyOn(aoBridge.remotes, "connect").mockResolvedValue({ hostId, label: "Remote recovery", url: "https://recovery.example", base: "http://remote-recovery.test" });
-		await connectHost("https://recovery.example");
-	}
-	const client = remote ? clientForHost(hostId) : apiClient;
+	const client = apiClient;
 	const recovered: AgentLoginSnapshot = {
 		id: "recovered-" + method, agentId: "codex", method, status: "running", expiresAt: "2026-11-02T12:00:00Z",
 		loginUrl: method === "browser" ? "https://auth.openai.com/oauth/authorize?redirect_uri=http%3A%2F%2F127.0.0.1%3A1455%2Fauth%2Fcallback" : "https://auth.openai.com/codex/device",
@@ -51,7 +43,7 @@ it.each([
 	} finally {
 		cleanup();
 		await act(async () => { await Promise.resolve(); });
-		if (remote) await disconnectHost(hostId);
+
 	}
 });
 

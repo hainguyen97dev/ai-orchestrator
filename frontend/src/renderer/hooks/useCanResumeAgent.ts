@@ -6,8 +6,8 @@ import {
 import { sessionAgentExited, sessionIsActive, type WorkspaceSession } from "../types/workspace";
 import { apiErrorCode, apiErrorMessage } from "../lib/api-client";
 import { appI18n } from "../i18n";
-import { clientForSessionHost } from "../lib/host-clients";
-import { sessionUiKey } from "../lib/hosts";
+import { clientForSessionHost } from "../lib/local-daemon-client";
+import { sessionUiKey } from "../lib/session-keys";
 
 const resumesInFlight = new Map<string, Promise<void>>();
 

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getMock, putMock } = vi.hoisted(() => ({ getMock: vi.fn(), putMock: vi.fn() }));
 vi.mock("../lib/api-client", () => ({ apiClient: { GET: getMock, PUT: putMock } }));
-vi.mock("../lib/host-clients", () => ({ clientForHost: () => ({ GET: getMock, PUT: putMock }) }));
+vi.mock("../lib/local-daemon-client", () => ({ clientForHost: () => ({ GET: getMock, PUT: putMock }) }));
 
 import { useUiStore } from "../stores/ui-store";
 import { useResetStaleProjectTuning } from "./useResetStaleProjectTuning";

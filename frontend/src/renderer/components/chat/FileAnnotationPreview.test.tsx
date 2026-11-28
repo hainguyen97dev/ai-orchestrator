@@ -7,7 +7,7 @@ import { FileAnnotationContext } from "./FileAnnotationPreview";
 import { ChatAnnotationSummary } from "./ChatAnnotationSummary";
 
 const request = vi.hoisted(() => vi.fn());
-vi.mock("../../lib/host-clients", () => ({ clientForSessionHost: () => ({ POST: request }) }));
+vi.mock("../../lib/local-daemon-client", () => ({ clientForSessionHost: () => ({ POST: request }) }));
 vi.mock("../../lib/workspace-file-events", () => ({ subscribeWorkspaceFileChanges: () => () => {} }));
 
 const ref = captureFileReference(

@@ -32,7 +32,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "../ui/popover";
 import { Pressable } from "../ui/pressable";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useAskInChat } from "../../lib/chat-context-bus";
-import { sessionUiKey } from "../../lib/hosts";
+import { sessionUiKey } from "../../lib/session-keys";
 import { AO_PIERRE_FILES_REVIEW_CSS, AO_PIERRE_SURFACE_CSS, PIERRE_HIGHLIGHTER } from "./pierreTheme";
 import { ImageDiffView, isWorkspaceImagePath } from "../ImageDiffView";
 import { REVIEW_CONTEXT_LINES, diffContentVersion, endsAtLastHunk, hydratedCopy, patchIdentity, stableFileDiff } from "./trailingContext";

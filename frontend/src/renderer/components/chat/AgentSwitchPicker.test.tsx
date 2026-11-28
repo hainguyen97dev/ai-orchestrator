@@ -11,7 +11,7 @@ import { AgentModelPicker, type AccountChoice, type PendingAgentSwitch, type Pic
 
 const unavailableGet = vi.hoisted(() => vi.fn());
 const readiness = vi.hoisted(() => ({ agents: [] as unknown[] }));
-vi.mock("../../lib/host-clients", () => ({ clientForSessionHost: () => ({ GET: unavailableGet }) }));
+vi.mock("../../lib/local-daemon-client", () => ({ clientForSessionHost: () => ({ GET: unavailableGet }) }));
 vi.mock("../../hooks/useAgentReadinessQuery", () => ({ useAgentReadinessQuery: () => ({ data: { agents: readiness.agents } }) }));
 vi.mock("../../hooks/useSettings", () => ({ useSettings: () => ({ settings: undefined }) }));
 const cloudModels = vi.hoisted(() => vi.fn());

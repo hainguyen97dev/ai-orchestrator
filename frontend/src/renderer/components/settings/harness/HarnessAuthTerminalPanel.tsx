@@ -6,7 +6,7 @@ import { closeShellTerminal } from "../../../hooks/useShellTerminals";
 import type { TerminalSessionState } from "../../../hooks/useTerminalSession";
 import type { AgentId } from "../../../lib/agent-options";
 import { apiErrorCode, getApiBaseUrl } from "../../../lib/api-client";
-import { baseUrlForHost } from "../../../lib/host-clients";
+import { baseUrlForHost } from "../../../lib/local-daemon-client";
 import { useShellMaybe } from "../../../lib/shell-context";
 import { createTerminalMux, muxUrlFromApiBase } from "../../../lib/terminal-mux";
 import { useResolvedTheme } from "../../../stores/ui-store";

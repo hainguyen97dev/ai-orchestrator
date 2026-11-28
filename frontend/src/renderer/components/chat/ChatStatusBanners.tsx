@@ -21,7 +21,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { versionLabel } from "../../hooks/useHarnessUpdates";
 import { agentLabel } from "../../lib/agent-options";
 import type { AgentBlock } from "../../lib/session-import";
-import { labelForHost } from "../../lib/host-clients";
+import { labelForHost } from "../../lib/local-daemon-client";
 import { cn, truncateMiddle } from "../../lib/utils";
 import { useUiStore } from "../../stores/ui-store";
 import type { SessionStaleBinary } from "../../types/workspace";

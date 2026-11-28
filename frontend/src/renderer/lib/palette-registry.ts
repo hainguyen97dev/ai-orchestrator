@@ -88,8 +88,6 @@ type SettingsEntry = {
  */
 const SECTION_KEYWORDS: Partial<Record<GlobalSettingsSection, string[]>> = {
 	harness: ["agents", "agent cli", "install", "accounts", "codex", "claude", "subscriptions", "plan", "login"],
-	remoteHosts: ["ssh", "remote", "machine", "server"],
-	mobile: ["phone", "ios", "android", "pair", "qr code"],
 	browserProfiles: ["browser", "profiles", "chrome"],
 	computerUse: ["cua", "desktop control", "screen", "automation"],
 	updates: ["upgrade", "release", "version"],
@@ -126,16 +124,6 @@ const SETTINGS_ENTRIES: SettingsEntry[] = [
 	{ id: "split-panes", section: "general", label: "settings.splitPanes", keywords: ["split", "side by side", "panes", "drag tabs"], when: "developerMode" },
 	{ id: "harness", section: "harness", label: "settings.harness", keywords: [] },
 	{ id: "harness-logins", section: "harness", label: "settings.harness.viewLabel", keywords: ["login", "agent login", "api key", "provider key", "environment variable", "anthropic", "openai", "openrouter"] },
-	{ id: "remote-hosts", section: "remoteHosts", label: "settings.remoteHosts", keywords: [] },
-	{ id: "remote-enable", section: "remoteHosts", label: "remote.enable", keywords: ["remote access"] },
-	{ id: "saved-hosts", section: "remoteHosts", label: "remote.savedHosts", keywords: ["servers", "ssh"] },
-	{ id: "connection-password", section: "remoteHosts", label: "remote.connectionPassword", keywords: ["password"] },
-	{ id: "mobile", section: "mobile", label: "settings.mobile", keywords: [] },
-	{ id: "mobile-devices", section: "mobile", label: "mobile.devices.title", keywords: ["phones", "paired devices"] },
-	{ id: "keep-awake", section: "mobile", label: "mobile.keepAwake.label", keywords: ["sleep", "caffeinate", "lid closed", "clamshell"] },
-	{ id: "secure-pairing", section: "mobile", label: "mobile.securePairing", keywords: ["tls", "encryption"] },
-	{ id: "connection-method", section: "mobile", label: "mobile.connectionMethod", keywords: ["tunnel", "lan", "cloudflared"] },
-	{ id: "regenerate-password", section: "mobile", label: "mobile.regenerate", keywords: ["reset password"] },
 	{ id: "browser", section: "browserProfiles", label: "settings.browserProfiles", keywords: [] },
 	{ id: "create-profile", section: "browserProfiles", label: "settings.browserProfiles.create", keywords: ["browser profile"] },
 	{ id: "browser-import", section: "browserProfiles", label: "settings.browserImport.rowLabel", keywords: ["import", "firefox", "safari", "cookies"] },
@@ -274,8 +262,6 @@ export function buildSettingsCommands(t: TFunction, visibility: SettingsVisibili
 /** The registry entry naming a whole settings page. */
 function sectionLeadId(section: GlobalSettingsSection): string {
 	switch (section) {
-		case "remoteHosts":
-			return "remote-hosts";
 		case "browserProfiles":
 			return "browser";
 		case "computerUse":

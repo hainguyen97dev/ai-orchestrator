@@ -1,4 +1,4 @@
-import { baseUrlForHost } from "./host-clients";
+import { baseUrlForHost } from "./local-daemon-client";
 import { getApiBaseUrl } from "./api-client";
 
 /** `savedVersion` reads that kept version of the file instead of its current content. */

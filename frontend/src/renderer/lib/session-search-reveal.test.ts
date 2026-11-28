@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useUiStore } from "../stores/ui-store";
-import { sessionUiKey } from "./hosts";
+import { sessionUiKey } from "./session-keys";
 import {
 	peekSessionSearchReveal,
 	requestSessionSearchReveal,

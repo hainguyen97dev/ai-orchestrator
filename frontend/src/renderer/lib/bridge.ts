@@ -1,4 +1,3 @@
-import { AoError } from "../../../../packages/shared/telemetry/ao-error";
 import type { AoBridge } from "../../preload";
 import { coerceUiSettings, DEFAULT_UI_SETTINGS } from "../../shared/ui-locale";
 import { createWebSideCloseBridge } from "./web-side-close";
@@ -468,27 +467,7 @@ export const aoBridge: AoBridge =
 			list: async () => [],
 			getActive: async () => null,
 		},
-		// The daemon-served web build has no Electron bridge and so no access to
-		// ~/.ao/remotes.json. Reporting no hosts leaves the UI showing local only,
-		// which is the truth there.
-		remotes: {
-			list: async () => [],
-			syncAccountHosts: async () => undefined,
-			linkAccountHost: async () => { throw new Error("remote hosts need the desktop app"); },
-			add: async () => "offline" as const,
-			update: async () => "offline" as const,
-			remove: async () => undefined,
-			connect: async () => { throw new Error("remote hosts need the desktop app"); },
-			disconnect: async () => undefined,
-			hostUpdate: async () => null,
-			checkHostUpdate: async () => { throw new AoError("REMOTE_HOSTS_NEED_DESKTOP", "remote hosts need the desktop app"); },
-			startHostUpdate: async () => { throw new AoError("REMOTE_HOSTS_NEED_DESKTOP", "remote hosts need the desktop app"); },
-			computerName: async () => { throw new Error("remote hosts need the desktop app"); },
-			previewUrl: async (_hostId: string, _sessionId: string, sourceUrl: string) => sourceUrl,
-			resolvePreviewUrl: async (_hostId: string, _sessionId: string, viewedUrl: string) => viewedUrl,
-			agentBrowserUrl: async () => "",
-			externalUrl: async (_hostId: string, url: string) => url,
-		},
+
 		cloud: {
 			getSession: async () => null,
 			signIn: async () => undefined,

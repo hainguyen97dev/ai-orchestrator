@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { components } from "../../api/schema";
 import { artifactChangeError } from "../lib/artifacts";
 import type { CloudCpClient } from "../lib/cloud-cp";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { sessionArtifactFileQueryOptions } from "./useSessionWorkspaceFiles";
 import { cloudSessionsQueryKey, workspaceQueryKeyForHost } from "./useWorkspaceQuery";
 

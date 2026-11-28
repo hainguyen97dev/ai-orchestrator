@@ -18,9 +18,9 @@ import {
 	RefreshCw,
 } from "@/components/app-icons";
 import { sessionWorkspaceFilesQueryOptions, type WorkspaceFileSummary } from "../hooks/useSessionWorkspaceFiles";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { useCloudCp } from "../hooks/useCloudCp";
-import { sessionUiKey } from "../lib/hosts";
+import { sessionUiKey } from "../lib/session-keys";
 import { sessionBranchPresentation } from "../lib/session-branch";
 import { cn } from "../lib/utils";
 import { BranchNamingLabel } from "./BranchNamingLabel";

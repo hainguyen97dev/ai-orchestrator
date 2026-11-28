@@ -1,7 +1,7 @@
 import { apiErrorException } from "./api-error-exception";
 import type { QueryClient } from "@tanstack/react-query";
 import { apiClient } from "./api-client";
-import { clientForSessionHost } from "./host-clients";
+import { clientForSessionHost } from "./local-daemon-client";
 import { createRendererCloudCpClient } from "./cloud-cp/renderer-client";
 import { settingsQueryKey, type Settings } from "../hooks/useSettings";
 import type { WorkspaceSession } from "../types/workspace";

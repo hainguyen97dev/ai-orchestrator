@@ -42,8 +42,8 @@ import { agentLabel, AGENT_OPTIONS, type AgentId } from "../../../lib/agent-opti
 import { apiErrorMessage } from "../../../lib/api-client";
 import { captureRendererEvent } from "../../../lib/telemetry";
 import { aoBridge } from "../../../lib/bridge";
-import { clientForSessionHost, labelForHost } from "../../../lib/host-clients";
-import { LOCAL_HOST } from "../../../lib/hosts";
+import { clientForSessionHost, labelForHost } from "../../../lib/local-daemon-client";
+import { LOCAL_HOST } from "../../../lib/session-keys";
 import { useUiStore, type HarnessDiagnosticsRequest } from "../../../stores/ui-store";
 import { cn } from "../../../lib/utils";
 import { AgentAvatar } from "../../AgentAvatar";

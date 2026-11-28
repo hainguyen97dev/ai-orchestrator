@@ -5,7 +5,7 @@ import { AgentCheckError } from "../lib/agent-check-error";
 import { defaultProjectAgents, hasInstalledAgent, preferredAgentNeedsChecks, type ProjectAgentDefaults } from "../lib/agent-select-options";
 import type { components } from "../../api/schema";
 import { apiClient } from "../lib/api-client";
-import { clientForHost } from "../lib/host-clients";
+import { clientForHost } from "../lib/local-daemon-client";
 
 export type AgentReadiness = components["schemas"]["AgentReadinessResponse"];
 export type AgentReadinessSnapshot = components["schemas"]["AgentReadinessSnapshot"];

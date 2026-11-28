@@ -14,7 +14,7 @@ import { CloudCpError } from "./cloud-cp/errors";
 import type { CloudCpSharedArtifact } from "./cloud-cp/types";
 import { fileMediaKind } from "./file-media";
 import { isSvgPath } from "./image-files";
-import { sessionUiKey } from "./hosts";
+import { sessionUiKey } from "./session-keys";
 import { isArchivedSession } from "./standalone-archive";
 
 /** One artifact file in the Artifacts list, with the session that wrote it. */

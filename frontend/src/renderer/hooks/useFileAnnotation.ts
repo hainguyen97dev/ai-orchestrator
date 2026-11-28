@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatFileAnnotationMessages } from "../../shared/file-annotations";
 import { apiErrorMessage } from "../lib/api-client";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { fileAnnotationKey, type ActiveFileAnnotationTarget, type FileAnnotationModel, type FileAnnotationStatus } from "../components/WorkspaceDiffView";
 
 type AnnotationEntry = { target: ActiveFileAnnotationTarget; draft: string };

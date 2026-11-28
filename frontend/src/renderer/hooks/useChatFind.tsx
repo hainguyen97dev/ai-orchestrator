@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, Loader2, Search, X } from "lucide-react";
 import { useAppShortcut, isSettingsPageOpen } from "./useAppShortcut";
 import { useHarnessUpdateNoticeClearance } from "./useHarnessUpdateNoticeClearance";
 import { toSnapshot, mergeConversationPages } from "./useConversation";
-import { clientForSessionHost } from "../lib/host-clients";
+import { clientForSessionHost } from "../lib/local-daemon-client";
 import { apiErrorMessage } from "../lib/api-client";
 import { findTextRanges, isEmptyFindQuery, occurrenceKey, renderedFindBlocks, findRange, type FindOccurrence } from "../lib/chat-find";
 import type { ConversationSnapshot } from "../types/conversation";

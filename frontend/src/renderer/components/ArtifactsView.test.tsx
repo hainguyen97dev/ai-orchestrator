@@ -123,8 +123,8 @@ vi.mock("../lib/api-client", async (importOriginal) => ({
 	...await importOriginal<typeof import("../lib/api-client")>(),
 	apiClient: { POST: mocks.post, GET: mocks.get, DELETE: mocks.del },
 }));
-vi.mock("../lib/host-clients", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("../lib/host-clients")>();
+vi.mock("../lib/local-daemon-client", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("../lib/local-daemon-client")>();
 	return { ...actual, clientForSessionHost: (hostId?: string) => hostId ? { DELETE: mocks.remoteDel } : actual.clientForSessionHost(hostId) };
 });
 vi.mock("../lib/shell-context", async (importOriginal) => ({
@@ -469,57 +469,6 @@ describe("ArtifactsView", () => {
 		await user.click(screen.getByRole("button", { name: "List view" }));
 		expect(screen.getAllByRole("listitem")).toHaveLength(2);
 		expect(screen.getAllByText("On this machine · Yours")).toHaveLength(2);
-	});
-
-	it("lists a remote machine's artifacts under its own location, and deletes them on that machine", async () => {
-		const user = userEvent.setup();
-		mocks.remoteHosts = [{ hostId: "https://h-vm.useao.dev", label: "build-vm", url: "https://h-vm.useao.dev", status: "connected" }];
-		// The same project and session IDs as this computer's: the machine keeps them apart.
-		mocks.remoteWorkspaces = [{
-			hostId: "https://h-vm.useao.dev",
-			id: "ao",
-			name: "agent-orchestrator",
-			path: "/home/ao/code/ao",
-			sessions: [{ ...session("ao-2", "Benchmark on the VM", [{ name: "bench.md", updatedAt: "2026-10-12T10:00:00Z" }]), hostId: "https://h-vm.useao.dev" }],
-		}];
-		mocks.remoteDel.mockResolvedValue({});
-		useArtifactsViewStore.setState({ view: "list", pinnedArtifactIds: [JSON.stringify(["ao-2", "bench.md", "https://h-vm.useao.dev"])] });
-		renderView();
-
-		const location = screen.getByRole("group", { name: "Artifact location" });
-		expect(within(location).getAllByRole("button").map((button) => button.textContent)).toEqual(["All4", "On this machine3", "build-vm1"]);
-		await user.click(within(location).getByRole("button", { name: "build-vm" }));
-		const rows = within(artifactList()).getAllByRole("listitem");
-		expect(rows).toHaveLength(1);
-		expect(rows[0]).toHaveTextContent("bench.md");
-		expect(rows[0]).toHaveTextContent("build-vm · Yours");
-		// Pinned by its machine's key.
-		expect(within(rows[0]!).getByRole("img", { name: "Pinned" })).toBeInTheDocument();
-
-		await user.click(screen.getByRole("button", { name: "Select" }));
-		await user.click(screen.getByRole("checkbox", { name: "Select bench.md" }));
-		await user.click(screen.getByRole("button", { name: "Delete" }));
-		await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete 1 artifact" }));
-		await waitFor(() => expect(mocks.remoteDel).toHaveBeenCalledWith("/api/v1/sessions/{sessionId}/artifact-files", { params: { path: { sessionId: "ao-2" }, query: { path: "bench.md" } } }));
-		expect(mocks.del).not.toHaveBeenCalled();
-		expect(useArtifactsViewStore.getState().pinnedArtifactIds).toEqual([]);
-	});
-
-	it("says when a remote machine's artifacts could not be loaded, with a retry, instead of showing no matches", async () => {
-		const user = userEvent.setup();
-		mocks.remoteHosts = [{ hostId: "https://h-vm.useao.dev", label: "build-vm", url: "https://h-vm.useao.dev", status: "connected" }];
-		mocks.remoteFailedHostIds = ["https://h-vm.useao.dev"];
-		renderView();
-
-		expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load artifacts from build-vm.");
-		await user.click(within(screen.getByRole("group", { name: "Artifact location" })).getByRole("button", { name: "build-vm" }));
-		expect(screen.getByRole("alert")).toHaveTextContent("Couldn't load artifacts from build-vm.");
-		expect(screen.queryByText("No matches")).not.toBeInTheDocument();
-		await user.click(within(screen.getByRole("alert")).getByRole("button", { name: "Retry" }));
-		expect(mocks.remoteRefetch).toHaveBeenCalledTimes(1);
-		// Another location does not name the machine.
-		await user.click(within(screen.getByRole("group", { name: "Artifact location" })).getByRole("button", { name: "On this machine" }));
-		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
 	it("selects artifacts one by one and deletes them together after confirming", async () => {
@@ -1403,22 +1352,6 @@ describe("ArtifactsView", () => {
 		const frame = screen.getByRole("dialog", { name: "page.html" }).querySelector("iframe");
 		expect(frame).toHaveAttribute("src", html.artifactFiles![0].inlineUrl);
 		expect(frame).toHaveAttribute("sandbox", "allow-scripts allow-same-origin");
-		expect(mocks.navigate).not.toHaveBeenCalled();
-	});
-
-	it("previews a remote machine's HTML in the modal, framed from its proxy URL and never in the Browser", async () => {
-		const user = userEvent.setup();
-		const proxied = "http://ao-preview-abc123.localhost:4100/page.html?raw=true";
-		mocks.remoteHosts = [{ hostId: "https://h-vm.useao.dev", label: "build-vm", url: "https://h-vm.useao.dev", status: "connected" }];
-		const remote = session("ao-9", "VM design", [{ name: "page.html", kind: "html", updatedAt: "2026-10-11T10:00:00Z" }]);
-		remote.artifactFiles![0].rawUrl = proxied;
-		mocks.workspaces = [];
-		mocks.remoteWorkspaces = [{ hostId: "https://h-vm.useao.dev", id: "ao", name: "AO", path: "/home/ao/code/ao", sessions: [{ ...remote, hostId: "https://h-vm.useao.dev" }] }];
-		renderView();
-		await user.click(within(artifactList()).getByRole("button", { name: /^page\.html/ }));
-		const frame = within(screen.getByRole("dialog", { name: "page.html" })).getByTestId("cloud-artifact-preview");
-		expect(frame).toHaveAttribute("src", proxied);
-		expect(frame).toHaveAttribute("data-source", "host");
 		expect(mocks.navigate).not.toHaveBeenCalled();
 	});
 

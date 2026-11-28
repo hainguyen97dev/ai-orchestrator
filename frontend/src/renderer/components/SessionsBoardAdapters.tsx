@@ -17,7 +17,7 @@ import { Archive, Check, Copy, File, GitBranch, LoaderCircle, RotateCcw, Share2,
 import type { MessageKey } from "../i18n";
 import { apiClient, apiErrorMessage } from "../lib/api-client";
 import { aoBridge } from "../lib/bridge";
-import { clientForHost } from "../lib/host-clients";
+import { clientForHost } from "../lib/local-daemon-client";
 import { commitSessionRename } from "../lib/commit-session-rename";
 import { MAX_SESSION_DISPLAY_NAME_LEN } from "../hooks/useSessionRename";
 import { workspaceQueryKeyForHost } from "../hooks/useWorkspaceQuery";
