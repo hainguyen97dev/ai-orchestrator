@@ -13409,23 +13409,14 @@ func TestLaunchBinaryUnwrapsProviderEnvWrapper(t *testing.T) {
 	}
 }
 
-func TestAOSkillPointerNamesDeviceGuideOnlyWhenOffered(t *testing.T) {
-	dir := t.TempDir()
-	m := &Manager{dataDir: dir}
-	if pointer := m.aoSkillPointer(false); strings.Contains(pointer, "AO Device panel") {
-		t.Fatalf("device section present with no devices gate:\n%s", pointer)
-	}
-	offered := false
-	m.SetDevicesOffered(func() bool { return offered })
-	if pointer := m.aoSkillPointer(false); strings.Contains(pointer, "AO Device panel") {
-		t.Fatalf("device section present while devices are not offered:\n%s", pointer)
-	}
-	offered = true
-	pointer := m.aoSkillPointer(false)
-	guide := filepath.ToSlash(filepath.Join(dir, "skills", "using-ao", "commands", "device.md"))
-	for _, want := range []string{"## AO Device panel", "`" + guide + "`", "ao device open"} {
-		if !strings.Contains(pointer, want) {
-			t.Fatalf("device section missing %q:\n%s", want, pointer)
+func TestAOSkillPointerNeverOffersDeviceTools(t *testing.T) {
+	m := &Manager{dataDir: t.TempDir()}
+	for _, chat := range []bool{false, true} {
+		pointer := m.aoSkillPointer(chat)
+		for _, gone := range []string{"AO Device panel", "ao device", "commands/device.md"} {
+			if strings.Contains(pointer, gone) {
+				t.Fatalf("chat=%v: prompt still names %q:\n%s", chat, gone, pointer)
+			}
 		}
 	}
 }

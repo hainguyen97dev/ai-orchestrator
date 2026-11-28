@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 import type { ComponentProps, ReactNode } from "react";
 import { InspectorSection } from "@aoagents/product-ui";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ActivityTimeline, PRSummaryCard, resetPRFocus, SessionInspector } from "./SessionInspector";
+import { ActivityTimeline, PRSummaryCard, resetPRFocus, SessionInspector, type InspectorView } from "./SessionInspector";
 import { subscribeChatComposerText } from "../lib/chat-context-bus";
 import { sessionUiKey } from "../lib/hosts";
 import { sessionPRDisplaySummaries } from "../lib/pr-display";
@@ -412,6 +412,12 @@ describe("SessionInspector tabs", () => {
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["Summary", "Browser"]);
     expect(screen.getByTestId("session-account-summary")).toBeInTheDocument();
     expect(screen.queryByTestId("inspector-branch")).not.toBeInTheDocument();
+  });
+
+  it("falls back to Summary for a view the inspector no longer has, such as the removed Device tab", () => {
+    renderWithQuery(<SessionInspector isInspectorVisible session={session([])} view={"device" as unknown as InspectorView} />);
+    expect(screen.getByRole("tab", { name: "Summary" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("tab", { name: "Device" })).not.toBeInTheDocument();
   });
 
   it("gives a remote orchestrator the same tabs with its host's account", () => {
@@ -3592,13 +3598,11 @@ describe("SessionInspector tabs", () => {
     expect(screen.queryByText("Pull request")).not.toBeInTheDocument();
   });
 
-  it("offers the Device tab to local worker sessions only with Developer mode on", async () => {
+  it("offers no Device tab, even with Developer mode on", async () => {
     mockCommonGets([], "", [reviewState(1, "needs_review")]);
     renderWithQuery(<SessionInspector session={session([pr(1, "open")])} />);
-    expect(screen.queryByRole("tab", { name: "Device" })).not.toBeInTheDocument();
-
     act(() => useUiStore.setState({ developerMode: true }));
-    expect(screen.getAllByRole("tab").map((el) => el.textContent?.trim())).toEqual(["Summary", "Files", "Reviews", "Browser", "Device"]);
+    expect(screen.getAllByRole("tab").map((el) => el.textContent?.trim())).toEqual(["Summary", "Files", "Reviews", "Browser"]);
   });
 
   it("offers a Subagents tab after Side chat while the chat passes its panel", async () => {

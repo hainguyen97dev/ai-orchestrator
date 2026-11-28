@@ -446,10 +446,9 @@ function ShellLayout() {
 	const onboardingCoversShell = useUiStore((state) => state.firstRunOnboardingOpen && state.settingsModal?.scope !== "global");
 	// One chain per daemon setting Developer Mode drives: each request waits for
 	// its own previous one, so an older enable cannot finish after a disable.
-	const developerModeSyncRef = useRef<Record<"chatHibernation" | "limitHistory" | "devices", Promise<void>>>({
+	const developerModeSyncRef = useRef<Record<"chatHibernation" | "limitHistory", Promise<void>>>({
 		chatHibernation: Promise.resolve(),
 		limitHistory: Promise.resolve(),
-		devices: Promise.resolve(),
 	});
 	const isSidebarOpen = useUiStore(sidebarIsVisible);
 	const toggleSidebar = useUiStore((state) => state.toggleSidebar);
@@ -1252,10 +1251,9 @@ const replacementErrorCount = Object.keys(orchestratorReplacementErrors).length;
 	}, [themeStyle]);
 
 	// The renderer owns Developer Mode; the daemon must know its value before
-	// either the view-close path or the idle sweep can hibernate a provider,
-	// and devices (a Developer mode preview) stay off in the daemon until it does.
+	// either the view-close path or the idle sweep can hibernate a provider.
 	// Each setting syncs and retries on its own: one failing request must not
-	// leave another, such as devices, stuck at its old value.
+	// leave another stuck at its old value.
 	useEffect(() => {
 		if (usesPreviewWorkspaceData || daemonStatus.state !== "ready" || !daemonStatus.port) return;
 		let cancelled = false;
@@ -1277,7 +1275,6 @@ const replacementErrorCount = Object.keys(orchestratorReplacementErrors).length;
 		};
 		sync("chatHibernation", () => apiClient.PATCH("/api/v1/settings/chat-hibernation", { body: { enabled: developerMode } }));
 		sync("limitHistory", () => apiClient.PUT("/api/v1/usage/limit-history", { body: { enabled: developerMode } }));
-		sync("devices", () => apiClient.PUT("/api/v1/devices/availability", { body: { enabled: developerMode } }));
 		return () => {
 			cancelled = true;
 			for (const retry of retries) clearTimeout(retry);

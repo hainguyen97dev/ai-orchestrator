@@ -18,7 +18,7 @@
 | Mobile và remote hosts | Shipped mobile/LAN, remote host management; STATUS dòng 232–258, `mobilebridge`, `Sidebar.tsx` | Hỗ trợ giám sát | **Cân nhắc** theo thị trường/độ phức tạp |
 | Cloud Agents, team/workspace artifact sharing | Conditional theo STATUS dòng 261–263; Cloud routes/client và artifact UI | Ngoài local core | **Ứng viên tách** nếu sản phẩm chỉ chạy local/nội bộ |
 | Import session từ nhiều agent | Shipped code; **New** `8361029f9f` thêm 11 nguồn import, `service/sessionimport/*` | Migration/onboarding | **Cân nhắc giảm phạm vi** theo agent thực dùng |
-| Simulator/emulator Device tab/phone control | **New**, 3 commit `716af8d46c`, `27b8352531`, `657cf5e800`; Developer mode preview trong `devices/service.go:137` và `devices-enabled.ts` | Chuyên biệt mobile dev | **Ứng viên tách module** |
+| Simulator/emulator Device tab/phone control | **New**, 3 commit `716af8d46c`, `27b8352531`, `657cf5e800`; Developer mode preview trong `devices/service.go:137` và `devices-enabled.ts` | Chuyên biệt mobile dev | **Đã cắt (L1, 2026-11-28)** |
 | PR card/review inspector cải tiến | **New** `4fff577f7f`, `2fe8d90dfb`, `b21c8ea6bb` | Lõi review | **Giữ** |
 | Background task side panel, chat UX | **New** `feac004ab9`, `20b0d6a522`, file drop `1e7c6281cc` | Lõi Chat | **Giữ**, gom UX cho dễ hiểu |
 | Orchestrator commit/PR attribution | **New**, beta local `56c30f82e8`; `internal/attribution/*` | Quan sát phối hợp | **Thử nghiệm**, đánh giá trước khi mở rộng |
