@@ -18,7 +18,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/daemonmeta"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skill/skillassets"
 )
 
 func triageTestDeps(t *testing.T) (Deps, *bytes.Buffer, string) {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skill/skillassets"
 )
 
 func TestEnsureWorkspaceGitignoreWritesSelfIgnoringFile(t *testing.T) {

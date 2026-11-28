@@ -14,7 +14,7 @@ import (
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/binaryutil"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skill/skillassets"
 )
 
 // triagePromptTemplate holds only what the program's draft format needs. How to

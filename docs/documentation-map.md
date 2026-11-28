@@ -55,7 +55,7 @@ records those limits and any post-release differences.
 | `frontend/src/api/schema.ts`                                           | Typed client the frontend uses to talk to the daemon                    | `openapi.yaml` via `npm run api:ts`                                                                                    | `codegen-drift` job in `.github/workflows/go.yml` regenerates and fails on `git diff`                                                                                    |
 | `backend/platform/persistence/sqlite/gen/`                                 | Query/DTO code for SQLite storage                                       | `backend/platform/persistence/sqlite/queries/*` + migrations via `npm run sqlc`                                            | `codegen-drift` job in `.github/workflows/go.yml`                                                                                                                        |
 | [AGENTS.md](../AGENTS.md)                                              | Agent operating contract: repo layout, commands, hard rules, PR hygiene | Hand-written; `CLAUDE.md` is a pointer to it                                                                           | Not machine-checked. The hard rules it names are enforced by tests (for example loopback-only routing, status derivation) rather than by a doc gate.                     |
-| `backend/internal/skillassets/using-ao/`                               | The `ao` CLI catalog installed into agent workspaces                    | Hand-written Markdown with YAML frontmatter, embedded in the binary                                                    | `TestEmbeddedSkillFrontmatterIsValidYAML` and sibling tests in `backend/internal/skillassets`                                                                            |
+| `backend/internal/skill/skillassets/using-ao/`                               | The `ao` CLI catalog installed into agent workspaces                    | Hand-written Markdown with YAML frontmatter, embedded in the binary                                                    | `TestEmbeddedSkillFrontmatterIsValidYAML` and sibling tests in `backend/internal/skill/skillassets`                                                                            |
 | `MobileAPIVersion` in `backend/internal/httpd/controllers/identity.go` | Contract version negotiated by the mobile client                        | Go constant                                                                                                            | Bump rule documented in the constant's comment and `docs/adr/0003-unauthenticated-identity-probe.md`                                                                     |
 | `ao <command> --help`                                                  | Authoritative flag list for every CLI command                           | Cobra command definitions in `backend/internal/cli/`                                                                   | Table tests in `backend/internal/cli/*_test.go`                                                                                                                          |
 
@@ -73,7 +73,7 @@ covered by tests rather than a generator. See "API contract changes" in
 - **Changing a hard rule or boundary**: update `AGENTS.md` in the same PR, and
   add an ADR under `docs/adr/` when the rule is a decision that needs rationale.
 - **Changing `ao` CLI behavior**: update the command, its table test, and the
-  matching page under `backend/internal/skillassets/using-ao/commands/`.
+  matching page under `backend/internal/skill/skillassets/using-ao/commands/`.
 - **Changing prose only**: fine, but if the prose describes a contract artifact,
   re-read that artifact first. Prose follows the contract, not the reverse.
 
@@ -84,5 +84,5 @@ covered by tests rather than a generator. See "API contract changes" in
 - A contributor needs it to change the code: `docs/`, and add a row to
   [docs/README.md](README.md).
 - An agent needs it to operate safely in the repo: `AGENTS.md`.
-- An agent needs it to use the `ao` CLI at runtime: `backend/internal/skillassets/using-ao/`.
+- An agent needs it to use the `ao` CLI at runtime: `backend/internal/skill/skillassets/using-ao/`.
 - It is a decision with trade-offs: `docs/adr/`.

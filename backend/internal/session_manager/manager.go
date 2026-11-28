@@ -32,7 +32,7 @@ import (
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sessionguard"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skillassets"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/skill/skillassets"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/termtheme"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/tmuxbin"
 )

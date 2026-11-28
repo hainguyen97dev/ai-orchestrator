@@ -35,7 +35,7 @@
     "uiRoutes": [],
     "tables": [] },
   { "id": "F-08", "name": "Skill discovery, skill assets", "bc": "skill", "ui": "Skills", "action": "Bọc; SkillDefinition có version là mới",
-    "packages": ["internal/skillassets"],
+    "packages": ["internal/skill/skillassets"],
     "httpPrefixes": [],
     "uiRoutes": [],
     "tables": [] },

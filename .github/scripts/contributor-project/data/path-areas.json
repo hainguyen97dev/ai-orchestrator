@@ -8,7 +8,7 @@
   {"glob": ".agents/*", "area": "docs-skills-localization"},
   {"glob": ".claude/*", "area": "docs-skills-localization"},
   {"glob": "docs/*", "area": "docs-skills-localization"},
-  {"glob": "backend/internal/skillassets/*", "area": "docs-skills-localization"},
+  {"glob": "backend/internal/skill/skillassets/*", "area": "docs-skills-localization"},
   {"glob": "frontend/src/docs/*", "area": "docs-skills-localization"},
   {"glob": "frontend/src/renderer/i18n/*", "area": "docs-skills-localization"},
   {"glob": ".github/workflows/*", "area": "testing-ci"},
