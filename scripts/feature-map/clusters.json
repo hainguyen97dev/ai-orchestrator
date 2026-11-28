@@ -45,7 +45,7 @@
     "uiRoutes": ["_shell.artifacts.tsx"],
     "tables": ["kept_artifacts", "kept_artifact_sessions", "session_artifacts", "session_artifact_versions"] },
   { "id": "F-10", "name": "Notification, push", "bc": "notification", "ui": "—", "action": "Giữ",
-    "packages": ["internal/notify", "internal/push", "internal/service/notification"],
+    "packages": ["internal/notification/notify", "internal/notification/push", "internal/notification"],
     "httpPrefixes": ["/api/v1/notifications", "/api/v1/push"],
     "uiRoutes": [],
     "tables": ["notifications"] },
