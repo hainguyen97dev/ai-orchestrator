@@ -35,11 +35,11 @@ Thiếu (1) hoặc (2) → **Ẩn→Xoá**. Cụm "Ẩn (chờ quyết)" không 
 | F-07 | Board, delegation, tracker | observed | 5 pkg / 1k | 15 pkg / 24k | 0 | — | 0 | 6 | task | Tasks | Giữ, sau nối với WorkflowRun |
 | F-08 | Skill discovery, skill assets | observed | 1 pkg / 0k | 1 pkg / 0k | 0 | — | 0 | 2 | skill | Skills | Bọc; SkillDefinition có version là mới |
 | F-09 | Artifact | observed | 4 pkg / 2k | 9 pkg / 15k | 2 (`/api/v1/attachment-uploads`) | `_shell.artifacts.tsx` | 4 | 13 | artifact | Agents (artifacts của session) | Giữ |
-| F-10 | Notification, push | observed | 3 pkg / 1k | 10 pkg / 23k | 7 (`/api/v1/notifications`) | — | 1 | 5 | notification | không UI | Giữ notification desktop; push điện thoại đã cắt cùng F-13 B1 |
+| F-10 | Notification, push | observed | 3 pkg / 1k | 10 pkg / 23k | 7 (`/api/v1/notifications`) | — | 1 | 5 | notification | không UI | Giữ thông báo desktop; push điện thoại đã cắt cùng F-13 B1 |
 | F-11 | Automation, Cues | observed | 3 pkg / 1k | 15 pkg / 24k | 5 (`/api/v1/automations`) | `_shell.automations.tsx` | 3 | 5 | scheduling | — (ẩn) | Ẩn (chờ quyết) |
 | F-12 | Pipeline (fork) | — | 0 pkg / 0k | 0 pkg / 0k | 0 | — | 0 | 0 | workflow | Workflows | Gộp vào Workflow mới |
-| F-13 | Mobile, LAN, remote host (desktop Awake retained) | cut L1 B1 | 0 pkg / 0k | 0 pkg / 0k | 1 retained (`/api/v1/awake`) | — | 0 | 0 | — | — | Mobile/remote cut; B2 removes dormant frontend `hostId` compatibility |
-| F-14 | Cloud, sharing, WorkOS | — | 0 pkg / 0k | 0 pkg / 0k | 0 | — | 0 | 0 | — | — (cắt) | Remaining Cloud control-plane cleanup is phase C; Cloud control-plane URL and session sharing are retained for that phase |
+| F-13 | Mobile, LAN, remote host, awake | observed | 3 pkg / 6k | 7 pkg / 17k | 33 (`/api/v1/awake`) | `_shell.host.$hostId.project.$projectId.tsx`, `_shell.host.$hostId.project.$projectId_.session.$sessionId.tsx`, `_shell.host.$hostId.session.$sessionId.tsx` | 1 | 20 | — | — (cắt) | Đã cắt (L1 đợt A + B1); Awake giữ cho desktop (F-19); B2 dọn `hostId` còn sót ở frontend |
+| F-14 | Cloud, sharing, WorkOS | — | 0 pkg / 0k | 0 pkg / 0k | 1 (`/api/v1/identity`) | — | 0 | 0 | — | — (cắt) | Ẩn→Xoá (K5); cắt ở đợt C. Route `/identity` (probe cho điện thoại) đã xoá cùng F-13 B1 |
 | F-15 | Device simulator | observed | 2 pkg / 3k | 8 pkg / 21k | 3 (`/api/v1/devices`) | — | 0 | 8 | — | — (cắt) | Ẩn→Xoá (K5) |
 | F-16 | Import 11+ nguồn | observed | 5 pkg / 8k | 46 pkg / 61k | 6 (`/api/v1/import`) | — | 1 | 40 | execution | không UI | Thu hẹp về Claude + Codex (K5) |
 | F-17 | Telemetry, Sentry, PostHog | observed | 5 pkg / 4k | 22 pkg / 71k | 1 (`/api/v1/telemetry/identity`) | — | 3 | 21 | audit (local) | không UI | Xoá remote, giữ local (K5) |
@@ -67,7 +67,7 @@ Bảng DB đếm bảng còn sống sau migration (phần `-- +goose Up`); bản
 | F-07 | `internal/task`; nối WorkflowRun ở P6 | — | — | Delegation nằm trong file `service/session/delegation.go` → tách ở bước 2 (alias) |
 | F-08 | `internal/skill`; SkillDefinition có version ở P6 | 6: `adapters/agent/{hookutil,mimocode,opencode}`, `cli`, `daemon`, `session_manager` | — | Skill discovery chính nằm trong file `service/chat/skills.go` (F-02) |
 | F-09 | `internal/artifact` (phẳng) | — | — | — |
-| F-10 | Giữ generic | — | — | Desktop notification hub remains; phone push registry/dispatcher was removed with F-13 B1 |
+| F-10 | Giữ generic | — | — | Notification hub của desktop còn; registry và dispatcher push điện thoại đã xoá cùng F-13 B1 |
 | F-11 | Chờ quyết định: giữ thành Scheduling hay xoá | 2: `daemon`, `httpd/controllers` | — | Ẩn route UI `_shell.automations.tsx` trước khi quyết |
 | F-12 | `domain/pipeline.go` (file trong sharedkernel) chuyển vào `internal/workflow` ở P6 | — | — | Thuật ngữ Flow cũ (K4) |
 | F-13 | **B1 hoàn tất (2026-11-28):** xoá `mobilebridge`, `presence`, push điện thoại, LAN listener/tunnel/auth, ghép cặp, remote-host CLI/API/routes/UI. Giữ `service/awake`, `/api/v1/awake`, desktop AwakeControl/tray; `hostId` compatibility để B2 | Importer trước khi cắt: `daemon`, `httpd`, `httpd/controllers`, `systemexec` test, `systeminstall`; Go build/vet, daemon/httpd/controller/API parity đã chạy | `mobilebridge.NewKeepAwake`: HIGH; đã dời nguyên logic sang `service/awake/native` trong commit trước | Cloud control-plane URL và telemetry identity sync còn dùng cho phase C; không migration/drop bảng. ADR 0001/0004/0005 superseded |
