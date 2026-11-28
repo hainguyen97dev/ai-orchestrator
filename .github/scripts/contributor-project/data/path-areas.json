@@ -176,7 +176,7 @@
   {"glob": "backend/internal/service/shellterm/*", "area": "terminal-cli"},
   {"glob": "backend/internal/cli/*", "area": "terminal-cli"},
   {"glob": "backend/cmd/ao/*", "area": "terminal-cli"},
-  {"glob": "backend/main.go", "area": "terminal-cli"},
+  {"glob": "backend/cmd/server/*", "area": "terminal-cli"},
   {"glob": "backend/internal/daemon/shellterm_wiring*", "area": "terminal-cli"},
   {"glob": "backend/internal/service/session/*", "area": "session-lifecycle"},
   {"glob": "backend/internal/daemon/*", "area": "daemon-process"},

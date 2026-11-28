@@ -39,7 +39,7 @@
 |---|---|---|
 | `backend/internal/domain/` | RoleProfile, SkillDefinition/SkillRef, KnowledgeSource/Snapshot, FlowDefinition/Run/NodeRun, GateDecision, ArtifactRef | Không tái nghĩa `ProjectConfig.RoleOverride`; không lưu display status như nguồn sự thật |
 | `backend/internal/service/` | Settings services, snapshot resolver, graph validator, run scheduler/reconciler, artifact handoff, test policy | Dùng Session Manager hiện có để tạo/resume worker, không thêm controller agent thứ hai |
-| `backend/internal/storage/sqlite/` | Migrations/queries/store cho definition version, run facts, decisions, artifacts, source refs, idempotency keys | Chỉ thêm migration mới; dùng trigger `change_log`/CDC theo AO; regenerate `sqlc` |
+| `backend/platform/persistence/sqlite/` | Migrations/queries/store cho definition version, run facts, decisions, artifacts, source refs, idempotency keys | Chỉ thêm migration mới; dùng trigger `change_log`/CDC theo AO; regenerate `sqlc` |
 | `backend/internal/httpd/controllers/` + `apispec` | API code-first cho settings, flow definitions, preview, runs, decisions, actions và Mission read | Regenerate OpenAPI + TS schema cùng thay đổi; giữ envelope/error/request ID |
 | `frontend/src/renderer/components/` | Settings Roles/Skills, Project Knowledge, Flow Builder, Mission Control, attention drill-down | Frontend không điều phối graph hoặc suy ra run completion từ UI state |
 | `backend/internal/cli/` | Thin HTTP commands khi cần cho automation/agent thao tác flow | Không mở SQLite/spawn trực tiếp từ CLI |

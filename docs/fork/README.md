@@ -9,12 +9,12 @@ Fork này biến Agent Orchestrator (AO) thành **Domain-Driven AI Engineering P
 3. [Bộ đặc tả DDD v0.1](./ddd-spec/README.md) — vision, glossary, context map, event storming, aggregate, invariant, knowledge, context engineering, workflow, agent, provider, kiến trúc.
 4. [`CONTEXT.md`](../../CONTEXT.md) — glossary rút gọn.
 
-## Trạng thái (2026-11-27)
+## Trạng thái (2026-11-28)
 
 - P0 xong: chỉ còn `main`, không worktree phụ, không session/script chạy nền.
-- Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge. Plan hiện có: `2026-11-27-p1-feature-code-map.md`, `2026-11-27-p3a-frame-move.md`.
-- P3a (nhánh `feat/p3a-frame-move`, chờ duyệt): module path `github.com/hainguyen97dev/ai-orchestrator/backend`; `internal/sharedkernel/{domain,ports}`; `platform/persistence/sqlite` (migrations ở `backend/platform/persistence/sqlite/migrations`); `platform/eventbus/cdc`; `cmd/server`; test kiến trúc `internal/archtest`; smoke `TestSmokeProjectSessionWorktreeDiff`; job CI `import-only` theo label.
-- P1 (nhánh `docs/p1-feature-code-map`, chờ duyệt): `docs/fork/ddd-spec/17-feature-code-map.md`.
+- Plan viết trong `docs/superpowers/plans/`, **chỉ cho phase sắp chạy**, dựa trên code đã merge. Plan đã chạy xong: `2026-11-27-p1-feature-code-map.md`, `2026-11-27-p3a-frame-move.md`.
+- P3a (đã merge vào `main` ở local 2026-11-28): module path `github.com/hainguyen97dev/ai-orchestrator/backend`; `internal/sharedkernel/{domain,ports}`; `platform/persistence/sqlite` (migrations ở `backend/platform/persistence/sqlite/migrations`); `platform/eventbus/cdc`; `cmd/server`; test kiến trúc `internal/archtest`; smoke `TestSmokeProjectSessionWorktreeDiff`; job CI `import-only` theo label.
+- P1 (đã merge vào `main` ở local 2026-11-28): `docs/fork/ddd-spec/17-feature-code-map.md`. Còn Task 4: chuyển `../ai-orchestra` vào `../archive/2026-11-27/` — hoãn vì một `ao-chat-host` bản dev vẫn chạy từ binary trong thư mục đó.
 - Phase kế tiếp sau khi merge: P2 (Strategic DDD) và P3b (dời theo cụm, thứ tự ở §5 của 17).
 
 ## Quyết định đã chốt

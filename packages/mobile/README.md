@@ -151,7 +151,7 @@ so the phone goes offline until you turn it back on.
 loopback:
 
 ```bash
-cd backend && go run .
+cd backend && go run ./cmd/server
 
 curl -X POST http://127.0.0.1:3001/api/v1/mobile/enable
 curl -s      http://127.0.0.1:3001/api/v1/mobile/status    # includes current endpoint records

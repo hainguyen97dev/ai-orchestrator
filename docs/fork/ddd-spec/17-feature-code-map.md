@@ -8,7 +8,7 @@ date: 2026-11-27
 
 Deliverable của [[02-domain-discovery]] (feature gap matrix) và phase P1 trong thiết kế `docs/superpowers/specs/2026-11-27-ddd-platform-restructure-design.md`. Hành động lấy từ [[16-assessment-and-build-plan]] §3 và K5; tài liệu này thêm bằng chứng đo được và cổng nhận.
 
-**Nguồn đo:** `node scripts/feature-map/feature-map.mjs` (chỉ đọc; chạy lại được) trên commit `9ae5ded1b4` (= `main` `85bbbfaab5` + plan). Tổng: 265 package / 427k dòng Go (không tính test), 328 route HTTP, 79 bảng SQLite đang sống, 17 route UI. Importer ngoài cụm đếm bằng `go list`; GitNexus `impact --summary-only` trên constructor đầu vào của từng cụm cắt/bọc.
+**Nguồn đo:** `node scripts/feature-map/feature-map.mjs` (chỉ đọc; chạy lại được) trên commit `9ae5ded1b4` (= `main` `85bbbfaab5` + plan). Tổng: 265 package / 427k dòng Go (không tính test), 328 route HTTP, 79 bảng SQLite đang sống, 17 route UI. Đo lại sau khi merge P3a (2026-11-28): 268 package (thêm `cmd/server`, `internal/sharedkernel`, `internal/archtest`), các số khác không đổi; bảng dưới giữ số đo gốc. Importer ngoài cụm đếm bằng `go list`; GitNexus `impact --summary-only` trên constructor đầu vào của từng cụm cắt/bọc.
 
 Quy ước cột **Nguồn**: `observed` = package đã có trong `go list` và được đếm; `—` = cụm chưa có code. Cột **Bao đóng** = số package / dòng trong module mà cụm kéo theo (tính cả chính nó, không đếm trùng). **Test** = số file `_test.go` trong package của cụm.
 
@@ -63,7 +63,7 @@ Bảng DB đếm bảng còn sống sau migration (phần `-- +goose Up`); bản
 | F-03 | `internal/provider` bọc `agentaccounts`/`agentauth`/`providerkeys`; ProviderProfile chỉ giữ credential reference | 9: `adapters/agent/claudecode`, `adapters/agent/modelcatalog`, `chatdriver/claudeacp`, `daemon`, `specgen`, `httpd/controllers`, `review`, `service/agent`, `session_manager` | `agentaccounts.New`: HIGH, 4 impacted | Bị execution và review import trực tiếp → ACL phải đứng trước khi đổi logic |
 | F-04 | `internal/budget` bọc usage/pricing; reserve/settle mới ở P8 | 4: `cli`, `daemon`, `httpd/controllers`, `pricing/catalogsync` | `usage.NewCollector`: LOW, 4 | `pricing/catalogsync` chưa gán cụm (thuộc F-04) |
 | F-05 | `internal/quality` bọc pr/review/scm; QualityGate gắn artifact revision | 5: `adapters/tracker/gitlab`, `daemon`, `httpd`, `specgen`, `httpd/controllers` | `review.NewLauncher`: HIGH, 4 | Bao đóng 131k vì kéo session; dời sau F-03 |
-| F-06 | `internal/identity` (hoặc BC `project` — chốt ở P2) | — | — | `projectconfig` là file trong `internal/domain` (sharedkernel), không phải package riêng |
+| F-06 | `internal/identity` (hoặc BC `project` — chốt ở P2) | — | — | `projectconfig` là file trong `internal/sharedkernel/domain`, không phải package riêng |
 | F-07 | `internal/task`; nối WorkflowRun ở P6 | — | — | Delegation nằm trong file `service/session/delegation.go` → tách ở bước 2 (alias) |
 | F-08 | `internal/skill`; SkillDefinition có version ở P6 | 6: `adapters/agent/{hookutil,mimocode,opencode}`, `cli`, `daemon`, `session_manager` | — | Skill discovery chính nằm trong file `service/chat/skills.go` (F-02) |
 | F-09 | `internal/artifact` (phẳng) | — | — | — |
@@ -85,7 +85,7 @@ Script liệt kê mọi thứ không cụm nào nhận. Quyết định:
 
 | Nhóm | Phần tử | Quyết định |
 |---|---|---|
-| Khung (theo bảng §6 của [[16-assessment-and-build-plan]]) | `cmd/*`, `internal/{cli,daemon,daemon/supervisor,daemonmeta,config,runfile,datadirlock,caller,clienttz,reqid,lifecyclelog}`, `internal/httpd/**`, `internal/storage/sqlite/**`, `internal/cdc`, `internal/domain`, `internal/ports`, `internal/adapters/{runtime/**,container/**,systemexec}`, `internal/{process,processalive,procmem,tmuxbin,termtheme,renderpage}`, `pkg/contract`, `e2e`, `internal/{testenv,integration}` | **Giữ** làm khung/platform; dời ở P3a/P3b theo §6 [16] |
+| Khung (theo bảng §6 của [[16-assessment-and-build-plan]]) | `cmd/*`, `internal/{cli,daemon,daemon/supervisor,daemonmeta,config,runfile,datadirlock,caller,clienttz,reqid,lifecyclelog}`, `internal/httpd/**`, `internal/storage/sqlite/**` (nay `platform/persistence/sqlite/**`), `internal/cdc` (nay `platform/eventbus/cdc`), `internal/domain` + `internal/ports` (nay `internal/sharedkernel/{domain,ports}`), `internal/adapters/{runtime/**,container/**,systemexec}`, `internal/{process,processalive,procmem,tmuxbin,termtheme,renderpage}`, `pkg/contract`, `e2e`, `internal/{testenv,integration}` | **Giữ** làm khung/platform; dời ở P3a/P3b theo §6 [16] |
 | Observe | `internal/observe`, `observe/{activity,ownership,reaper}` | **Giữ** → `internal/execution` (theo dõi session) |
 | Pricing | `internal/pricing/catalogsync` | **Giữ** → F-04 |
 | Codex | `internal/codexops` | **Giữ** → F-03 (codex account) |
