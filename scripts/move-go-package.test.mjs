@@ -72,3 +72,9 @@ test('rewrites a path that ends a grep regex ($)', () => {
   assert.equal(rewrite("grep -v -e '/internal/session_manager$'", [['internal/session_manager', 'internal/execution/session_manager']]),
     "grep -v -e '/internal/execution/session_manager$'");
 });
+
+test('a $ that starts a template or shell variable is not a boundary', () => {
+  const moves = [['internal/lifecycle', 'internal/execution/lifecycle']];
+  assert.equal(rewrite('./internal/lifecycle${SUFFIX}', moves), './internal/lifecycle${SUFFIX}');
+  assert.equal(rewrite('./internal/lifecycle$X', moves), './internal/lifecycle$X');
+});

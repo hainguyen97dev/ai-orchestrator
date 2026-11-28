@@ -123,6 +123,7 @@
   {"glob": "backend/internal/execution/session/workspace_*", "area": "files-artifacts"},
   {"glob": "backend/internal/execution/session/path_resolve*", "area": "files-artifacts"},
   {"glob": "backend/internal/quality/scm/*", "area": "scm-git"},
+  {"glob": "backend/internal/workspace/filesnapshot/*", "area": "shared-infra"},
   {"glob": "backend/internal/workspace/*", "area": "scm-git"},
   {"glob": "backend/internal/quality/observe/scm/*", "area": "scm-git"},
   {"glob": "backend/internal/observe/ownership/*", "area": "scm-git"},

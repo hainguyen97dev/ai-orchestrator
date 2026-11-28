@@ -16,7 +16,7 @@ export function rewrite(text, moves) {
   if (moves.length === 0) return text;
   const sorted = [...moves].sort((a, b) => b[0].length - a[0].length);
   const to = new Map(sorted);
-  const re = new RegExp(`(?<![\\w.-])(${sorted.map(([from]) => escape(from)).join('|')})(?=["/\`'\\s,;.<)\\]:*$]|$)`, 'gm');
+  const re = new RegExp(`(?<![\\w.-])(${sorted.map(([from]) => escape(from)).join('|')})(?=["/\`'\\s,;.<)\\]:*]|\\$(?![{\\w])|$)`, 'gm');
   return text.replace(re, (from) => to.get(from));
 }
 

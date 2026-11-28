@@ -125,3 +125,10 @@ test('a moved path ending a grep regex ($) pairs', () => {
     diff('.github/workflows/go.yml', ["-grep -v -e '/internal/session_manager$'", "+grep -v -e '/internal/execution/session_manager$'"]),
   ), []);
 });
+
+test('a moved path glued to a template variable does not pair', () => {
+  assert.notDeepEqual(check(
+    rename('backend/internal/lifecycle/a.go', 'backend/internal/execution/lifecycle/a.go'),
+    diff('scripts/x.sh', ['-go test ./internal/lifecycle${S}', '+go test ./internal/execution/lifecycle${S}']),
+  ), []);
+});
