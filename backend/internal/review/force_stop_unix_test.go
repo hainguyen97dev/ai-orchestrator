@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/procmem"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/procmem"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // wrapperRuntime is a runtime whose Destroy ends only its root process, as the

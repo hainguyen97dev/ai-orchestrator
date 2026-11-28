@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/pricing"
-	"github.com/aoagents/agent-orchestrator/backend/internal/pricing/catalogsync"
-	usagesvc "github.com/aoagents/agent-orchestrator/backend/internal/service/usage"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing/catalogsync"
+	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // Break caught: historical replay could consume a live suffix or rewrite the

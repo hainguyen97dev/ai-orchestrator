@@ -19,11 +19,11 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	kimiadapter "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/kimi"
+	kimiadapter "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kimi"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/nativeconfig"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/nativeconfig"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // recentDays is the window of activity a chat needs to be offered. Neither

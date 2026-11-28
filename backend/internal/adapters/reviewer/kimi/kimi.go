@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	workerkimi "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/kimi"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	workerkimi "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kimi"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const skillsDirectoryName = "kimi-reviewer-skills"

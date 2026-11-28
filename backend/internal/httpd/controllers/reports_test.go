@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/config"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	reportsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/report"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	reportsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/report"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 type fakeReportService struct {

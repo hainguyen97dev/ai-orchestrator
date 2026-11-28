@@ -4,11 +4,11 @@ import (
 	"context"
 	"log/slog"
 
-	automationobserver "github.com/aoagents/agent-orchestrator/backend/internal/observe/automations"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	automationsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/automation"
-	sessionsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/session"
-	"github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite"
+	automationobserver "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/automations"
+	automationsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/automation"
+	sessionsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/session"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite"
 )
 
 // startAutomations repairs crash-interrupted durable state before launching the

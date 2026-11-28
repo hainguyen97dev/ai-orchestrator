@@ -33,7 +33,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	sqlite3 "modernc.org/sqlite"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/telemetrymeta"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/telemetrymeta"
 )
 
 var enabled atomic.Bool

@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/apierr"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	agentsvc "github.com/aoagents/agent-orchestrator/backend/internal/service/agent"
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/shellterm"
-	"github.com/aoagents/agent-orchestrator/backend/internal/tmuxbin"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/apierr"
+	agentsvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agent"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/shellterm"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/tmuxbin"
 )
 
 // Requirement is one named startup gate check.

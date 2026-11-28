@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hookutil"
-	workeragent "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/kiro"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hookutil"
+	workeragent "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/kiro"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const reviewerAgentName = "ao-reviewer"

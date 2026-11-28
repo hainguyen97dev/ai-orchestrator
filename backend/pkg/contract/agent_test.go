@@ -11,7 +11,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/aoagents/agent-orchestrator/backend/pkg/contract"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/contract"
 )
 
 var agentCapabilities = []contract.AgentCapability{

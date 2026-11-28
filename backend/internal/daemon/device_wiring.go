@@ -4,9 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	localdevice "github.com/aoagents/agent-orchestrator/backend/internal/adapters/device/local"
-	"github.com/aoagents/agent-orchestrator/backend/internal/devices"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	localdevice "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/device/local"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/devices"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // deviceSessions is the slice of the session service the device service

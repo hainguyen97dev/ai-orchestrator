@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/providerkeys"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/providerkeys"
 )
 
 func TestQwenProviderLoginSelectsModelAndPreservesSettings(t *testing.T) {

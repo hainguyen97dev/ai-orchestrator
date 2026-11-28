@@ -145,7 +145,7 @@ Tách `domain`/`ports` thành domain riêng từng BC trong một lần = sửa 
 
 | Thư mục đích | Package AO dời vào | Ghi chú |
 |---|---|---|
-| `cmd/server` | `main.go`, `daemon` | Daemon hiện là một process; `cmd/worker` chỉ tách khi cần |
+| `cmd/server` | `main.go` (**đã dời, P3a**); `daemon` giữ ở `internal/daemon` vì `internal/cli` import cho `ao daemon` | Daemon hiện là một process; `cmd/worker` chỉ tách khi cần |
 | `cmd/ao` | `cli` | CLI gọi daemon qua HTTP như hiện tại |
 | `internal/execution` | `service/session`, `session_manager`, `lifecycle`, `sessionguard`, `sessionid`, `service/chat`, `service/shellterm`, `terminal` | Lớn nhất (~180k dòng bao đóng); dời nguyên khối |
 | `internal/agent` | `agentlaunch`, `service/agent`, `harness*` trong domain | AgentDefinition/Role mới viết ở đây |
@@ -158,8 +158,8 @@ Tách `domain`/`ports` thành domain riêng từng BC trong một lần = sửa 
 | `internal/artifact` | `artifactversions`, `sessionartifacts`, `attachmentstore` | |
 | `internal/identity` | `service/project`, `projectconfig` | Project nằm ở đây hoặc BC `project` riêng — chốt ở P2 |
 | `internal/{domainmodel,knowledge,context,workflow}` | — (`domain/pipeline.go` vào `workflow`) | Mới, layout 4 tầng đầy đủ |
-| `platform/persistence` | `storage/sqlite` + migrations, sqlc | `migrations/` ở gốc chỉ khi sqlc config đổi theo |
-| `platform/eventbus` | `cdc` | |
+| `platform/persistence` | `storage/sqlite` + migrations, sqlc (**đã dời, P3a**) | `migrations/` ở gốc chỉ khi sqlc config đổi theo |
+| `platform/eventbus` | `cdc` → `platform/eventbus/cdc` (**đã dời, P3a**) | |
 | `platform/observability` | `adapters/telemetry` (bản local), `lifecyclelog`, `reqid` | Phần gửi ra ngoài đã xoá ở đợt DV |
 | `platform/sandbox` | `adapters/runtime`, `adapters/container`, `adapters/systemexec`, `process*` | |
 | `platform/secrets` | phần credential trong `agentauth`/`providerkeys` | Tách ở P8 |

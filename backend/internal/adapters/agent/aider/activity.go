@@ -1,6 +1,6 @@
 package aider
 
-import "github.com/aoagents/agent-orchestrator/backend/internal/domain"
+import "github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 
 // DeriveActivityState maps Aider's completion notification onto the only
 // native activity transition it exposes. Aider runs the notification command

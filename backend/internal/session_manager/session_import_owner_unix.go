@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/process"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/process"
 )
 
 // providerLockHeld probes a provider writer lock without waiting for it.

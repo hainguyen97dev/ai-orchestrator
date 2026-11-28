@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/codex"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/cursor"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/gemini"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/grok"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/opencode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/pi"
-	agentregistry "github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/registry"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/codex"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cursor"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/gemini"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/grok"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/opencode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/pi"
+	agentregistry "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type viewerGate struct {

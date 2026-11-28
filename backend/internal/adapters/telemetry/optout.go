@@ -3,7 +3,7 @@ package telemetry
 import (
 	"context"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // OptOutSink drops events while remote export is suppressed. It sits in

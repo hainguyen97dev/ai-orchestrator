@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/processalive"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/processalive"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // TestFakeClaudeOwnerProcess is the body of startFakeClaude's child, not a test.

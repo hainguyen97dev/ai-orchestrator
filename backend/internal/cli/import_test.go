@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/datadirlock"
-	"github.com/aoagents/agent-orchestrator/backend/internal/legacyimport"
-	"github.com/aoagents/agent-orchestrator/backend/internal/runfile"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/datadirlock"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/legacyimport"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/runfile"
 )
 
 func writeLegacyProject(t *testing.T) string {

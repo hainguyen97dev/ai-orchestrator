@@ -20,15 +20,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/activitydispatch"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/claudecode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/copilot"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/cursor"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/memcode"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/openinterpreter"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/pricing"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/activitydispatch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/claudecode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/copilot"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/cursor"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/memcode"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/openinterpreter"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // sessionIDPattern bounds the AO_SESSION_ID we will place in a request path to

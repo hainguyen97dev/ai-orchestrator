@@ -3,7 +3,7 @@ package acp
 import (
 	"strings"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func lineDelta(oldText, newText string) (additions, deletions int) {

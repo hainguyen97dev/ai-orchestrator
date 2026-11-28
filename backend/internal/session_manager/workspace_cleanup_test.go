@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func newCleanupFixture(t *testing.T, command string) (*Manager, *fakeStore, *fakeWorkspace, domain.SessionRecord) {

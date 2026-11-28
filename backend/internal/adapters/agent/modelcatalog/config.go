@@ -16,9 +16,9 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/hermes"
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/openinterpreter"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/hermes"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/openinterpreter"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const modelConfigReadLimit = 2 << 20

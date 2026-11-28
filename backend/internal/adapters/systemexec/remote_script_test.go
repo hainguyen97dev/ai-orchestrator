@@ -22,7 +22,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 func TestRunInstallScriptDownloadRetries(t *testing.T) {

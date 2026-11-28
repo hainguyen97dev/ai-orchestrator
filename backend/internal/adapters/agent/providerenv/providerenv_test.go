@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/agentlaunch"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/agentlaunch"
 )
 
 func TestProviderValuesStayInLaunchEnvironment(t *testing.T) {

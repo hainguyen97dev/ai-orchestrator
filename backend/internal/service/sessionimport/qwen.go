@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 // qwenHomeEnv overrides Qwen Code's state root; it defaults to ~/.qwen.

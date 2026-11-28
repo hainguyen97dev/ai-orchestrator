@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	codexreview "github.com/aoagents/agent-orchestrator/backend/internal/adapters/reviewer/codex"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	"github.com/aoagents/agent-orchestrator/backend/internal/providerkeys"
-	sessionmanager "github.com/aoagents/agent-orchestrator/backend/internal/session_manager"
+	codexreview "github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/reviewer/codex"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/providerkeys"
+	sessionmanager "github.com/hainguyen97dev/ai-orchestrator/backend/internal/session_manager"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 type fakeReviewer struct {

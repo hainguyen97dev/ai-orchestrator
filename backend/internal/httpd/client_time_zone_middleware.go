@@ -3,8 +3,8 @@ package httpd
 import (
 	"net/http"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/clienttz"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/requestscope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/clienttz"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/requestscope"
 )
 
 // clientTimeZoneMiddleware records the time zone the desktop app reports, so

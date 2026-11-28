@@ -15,10 +15,10 @@ import (
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/browserstream"
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/httpd/requestscope"
-	"github.com/aoagents/agent-orchestrator/backend/internal/preview"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/browserstream"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/httpd/requestscope"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/preview"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 type browserLiveSessionStub struct{ calls int }

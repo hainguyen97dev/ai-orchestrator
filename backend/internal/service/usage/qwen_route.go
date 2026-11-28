@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/net/publicsuffix"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/pricing"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/pricing"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
 func (c *Collector) qwenProviderHint(ctx context.Context, session domain.SessionRecord) string {

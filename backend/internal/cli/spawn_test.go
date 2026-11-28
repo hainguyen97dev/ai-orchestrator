@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/adapters/agent/registry"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/adapters/agent/registry"
 )
 
 func authorizedAgentsJSON(agent string) string {

@@ -14,8 +14,8 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/domain"
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 const nativeUserRecord = `{"timestamp":"2026-10-10T00:00:00Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"existing task"}]}}` + "\n"

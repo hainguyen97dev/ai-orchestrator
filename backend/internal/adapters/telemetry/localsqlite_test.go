@@ -8,8 +8,8 @@ import (
 
 	"log/slog"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
-	sqlitestore "github.com/aoagents/agent-orchestrator/backend/internal/storage/sqlite/store"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
+	sqlitestore "github.com/hainguyen97dev/ai-orchestrator/backend/platform/persistence/sqlite/store"
 )
 
 type fakeStore struct {

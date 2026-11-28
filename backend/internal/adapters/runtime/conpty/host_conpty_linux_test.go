@@ -16,7 +16,7 @@ import (
 
 	"github.com/creack/pty"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/ports"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 )
 
 // TestMain lets the detached-spawn integration test re-exec this test binary

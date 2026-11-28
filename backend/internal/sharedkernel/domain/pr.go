@@ -1,0 +1,396 @@
+package domain
+
+import (
+	"strings"
+	"time"
+
+	"github.com/hainguyen97dev/ai-orchestrator/backend/pkg/contract"
+)
+
+// ---- PR read model ----
+
+// PRFacts is the per-session PR snapshot the status derivation reads from the
+// pr table.
+type PRFacts struct {
+	URL            string
+	Number         int
+	Draft          bool
+	Merged         bool
+	Closed         bool
+	CI             CIState
+	Review         ReviewDecision
+	Mergeability   Mergeability
+	ReviewComments bool // has unresolved review comments (any author) to address
+	SourceBranch   string
+	TargetBranch   string
+	HeadSHA        string
+	UpdatedAt      time.Time
+	// StateChangedAt, CIChangedAt and LastReviewAt are when the lifecycle
+	// state, the CI result and the newest review last changed. Unlike
+	// UpdatedAt, none of them advance on an unchanged poll; zero is unknown.
+	StateChangedAt time.Time
+	CIChangedAt    time.Time
+	LastReviewAt   time.Time
+	// ExternalApproved and ExternalChangesRequested are the human review
+	// verdicts AO did not author. Review above aggregates AO's own provider
+	// reviews with everyone else's, so it cannot say whose turn the
+	// review-feedback loop is on.
+	ExternalApproved         bool
+	ExternalChangesRequested bool
+	// StaleChangesRequested is evidence of a GitHub request on an older head
+	// with no current-head request from any reviewer, including bots.
+	StaleChangesRequested bool
+	ExternalComments      bool
+	// StackParent is the number of the open PR, in any live session, whose
+	// source branch this PR targets; 0 when its base branch has no open PR AO
+	// still polls. The parent is in this PR's Host and Repo.
+	StackParent int
+	Host        string
+	Repo        string
+}
+
+// PullRequest is the app-level representation of one tracked pull request as
+// persisted by the PR store. It is intentionally separate from the sqlc
+// generated sqlite row type so storage details do not leak outside sqlite.
+type PullRequest struct {
+	URL string
+	// URLAlias is a transient provider-resolved URL that should point at URL.
+	// It is persisted in the alias table, not in the pr row itself.
+	URLAlias     string
+	SessionID    SessionID
+	Number       int
+	Draft        bool
+	Merged       bool
+	Closed       bool
+	CI           CIState
+	Review       ReviewDecision
+	Mergeability Mergeability
+	UpdatedAt    time.Time
+	// StateChangedAt is when the current normalized PR lifecycle state became
+	// active. It is seeded from provider timestamps and updated when AO observes
+	// a draft/open/merged/closed transition.
+	StateChangedAt time.Time
+
+	Provider string
+	Host     string
+	Repo     string
+	// ProviderID is immutable within a provider and host and survives repository
+	// renames or transfers.
+	ProviderID string
+
+	SourceBranch    string
+	TargetBranch    string
+	HeadSHA         string
+	Title           string
+	Additions       int
+	Deletions       int
+	ChangedFiles    int
+	Author          string
+	AuthorAvatarURL string
+	BaseSHA         string
+	MergeCommitSHA  string
+
+	// HeadFromFork and HeadIsDefaultBranch say the head is not a private
+	// branch of this repository: it lives in a fork, or it is the repository's
+	// default branch. Neither kind of PR can be a stack parent.
+	HeadFromFork        bool
+	HeadIsDefaultBranch bool
+
+	ProviderState            string
+	ProviderMergeable        string
+	ProviderMergeStateStatus string
+	HTMLURL                  string
+
+	// MergeQueueRequired says the PR's base branch merges through a merge
+	// queue, so merging it means adding it to the queue. MergeQueue is the PR's
+	// place in that queue, nil while it isn't queued.
+	MergeQueueRequired bool
+	MergeQueue         *MergeQueueEntry
+
+	CreatedAtProvider time.Time
+	UpdatedAtProvider time.Time
+	MergedAtProvider  time.Time
+	ClosedAtProvider  time.Time
+
+	MetadataHash string
+	CIHash       string
+	ReviewHash   string
+
+	ObservedAt       time.Time
+	CIObservedAt     time.Time
+	ReviewObservedAt time.Time
+	// ReviewPartial records that the latest review-thread observation hit the
+	// provider's thread-window cap, so stored thread rows are a partial view.
+	ReviewPartial bool
+	AutoInjectCI  bool
+
+	// Details is the PR's description, labels, requested reviewers and commits
+	// from the latest observation. It is a write carrier: nil means the
+	// observation did not carry details, and the stored ones are left as they
+	// are. Reads load stored details separately.
+	Details *PullRequestDetails
+}
+
+// MergeQueueState is where a queued pull request stands, in GitHub's
+// MergeQueueEntryState values lower-cased.
+type MergeQueueState string
+
+// Merge queue entry states.
+const (
+	// MergeQueueQueued waits its turn in the queue.
+	MergeQueueQueued MergeQueueState = "queued"
+	// MergeQueueAwaitingChecks is waiting for the queue's checks to pass.
+	MergeQueueAwaitingChecks MergeQueueState = "awaiting_checks"
+	// MergeQueueMergeable passed and merges once the entries ahead of it do.
+	MergeQueueMergeable MergeQueueState = "mergeable"
+	// MergeQueueUnmergeable can't merge from the queue as it stands.
+	MergeQueueUnmergeable MergeQueueState = "unmergeable"
+	// MergeQueueLocked is locked by the queue, as while it merges.
+	MergeQueueLocked MergeQueueState = "locked"
+)
+
+// MergeQueueEntry is a pull request's place in its base branch's merge queue.
+// Position is the provider's position in the queue. EstimatedSecondsToMerge
+// is the provider's estimate, 0 when it gives none.
+type MergeQueueEntry struct {
+	State                   MergeQueueState `json:"state"`
+	Position                int             `json:"position"`
+	EstimatedSecondsToMerge int             `json:"estimatedSecondsToMerge,omitempty"`
+	EnqueuedAt              time.Time       `json:"enqueuedAt,omitzero"`
+}
+
+// MaxPullRequestDescriptionBytes caps a stored PR description. Providers allow
+// far larger bodies; the view only renders a description.
+const MaxPullRequestDescriptionBytes = 64 * 1024
+
+// PullRequestLabel is one label on a pull request. Color is a provider hex
+// string without the leading "#", or empty.
+type PullRequestLabel struct {
+	Name  string `json:"name"`
+	Color string `json:"color,omitempty"`
+}
+
+// PullRequestRequestedReviewer is a user or team whose review is requested and
+// not yet given.
+type PullRequestRequestedReviewer struct {
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatarUrl,omitempty"`
+	IsTeam    bool   `json:"isTeam,omitempty"`
+}
+
+// PullRequestCommit is one commit on the pull request's branch.
+type PullRequestCommit struct {
+	SHA         string    `json:"sha"`
+	Headline    string    `json:"headline"`
+	Author      string    `json:"author,omitempty"`
+	CommittedAt time.Time `json:"committedAt,omitempty"`
+}
+
+// MaxPullRequestConversationComments caps the stored top-level conversation
+// comments: the view shows the newest ones, not the PR's full history.
+const MaxPullRequestConversationComments = 50
+
+// MaxPullRequestCommentBodyBytes caps one stored conversation comment body.
+const MaxPullRequestCommentBodyBytes = 8 * 1024
+
+// PullRequestConversationComment is one top-level (non-review) comment on a
+// pull request's conversation.
+type PullRequestConversationComment struct {
+	ID        string    `json:"id"`
+	Author    string    `json:"author"`
+	IsBot     bool      `json:"isBot,omitempty"`
+	Body      string    `json:"body"`
+	URL       string    `json:"url,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+}
+
+// PullRequestDetails is the slow-changing, view-only part of a pull request.
+type PullRequestDetails struct {
+	// Description is the PR body as markdown, cut to MaxPullRequestDescriptionBytes.
+	Description          string
+	DescriptionTruncated bool
+	Labels               []PullRequestLabel
+	RequestedReviewers   []PullRequestRequestedReviewer
+	// Commits is the newest commits on the branch, oldest first. CommitCount is
+	// the branch's total, which exceeds len(Commits) when the list was capped.
+	Commits     []PullRequestCommit
+	CommitCount int
+	// Conversation is the newest top-level conversation comments, oldest
+	// first, capped at MaxPullRequestConversationComments.
+	Conversation []PullRequestConversationComment
+	ObservedAt   time.Time
+}
+
+// PullRequestCheck is one normalized CI check run for a pull request.
+type PullRequestCheck struct {
+	Name       string
+	CommitHash string
+	Status     PRCheckStatus
+	Conclusion string
+	URL        string
+	Details    string
+	LogTail    string
+	CreatedAt  time.Time
+}
+
+// PullRequestComment is one normalized review comment for a pull request.
+type PullRequestComment struct {
+	ThreadID         string
+	ReviewID         string
+	ID               string
+	Author           string
+	File             string
+	Line             int
+	Body             string
+	URL              string
+	Resolved         bool
+	IsBot            bool
+	CreatedAt        time.Time
+	AutoInjectReview bool
+}
+
+// IsActionableReviewComment reports whether a review comment should block
+// ready-to-merge state and be surfaced to the agent. Human comments are always
+// actionable; bot comments need a concrete file and line anchor so status
+// chatter does not become a merge blocker.
+func IsActionableReviewComment(resolved, isBot bool, file string, line int) bool {
+	if resolved {
+		return false
+	}
+	return !isBot || (strings.TrimSpace(file) != "" && line > 0)
+}
+
+// PullRequestReviewThread is one normalized review thread for a pull request.
+type PullRequestReviewThread struct {
+	ThreadID     string
+	Path         string
+	Line         int
+	Resolved     bool
+	IsBot        bool
+	SemanticHash string
+	UpdatedAt    time.Time
+}
+
+// PullRequestReview is one submitted provider review for a pull request.
+type PullRequestReview struct {
+	ID               string
+	Author           string
+	State            ReviewDecision
+	URL              string
+	Body             string
+	IsBot            bool
+	TargetSHA        string
+	SubmittedAt      time.Time
+	AutoInjectReview bool
+}
+
+// CIState is the aggregate CI status of a PR.
+type CIState = contract.CIState
+
+// CI states.
+const (
+	CIUnknown = contract.CIUnknown
+	CIPending = contract.CIPending
+	CIPassing = contract.CIPassing
+	CIFailing = contract.CIFailing
+)
+
+// ReviewDecision is the aggregate human-review verdict on a PR.
+type ReviewDecision = contract.ReviewDecision
+
+// Review decisions.
+const (
+	ReviewNone           = contract.ReviewNone
+	ReviewApproved       = contract.ReviewApproved
+	ReviewChangesRequest = contract.ReviewChangesRequest
+	ReviewRequired       = contract.ReviewRequired
+)
+
+// Mergeability is whether a PR can currently be merged.
+type Mergeability = contract.Mergeability
+
+// Mergeability states.
+const (
+	MergeUnknown     = contract.MergeUnknown
+	MergeMergeable   = contract.MergeMergeable
+	MergeConflicting = contract.MergeConflicting
+	MergeBlocked     = contract.MergeBlocked
+	MergeUnstable    = contract.MergeUnstable
+)
+
+// PRState is the normalized lifecycle of one tracked pull request as stored in
+// the pr table.
+type PRState = contract.PRState
+
+// PR states.
+const (
+	PRStateDraft  = contract.PRStateDraft
+	PRStateOpen   = contract.PRStateOpen
+	PRStateMerged = contract.PRStateMerged
+	PRStateClosed = contract.PRStateClosed
+)
+
+// PRCheckStatus is one CI check run's normalized status.
+type PRCheckStatus = contract.PRCheckStatus
+
+// PR check statuses.
+const (
+	PRCheckUnknown    = contract.PRCheckUnknown
+	PRCheckQueued     = contract.PRCheckQueued
+	PRCheckInProgress = contract.PRCheckInProgress
+	PRCheckPassed     = contract.PRCheckPassed
+	PRCheckFailed     = contract.PRCheckFailed
+	PRCheckSkipped    = contract.PRCheckSkipped
+	PRCheckCancelled  = contract.PRCheckCancelled
+)
+
+// MergeReadiness is the set of durable PR facts that decide whether a PR is
+// waiting on nothing but the user's merge click. It is deliberately the stored
+// shape rather than a provider observation, so the live SCM path and the
+// startup reconciliation path can share one rule instead of writing it twice
+// and drifting apart.
+type MergeReadiness struct {
+	Draft              bool
+	Merged             bool
+	Closed             bool
+	CI                 CIState
+	Review             ReviewDecision
+	Mergeability       Mergeability
+	UnresolvedComments bool
+}
+
+// ReadyToMerge reports whether the PR has no known blocker left. An unknown or
+// still-running CI result is treated as a blocker: AO only claims readiness it
+// can actually prove.
+func (r MergeReadiness) ReadyToMerge() bool {
+	if r.Merged || r.Closed || r.Draft {
+		return false
+	}
+	ci := r.CI
+	if ci == "" {
+		ci = CIUnknown
+	}
+	switch ci {
+	case CIFailing, CIPending, CIUnknown:
+		return false
+	}
+	if r.Review == ReviewChangesRequest || r.UnresolvedComments {
+		return false
+	}
+	return r.Mergeability == MergeMergeable
+}
+
+// MergeReadinessOf projects stored PR facts into the shared readiness rule.
+// hasUnresolvedComments comes from the pr_comment rows AO keeps for the PR,
+// filtered to actionable unresolved comments.
+func MergeReadinessOf(pr PullRequest, hasUnresolvedComments bool) MergeReadiness {
+	return MergeReadiness{
+		Draft:              pr.Draft,
+		Merged:             pr.Merged,
+		Closed:             pr.Closed,
+		CI:                 pr.CI,
+		Review:             pr.Review,
+		Mergeability:       pr.Mergeability,
+		UnresolvedComments: hasUnresolvedComments,
+	}
+}

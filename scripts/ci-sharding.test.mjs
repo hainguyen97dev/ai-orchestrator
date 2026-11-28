@@ -55,7 +55,7 @@ function assertRace(args) {
   assert.ok(args.includes('-timeout=10m'));
 }
 
-const DEDICATED = ['example/backend/internal/storage/sqlite', 'example/backend/internal/service/chat', 'example/backend/internal/session_manager', 'example/backend/internal/storage/sqlite/store'];
+const DEDICATED = ['example/backend/platform/persistence/sqlite', 'example/backend/internal/service/chat', 'example/backend/internal/session_manager', 'example/backend/platform/persistence/sqlite/store'];
 
 test('three core shards execute every non-dedicated package exactly once', t => {
   const block = job(go, 'backend-core');
@@ -81,7 +81,7 @@ test('an empty core selection fails rather than falsely passes', t => {
 });
 
 test('storage-race runs exactly the packages backend-core leaves out', () => {
-  const excluded = [...runStep(job(go, 'backend-core'), 'Test').matchAll(/-e '\/(internal\/[\w\/]+)\$'/g)].map(match => `./${match[1]}`);
+  const excluded = [...runStep(job(go, 'backend-core'), 'Test').matchAll(/-e '\/((?:internal|platform)\/[\w\/]+)\$'/g)].map(match => `./${match[1]}`);
   const storage = runStep(job(go, 'storage-race'), 'Test SQLite, chat, session manager and SQLite store').split(/\s+/).filter(arg => arg.startsWith('./'));
   assert.equal(excluded.length, 4);
   assert.deepEqual([...storage].sort(), [...excluded].sort());
@@ -123,7 +123,7 @@ if (args[0] === 'list') {
 `);
   chmodSync(join(dir, 'go'), 0o755);
   const script = fileURLToPath(new URL('../.github/scripts/go-test-parallel.sh', import.meta.url));
-  const result = spawnSync('bash', [script, '3', './internal/storage/sqlite', './internal/service/chat'], {
+  const result = spawnSync('bash', [script, '3', './platform/persistence/sqlite', './internal/service/chat'], {
     encoding: 'utf8',
     env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, CAPTURE: capture, PKGDIR: dir, TESTS: JSON.stringify(tests) },
   });

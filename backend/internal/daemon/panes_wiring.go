@@ -3,8 +3,8 @@ package daemon
 import (
 	"encoding/json"
 
-	"github.com/aoagents/agent-orchestrator/backend/internal/service/panes"
-	"github.com/aoagents/agent-orchestrator/backend/internal/terminal"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/panes"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/terminal"
 )
 
 // paneSource links desktop windows on the terminal mux to the split-pane

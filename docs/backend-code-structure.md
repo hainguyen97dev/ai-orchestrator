@@ -42,10 +42,10 @@ graph TB
     end
 
     subgraph Data["Data Layer"]
-        Domain[internal/domain]
-        Ports[internal/ports]
-        Storage[internal/storage/sqlite]
-        CDC[internal/cdc]
+        Domain[internal/sharedkernel/domain]
+        Ports[internal/sharedkernel/ports]
+        Storage[platform/persistence/sqlite]
+        CDC[platform/eventbus/cdc]
     end
 
     subgraph Infra["Infrastructure Layer"]
@@ -114,13 +114,13 @@ graph TD
 
 ## Package-by-Package Ownership
 
-### `internal/domain`
+### `internal/sharedkernel/domain`
 
 **Purpose:** Shared product vocabulary and durable fact records. The single source of truth for domain concepts.
 
 ```mermaid
 graph TD
-    Domain[internal/domain] --> Contains[Contains]
+    Domain[internal/sharedkernel/domain] --> Contains[Contains]
     Contains --> IDs[Shared IDs<br/>ProjectID, SessionID, IssueID]
     Contains --> Enums[Status Enums<br/>SessionStatus, ActivityState]
     Contains --> Records[Durable Records<br/>SessionRecord, PRRecord]
@@ -152,7 +152,7 @@ graph TD
 
 ---
 
-### `internal/ports`
+### `internal/sharedkernel/ports`
 
 **Purpose:** Narrow capability interfaces that connect core code to replaceable external systems.
 
@@ -412,7 +412,7 @@ graph TD
 
 ---
 
-### `internal/storage/sqlite`
+### `platform/persistence/sqlite`
 
 **Purpose:** SQLite setup, migrations, queries, and store implementations.
 
@@ -451,7 +451,7 @@ graph TD
 
 ---
 
-### `internal/cdc`
+### `platform/eventbus/cdc`
 
 **Purpose:** Change-log polling and event broadcasting.
 
@@ -893,7 +893,7 @@ func (c *SessionsController) myNewCommand(w http.ResponseWriter, r *http.Request
 ### Example: Adding a Port Interface
 
 ```go
-// In internal/ports/myfeature.go
+// In internal/sharedkernel/ports/myfeature.go
 package ports
 
 type MyFeature interface {
@@ -903,7 +903,7 @@ type MyFeature interface {
 // In internal/adapters/myfeature/impl.go
 package impl
 
-import "github.com/aoagents/agent-orchestrator/backend/internal/ports"
+import "github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 
 type Impl struct { ... }
 
