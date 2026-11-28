@@ -30,7 +30,7 @@ const HISTORICAL = [
   /^docs\/fork\/ddd-spec\/1[67]-/,
 ];
 export const isHistorical = (file) => HISTORICAL.some((re) => re.test(file));
-const EXTENSIONS = /\.(go|md|json|ya?ml|mjs|sql)$/;
+const EXTENSIONS = /\.(go|md|json|ya?ml|mjs|sql|tsx?)$/;
 
 if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   const args = process.argv.slice(2);
