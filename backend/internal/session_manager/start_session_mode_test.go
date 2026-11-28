@@ -3,16 +3,39 @@ package sessionmanager
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
 
+// contractsFile finds name under the repository's contracts/ directory by
+// walking up from the package directory, so the test does not depend on how
+// deep the package sits.
+func contractsFile(t *testing.T, name string) string {
+	t.Helper()
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for {
+		candidate := filepath.Join(dir, "contracts", name)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			t.Fatalf("no contracts/%s above the package directory", name)
+		}
+		dir = parent
+	}
+}
+
 // The cloud control plane resolves a cloud session's interface with the same
 // precedence, against the same cases (the control plane's internal/domain), so a change to
 // either side fails the other's test until both agree.
 func TestStartSessionModeMatchesTheSharedCases(t *testing.T) {
-	raw, err := os.ReadFile("../../../contracts/session-start-interface.json")
+	raw, err := os.ReadFile(contractsFile(t, "session-start-interface.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
