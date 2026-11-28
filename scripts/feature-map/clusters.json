@@ -1,101 +1,500 @@
 [
-  { "id": "F-01", "name": "Session, worker, worktree, lifecycle", "bc": "execution + workspace", "ui": "Agents / Terminals", "action": "Giữ",
-    "packages": ["internal/execution/session", "internal/execution/session_manager", "internal/execution/lifecycle", "internal/execution/sessionguard", "internal/execution/sessionid", "internal/workspace/...", "internal/workspace/workspacewatch", "internal/workspace/gitdefault", "internal/workspace/filesnapshot", "internal/execution/sessionfork", "internal/execution/sessionsearch"],
-    "httpPrefixes": ["/api/v1/sessions", "/api/v1/orchestrators", "/api/v1/task-preparations", "/api/v1/search", "/api/v1/desktop"],
-    "uiRoutes": ["_shell.sessions*", "_shell.projects.$projectId_.sessions.$sessionId.tsx", "_shell.new.tsx"],
-    "tables": ["sessions", "session_worktrees", "session_forks", "session_cleanup_facts", "session_num_floors", "session_search_deleted", "session_search_owner", "workspace_repos", "worker_idle_events", "orchestrator_reengagements", "session_interface_transitions", "session_interface_transition_messages", "session_harness_releases", "session_commit_attribution"] },
-  { "id": "F-02", "name": "Agent adapters, TUI/Chat, terminal", "bc": "execution", "ui": "Terminals", "action": "Giữ (thu hẹp harness về Claude + Codex (+Gemini))",
-    "packages": ["internal/adapters/agent/...", "internal/adapters/chatdriver/...", "internal/service/chat", "internal/terminal", "internal/service/shellterm", "internal/service/terminaltitle", "internal/service/panes", "internal/service/agent", "internal/agentlaunch", "pkg/agentruntime/..."],
-    "httpPrefixes": ["/api/v1/conversations", "/api/v1/side-chats", "/api/v1/shell-terminals", "/api/v1/terminal-shells"],
+  {
+    "id": "F-01",
+    "name": "Session, worker, worktree, lifecycle",
+    "bc": "execution + workspace",
+    "ui": "Agents / Terminals",
+    "action": "Giữ",
+    "packages": [
+      "internal/execution/session",
+      "internal/execution/session_manager",
+      "internal/execution/lifecycle",
+      "internal/execution/sessionguard",
+      "internal/execution/sessionid",
+      "internal/workspace/...",
+      "internal/workspace/workspacewatch",
+      "internal/workspace/gitdefault",
+      "internal/workspace/filesnapshot",
+      "internal/execution/sessionfork",
+      "internal/execution/sessionsearch"
+    ],
+    "httpPrefixes": [
+      "/api/v1/sessions",
+      "/api/v1/orchestrators",
+      "/api/v1/task-preparations",
+      "/api/v1/search",
+      "/api/v1/desktop"
+    ],
+    "uiRoutes": [
+      "_shell.sessions*",
+      "_shell.projects.$projectId_.sessions.$sessionId.tsx",
+      "_shell.new.tsx"
+    ],
+    "tables": [
+      "sessions",
+      "session_worktrees",
+      "session_forks",
+      "session_cleanup_facts",
+      "session_num_floors",
+      "session_search_deleted",
+      "session_search_owner",
+      "workspace_repos",
+      "worker_idle_events",
+      "orchestrator_reengagements",
+      "session_interface_transitions",
+      "session_interface_transition_messages",
+      "session_harness_releases",
+      "session_commit_attribution"
+    ]
+  },
+  {
+    "id": "F-02",
+    "name": "Agent adapters, TUI/Chat, terminal",
+    "bc": "execution",
+    "ui": "Terminals",
+    "action": "Giữ (thu hẹp harness về Claude + Codex (+Gemini))",
+    "packages": [
+      "internal/adapters/agent/...",
+      "internal/adapters/chatdriver/...",
+      "internal/service/chat",
+      "internal/terminal",
+      "internal/service/shellterm",
+      "internal/service/terminaltitle",
+      "internal/service/panes",
+      "internal/service/agent",
+      "internal/agentlaunch",
+      "pkg/agentruntime/..."
+    ],
+    "httpPrefixes": [
+      "/api/v1/conversations",
+      "/api/v1/side-chats",
+      "/api/v1/shell-terminals",
+      "/api/v1/terminal-shells"
+    ],
     "uiRoutes": [],
-    "tables": ["conversations", "conversation_turns", "conversation_messages", "conversation_activities", "conversation_branches", "conversation_provider_events", "conversation_edit_deliveries", "conversation_queued_edit_deliveries", "conversation_steer_deliveries", "shell_terminals", "session_terminal_titles", "session_terminal_turns", "agent_native_sessions"] },
-  { "id": "F-03", "name": "Account, auth, provider keys", "bc": "provider", "ui": "Providers", "action": "Bọc → ProviderProfile",
-    "packages": ["internal/provider/agentaccounts", "internal/provider/agentauth", "internal/provider/providerkeys", "internal/provider/agentaccount", "pkg/agentcreds"],
-    "httpPrefixes": ["/api/v1/agents"],
+    "tables": [
+      "conversations",
+      "conversation_turns",
+      "conversation_messages",
+      "conversation_activities",
+      "conversation_branches",
+      "conversation_provider_events",
+      "conversation_edit_deliveries",
+      "conversation_queued_edit_deliveries",
+      "conversation_steer_deliveries",
+      "shell_terminals",
+      "session_terminal_titles",
+      "session_terminal_turns",
+      "agent_native_sessions"
+    ]
+  },
+  {
+    "id": "F-03",
+    "name": "Account, auth, provider keys",
+    "bc": "provider",
+    "ui": "Providers",
+    "action": "Bọc → ProviderProfile",
+    "packages": [
+      "internal/provider/agentaccounts",
+      "internal/provider/agentauth",
+      "internal/provider/providerkeys",
+      "internal/provider/agentaccount",
+      "pkg/agentcreds"
+    ],
+    "httpPrefixes": [
+      "/api/v1/agents"
+    ],
     "uiRoutes": [],
-    "tables": ["agent_accounts", "agent_account_defaults", "session_agent_accounts", "session_account_pins", "agent_switches", "agent_switch_failure_delivery_state", "agent_switch_failure_outbox", "agent_switch_failure_policy", "agent_switch_failure_receipts", "codex_account_switch_sessions", "codex_account_switches", "codex_active_account", "agent_model_catalog", "agent_inventory_cache", "agent_install_jobs", "managed_harness_releases"] },
-  { "id": "F-04", "name": "Usage, quota, pricing", "bc": "budget", "ui": "Providers / Analytics", "action": "Bọc; reservation/settlement mới",
-    "packages": ["internal/service/usage", "internal/pricing", "internal/observe/usage"],
-    "httpPrefixes": ["/api/v1/usage"],
-    "uiRoutes": ["_shell.usage.tsx"],
-    "tables": ["model_usage_events", "anthropic_usage_event_details", "openai_usage_event_details", "usage_bindings", "usage_sources", "usage_message_summary", "usage_pr_measurement", "usage_price_overrides", "usage_project_identity", "usage_tier_repairs", "agent_limit_readings", "deleted_session_account_usage"] },
-  { "id": "F-05", "name": "PR, CI, review", "bc": "quality", "ui": "Tasks", "action": "Bọc → QualityGate",
-    "packages": ["internal/quality/pr", "internal/quality/review", "internal/quality/service/review", "internal/quality/observe/scm", "internal/quality/autoreview", "internal/quality/reviewgateway", "internal/quality/scm/...", "internal/quality/reviewer/...", "internal/quality/prpreview", "internal/quality/githubpat"],
-    "httpPrefixes": ["/api/v1/prs", "/api/v1/reviews", "/api/v1/github", "/api/v1/pr-preview", "/api/v1/sessions/{sessionId}/pr"],
+    "tables": [
+      "agent_accounts",
+      "agent_account_defaults",
+      "session_agent_accounts",
+      "session_account_pins",
+      "agent_switches",
+      "agent_switch_failure_delivery_state",
+      "agent_switch_failure_outbox",
+      "agent_switch_failure_policy",
+      "agent_switch_failure_receipts",
+      "codex_account_switch_sessions",
+      "codex_account_switches",
+      "codex_active_account",
+      "agent_model_catalog",
+      "agent_inventory_cache",
+      "agent_install_jobs",
+      "managed_harness_releases"
+    ]
+  },
+  {
+    "id": "F-04",
+    "name": "Usage, quota, pricing",
+    "bc": "budget",
+    "ui": "Providers / Analytics",
+    "action": "Bọc; reservation/settlement mới",
+    "packages": [
+      "internal/service/usage",
+      "internal/pricing",
+      "internal/observe/usage"
+    ],
+    "httpPrefixes": [
+      "/api/v1/usage"
+    ],
+    "uiRoutes": [
+      "_shell.usage.tsx"
+    ],
+    "tables": [
+      "model_usage_events",
+      "anthropic_usage_event_details",
+      "openai_usage_event_details",
+      "usage_bindings",
+      "usage_sources",
+      "usage_message_summary",
+      "usage_pr_measurement",
+      "usage_price_overrides",
+      "usage_project_identity",
+      "usage_tier_repairs",
+      "agent_limit_readings",
+      "deleted_session_account_usage"
+    ]
+  },
+  {
+    "id": "F-05",
+    "name": "PR, CI, review",
+    "bc": "quality",
+    "ui": "Tasks",
+    "action": "Bọc → QualityGate",
+    "packages": [
+      "internal/quality/pr",
+      "internal/quality/review",
+      "internal/quality/service/review",
+      "internal/quality/observe/scm",
+      "internal/quality/autoreview",
+      "internal/quality/reviewgateway",
+      "internal/quality/scm/...",
+      "internal/quality/reviewer/...",
+      "internal/quality/prpreview",
+      "internal/quality/githubpat"
+    ],
+    "httpPrefixes": [
+      "/api/v1/prs",
+      "/api/v1/reviews",
+      "/api/v1/github",
+      "/api/v1/pr-preview",
+      "/api/v1/sessions/{sessionId}/pr"
+    ],
     "uiRoutes": [],
-    "tables": ["pr", "pr_checks", "pr_comment", "pr_details", "pr_review_threads", "pr_reviews", "pr_url_alias", "review", "review_run", "review_session", "repository_renames"] },
-  { "id": "F-06", "name": "Project, project config", "bc": "identity (project)", "ui": "Projects", "action": "Giữ",
-    "packages": ["internal/identity/project"],
-    "httpPrefixes": ["/api/v1/projects"],
-    "uiRoutes": ["_shell.projects.$projectId.tsx", "_shell.projects.$projectId_.settings.tsx", "_shell.index.tsx"],
-    "tables": ["projects"] },
-  { "id": "F-07", "name": "Board, delegation, tracker", "bc": "task", "ui": "Tasks", "action": "Giữ, sau nối với WorkflowRun",
-    "packages": ["internal/task/tracker/...", "internal/task/observe/trackerintake"],
+    "tables": [
+      "pr",
+      "pr_checks",
+      "pr_comment",
+      "pr_details",
+      "pr_review_threads",
+      "pr_reviews",
+      "pr_url_alias",
+      "review",
+      "review_run",
+      "review_session",
+      "repository_renames"
+    ]
+  },
+  {
+    "id": "F-06",
+    "name": "Project, project config",
+    "bc": "identity (project)",
+    "ui": "Projects",
+    "action": "Giữ",
+    "packages": [
+      "internal/identity/project"
+    ],
+    "httpPrefixes": [
+      "/api/v1/projects"
+    ],
+    "uiRoutes": [
+      "_shell.projects.$projectId.tsx",
+      "_shell.projects.$projectId_.settings.tsx",
+      "_shell.index.tsx"
+    ],
+    "tables": [
+      "projects"
+    ]
+  },
+  {
+    "id": "F-07",
+    "name": "Board, delegation, tracker",
+    "bc": "task",
+    "ui": "Tasks",
+    "action": "Giữ, sau nối với WorkflowRun",
+    "packages": [
+      "internal/task/tracker/...",
+      "internal/task/observe/trackerintake"
+    ],
     "httpPrefixes": [],
     "uiRoutes": [],
-    "tables": [] },
-  { "id": "F-08", "name": "Skill discovery, skill assets", "bc": "skill", "ui": "Skills", "action": "Bọc; SkillDefinition có version là mới",
-    "packages": ["internal/skill/skillassets"],
+    "tables": []
+  },
+  {
+    "id": "F-08",
+    "name": "Skill discovery, skill assets",
+    "bc": "skill",
+    "ui": "Skills",
+    "action": "Bọc; SkillDefinition có version là mới",
+    "packages": [
+      "internal/skill/skillassets"
+    ],
     "httpPrefixes": [],
     "uiRoutes": [],
-    "tables": [] },
-  { "id": "F-09", "name": "Artifact", "bc": "artifact", "ui": "—", "action": "Giữ",
-    "packages": ["internal/artifact/artifactversions", "internal/artifact/sessionartifacts", "internal/artifact/attachmentstore", "internal/artifact/observe/artifacts"],
-    "httpPrefixes": ["/api/v1/kept-artifacts", "/api/v1/attachment-uploads", "/api/v1/sessions/{sessionId}/artifact"],
-    "uiRoutes": ["_shell.artifacts.tsx"],
-    "tables": ["kept_artifacts", "kept_artifact_sessions", "session_artifacts", "session_artifact_versions"] },
-  { "id": "F-10", "name": "Notification, push", "bc": "notification", "ui": "—", "action": "Giữ",
-    "packages": ["internal/notification/notify", "internal/notification/push", "internal/notification"],
-    "httpPrefixes": ["/api/v1/notifications", "/api/v1/push"],
+    "tables": []
+  },
+  {
+    "id": "F-09",
+    "name": "Artifact",
+    "bc": "artifact",
+    "ui": "—",
+    "action": "Giữ",
+    "packages": [
+      "internal/artifact/artifactversions",
+      "internal/artifact/sessionartifacts",
+      "internal/artifact/attachmentstore",
+      "internal/artifact/observe/artifacts"
+    ],
+    "httpPrefixes": [
+      "/api/v1/kept-artifacts",
+      "/api/v1/attachment-uploads",
+      "/api/v1/sessions/{sessionId}/artifact"
+    ],
+    "uiRoutes": [
+      "_shell.artifacts.tsx"
+    ],
+    "tables": [
+      "kept_artifacts",
+      "kept_artifact_sessions",
+      "session_artifacts",
+      "session_artifact_versions"
+    ]
+  },
+  {
+    "id": "F-10",
+    "name": "Notification, push",
+    "bc": "notification",
+    "ui": "—",
+    "action": "Giữ",
+    "packages": [
+      "internal/notification/notify",
+      "internal/notification/push",
+      "internal/notification"
+    ],
+    "httpPrefixes": [
+      "/api/v1/notifications",
+      "/api/v1/push"
+    ],
     "uiRoutes": [],
-    "tables": ["notifications"] },
-  { "id": "F-11", "name": "Automation, Cues", "bc": "scheduling", "ui": "—", "action": "Ẩn (chờ quyết)",
-    "packages": ["internal/service/automation", "internal/service/cue", "internal/observe/automations"],
-    "httpPrefixes": ["/api/v1/automations", "/api/v1/cues"],
-    "uiRoutes": ["_shell.automations.tsx"],
-    "tables": ["automations", "automation_runs", "cues", "startup_cue_messages"] },
-  { "id": "F-12", "name": "Pipeline (fork)", "bc": "workflow", "ui": "Workflows", "action": "Gộp vào Workflow mới",
+    "tables": [
+      "notifications"
+    ]
+  },
+  {
+    "id": "F-11",
+    "name": "Automation, Cues",
+    "bc": "scheduling",
+    "ui": "—",
+    "action": "Ẩn (chờ quyết)",
+    "packages": [
+      "internal/service/automation",
+      "internal/service/cue",
+      "internal/observe/automations"
+    ],
+    "httpPrefixes": [
+      "/api/v1/automations",
+      "/api/v1/cues"
+    ],
+    "uiRoutes": [
+      "_shell.automations.tsx"
+    ],
+    "tables": [
+      "automations",
+      "automation_runs",
+      "cues",
+      "startup_cue_messages"
+    ]
+  },
+  {
+    "id": "F-12",
+    "name": "Pipeline (fork)",
+    "bc": "workflow",
+    "ui": "Workflows",
+    "action": "Gộp vào Workflow mới",
     "packages": [],
     "httpPrefixes": [],
     "uiRoutes": [],
-    "tables": [] },
-  { "id": "F-13", "name": "Mobile, LAN, remote host", "bc": "—", "ui": "—", "action": "Ẩn→Xoá (K5); app mobile đã cắt (L1 đợt A); Awake giữ cho desktop",
-    "packages": ["internal/mobilebridge", "internal/presence"],
-    "httpPrefixes": ["/api/v1/mobile", "/api/v1/remote-host", "/api/v1/endpoints"],
-    "uiRoutes": ["_shell.host.*"],
-    "tables": [] },
-  { "id": "F-14", "name": "Cloud, sharing, WorkOS", "bc": "—", "ui": "—", "action": "Ẩn→Xoá (K5)",
-    "packages": [],
-    "httpPrefixes": ["/api/v1/identity"],
-    "uiRoutes": [],
-    "tables": [] },
-  { "id": "F-15", "name": "Device simulator", "bc": "—", "ui": "—", "action": "Đã cắt (L1, 2026-11-28)",
+    "tables": []
+  },
+  {
+    "id": "F-13",
+    "name": "Mobile, LAN, remote host",
+    "bc": "—",
+    "ui": "—",
+    "action": "Ẩn→Xoá (K5); app mobile đã cắt (L1 đợt A); Awake giữ cho desktop",
     "packages": [],
     "httpPrefixes": [],
     "uiRoutes": [],
-    "tables": [] },
-  { "id": "F-16", "name": "Import 11+ nguồn", "bc": "execution", "ui": "—", "action": "Thu hẹp về Claude + Codex (K5)",
-    "packages": ["internal/service/sessionimport", "internal/service/importer", "internal/service/devimport", "internal/legacyimport", "internal/devimport"],
-    "httpPrefixes": ["/api/v1/imports", "/api/v1/import", "/api/v1/session-import"],
+    "tables": []
+  },
+  {
+    "id": "F-14",
+    "name": "Cloud, sharing, WorkOS",
+    "bc": "—",
+    "ui": "—",
+    "action": "Ẩn→Xoá (K5)",
+    "packages": [],
+    "httpPrefixes": [
+      "/api/v1/identity"
+    ],
     "uiRoutes": [],
-    "tables": ["session_import_messages"] },
-  { "id": "F-17", "name": "Telemetry, Sentry, PostHog", "bc": "audit (local)", "ui": "—", "action": "Xoá remote, giữ local (K5)",
-    "packages": ["internal/adapters/telemetry/...", "internal/telemetrymeta", "internal/deliverytelemetry", "internal/observe/sentryobs"],
-    "httpPrefixes": ["/api/v1/telemetry"],
+    "tables": []
+  },
+  {
+    "id": "F-15",
+    "name": "Device simulator",
+    "bc": "—",
+    "ui": "—",
+    "action": "Đã cắt (L1, 2026-11-28)",
+    "packages": [],
+    "httpPrefixes": [],
     "uiRoutes": [],
-    "tables": ["telemetry_event", "telemetry_lifetime_sessions", "session_telemetry"] },
-  { "id": "F-18", "name": "Browser, computer use", "bc": "quality (UI test)", "ui": "—", "action": "Giữ bản lõi, ngoài đường găng",
-    "packages": ["internal/quality/browserchrome", "internal/quality/browserruntime", "internal/quality/browserstream", "internal/quality/browser", "internal/quality/computeruse", "internal/quality/cuadriver/...", "internal/quality/preview", "internal/quality/previewserver"],
-    "httpPrefixes": ["/api/v1/browser", "/api/v1/computer-use", "/api/v1/sessions/{sessionId}/agent-browser", "/api/v1/sessions/{sessionId}/preview"],
+    "tables": []
+  },
+  {
+    "id": "F-16",
+    "name": "Import 11+ nguồn",
+    "bc": "execution",
+    "ui": "—",
+    "action": "Thu hẹp về Claude + Codex (K5)",
+    "packages": [
+      "internal/service/sessionimport",
+      "internal/service/importer",
+      "internal/service/devimport",
+      "internal/legacyimport",
+      "internal/devimport"
+    ],
+    "httpPrefixes": [
+      "/api/v1/imports",
+      "/api/v1/import",
+      "/api/v1/session-import"
+    ],
     "uiRoutes": [],
-    "tables": [] },
-  { "id": "F-19", "name": "System install, host update, awake", "bc": "—", "ui": "—", "action": "Giữ tối thiểu cho harness install; Awake giữ cho desktop (2026-11-28)",
-    "packages": ["internal/service/systeminstall", "internal/hostupdate", "internal/service/systemcheck", "internal/service/awake"],
-    "httpPrefixes": ["/api/v1/system", "/api/v1/awake"],
+    "tables": [
+      "session_import_messages"
+    ]
+  },
+  {
+    "id": "F-17",
+    "name": "Telemetry, Sentry, PostHog",
+    "bc": "audit (local)",
+    "ui": "—",
+    "action": "Xoá remote, giữ local (K5)",
+    "packages": [
+      "internal/adapters/telemetry/...",
+      "internal/telemetrymeta",
+      "internal/deliverytelemetry",
+      "internal/observe/sentryobs"
+    ],
+    "httpPrefixes": [
+      "/api/v1/telemetry"
+    ],
     "uiRoutes": [],
-    "tables": ["awake_state"] },
-  { "id": "F-20", "name": "Domain Modeling", "bc": "domainmodel", "ui": "Domains", "action": "Mới", "packages": [], "httpPrefixes": [], "uiRoutes": [], "tables": [] },
-  { "id": "F-21", "name": "Knowledge (vault, registry, graph, proposal)", "bc": "knowledge", "ui": "Knowledge", "action": "Mới", "packages": [], "httpPrefixes": [], "uiRoutes": [], "tables": [] },
-  { "id": "F-22", "name": "Context Engineering", "bc": "context", "ui": "—", "action": "Mới (GitNexus làm code index)", "packages": [], "httpPrefixes": [], "uiRoutes": [], "tables": [] },
-  { "id": "F-23", "name": "Workflow Engine + Studio + Mission Control; Budget reservation/routing/failover", "bc": "workflow, provider/budget", "ui": "Workflows / Providers", "action": "Mới", "packages": [], "httpPrefixes": [], "uiRoutes": [], "tables": [] }
+    "tables": [
+      "telemetry_event",
+      "telemetry_lifetime_sessions",
+      "session_telemetry"
+    ]
+  },
+  {
+    "id": "F-18",
+    "name": "Browser, computer use",
+    "bc": "quality (UI test)",
+    "ui": "—",
+    "action": "Giữ bản lõi, ngoài đường găng",
+    "packages": [
+      "internal/quality/browserchrome",
+      "internal/quality/browserruntime",
+      "internal/quality/browserstream",
+      "internal/quality/browser",
+      "internal/quality/computeruse",
+      "internal/quality/cuadriver/...",
+      "internal/quality/preview",
+      "internal/quality/previewserver"
+    ],
+    "httpPrefixes": [
+      "/api/v1/browser",
+      "/api/v1/computer-use",
+      "/api/v1/sessions/{sessionId}/agent-browser",
+      "/api/v1/sessions/{sessionId}/preview"
+    ],
+    "uiRoutes": [],
+    "tables": []
+  },
+  {
+    "id": "F-19",
+    "name": "System install, host update, awake",
+    "bc": "—",
+    "ui": "—",
+    "action": "Giữ tối thiểu cho harness install; Awake giữ cho desktop (2026-11-28)",
+    "packages": [
+      "internal/service/systeminstall",
+      "internal/hostupdate",
+      "internal/service/systemcheck",
+      "internal/service/awake"
+    ],
+    "httpPrefixes": [
+      "/api/v1/system",
+      "/api/v1/awake"
+    ],
+    "uiRoutes": [],
+    "tables": [
+      "awake_state"
+    ]
+  },
+  {
+    "id": "F-20",
+    "name": "Domain Modeling",
+    "bc": "domainmodel",
+    "ui": "Domains",
+    "action": "Mới",
+    "packages": [],
+    "httpPrefixes": [],
+    "uiRoutes": [],
+    "tables": []
+  },
+  {
+    "id": "F-21",
+    "name": "Knowledge (vault, registry, graph, proposal)",
+    "bc": "knowledge",
+    "ui": "Knowledge",
+    "action": "Mới",
+    "packages": [],
+    "httpPrefixes": [],
+    "uiRoutes": [],
+    "tables": []
+  },
+  {
+    "id": "F-22",
+    "name": "Context Engineering",
+    "bc": "context",
+    "ui": "—",
+    "action": "Mới (GitNexus làm code index)",
+    "packages": [],
+    "httpPrefixes": [],
+    "uiRoutes": [],
+    "tables": []
+  },
+  {
+    "id": "F-23",
+    "name": "Workflow Engine + Studio + Mission Control; Budget reservation/routing/failover",
+    "bc": "workflow, provider/budget",
+    "ui": "Workflows / Providers",
+    "action": "Mới",
+    "packages": [],
+    "httpPrefixes": [],
+    "uiRoutes": [],
+    "tables": []
+  }
 ]

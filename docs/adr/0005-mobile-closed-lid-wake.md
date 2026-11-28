@@ -1,5 +1,7 @@
 # ADR 0005: a local coordinator for mobile closed-lid wakefulness
 
+> Superseded: this feature was cut in L1 F-13 B1 on 2026-11-28. Kept as a historical decision record.
+
 Status: proposed; basic macOS 26 lid-close path verified; full physical validation pending.
 
 ## Context
