@@ -35,11 +35,31 @@ func TestInstallWritesBugTriageBesideUsingAO(t *testing.T) {
 }
 
 func TestBugTriageEmbeddedCopyMatchesCanonicalToPreventDrift(t *testing.T) {
-	canonical, err := os.ReadFile("../../../.agents/skills/bug-triage/SKILL.md")
+	canonical, err := os.ReadFile(filepath.Join(repoRoot(t), ".agents", "skills", "bug-triage", "SKILL.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(canonical, BugTriageSkill()) {
 		t.Fatal("embedded bug-triage skill differs from canonical skill")
+	}
+}
+
+// repoRoot walks up from the package directory to the checkout root, so the
+// test keeps working when the package moves to another depth.
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, ".agents", "skills")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			t.Fatal("no .agents/skills above the package directory")
+		}
+		dir = parent
 	}
 }
