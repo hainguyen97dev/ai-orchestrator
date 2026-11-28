@@ -20,8 +20,16 @@ export function rewrite(text, moves) {
   return text.replace(re, (from) => to.get(from));
 }
 
-// History stays as it was written.
-const HISTORICAL = [/^docs\/pr-evidence\//, /^docs\/superpowers\/plans\/2026-0/, /^\.ao-rescue\//];
+// History and measurements stay as they were written: plans (including the one
+// that names these moves), PR evidence, rescue notes, and the assessment/feature
+// maps that record where code came from.
+const HISTORICAL = [
+  /^docs\/pr-evidence\//,
+  /^docs\/superpowers\/plans\//,
+  /^\.ao-rescue\//,
+  /^docs\/fork\/ddd-spec\/1[67]-/,
+];
+export const isHistorical = (file) => HISTORICAL.some((re) => re.test(file));
 const EXTENSIONS = /\.(go|md|json|ya?ml|mjs|sql)$/;
 
 if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
@@ -38,7 +46,7 @@ if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToP
     mkdirSync(dirname(join(root, 'backend', to)), { recursive: true });
     git('mv', `backend/${from}`, `backend/${to}`);
   }
-  const files = git('ls-files').split('\n').filter((f) => EXTENSIONS.test(f) && !HISTORICAL.some((re) => re.test(f)));
+  const files = git('ls-files').split('\n').filter((f) => EXTENSIONS.test(f) && !isHistorical(f));
   const changedGo = [];
   let changed = 0;
   for (const file of files) {

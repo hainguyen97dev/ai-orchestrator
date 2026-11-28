@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { rewrite } from './move-go-package.mjs';
+import { isHistorical, rewrite } from './move-go-package.mjs';
 
 test('rewrites import paths on a boundary only', () => {
   assert.equal(
@@ -45,4 +45,10 @@ test('rewrites at end of line and before backtick, comma or paren', () => {
 test('rewrites a path that ends a sentence', () => {
   assert.equal(rewrite('lives in internal/push. Then internal/push; done', [['internal/push', 'internal/notification/push']]),
     'lives in internal/notification/push. Then internal/notification/push; done');
+});
+
+test('history and measurement docs are not rewritten', () => {
+  for (const f of ['docs/superpowers/plans/2026-11-28-p3b-wave1-leaf-moves.md', 'docs/pr-evidence/x.md', '.ao-rescue/a.md',
+    'docs/fork/ddd-spec/16-assessment-and-build-plan.md', 'docs/fork/ddd-spec/17-feature-code-map.md']) assert.equal(isHistorical(f), true, f);
+  for (const f of ['docs/documentation-map.md', 'backend/internal/daemon/daemon.go', 'scripts/feature-map/clusters.json']) assert.equal(isHistorical(f), false, f);
 });
