@@ -67,3 +67,8 @@ test('the move tool never rewrites an applied SQL migration', () => {
   assert.equal(isHistorical('backend/platform/persistence/sqlite/migrations/0013_review_run_unique_sha.sql'), true);
   assert.equal(isHistorical('backend/platform/persistence/sqlite/queries/review.sql'), false);
 });
+
+test('rewrites a path that ends a grep regex ($)', () => {
+  assert.equal(rewrite("grep -v -e '/internal/session_manager$'", [['internal/session_manager', 'internal/execution/session_manager']]),
+    "grep -v -e '/internal/execution/session_manager$'");
+});
