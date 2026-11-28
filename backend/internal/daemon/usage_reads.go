@@ -4,7 +4,7 @@ import (
 	"context"
 
 	usagepipeline "github.com/hainguyen97dev/ai-orchestrator/backend/internal/observe/usage"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/agentaccounts"
+	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/provider/agentaccounts"
 	usagesvc "github.com/hainguyen97dev/ai-orchestrator/backend/internal/service/usage"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/domain"
 )
