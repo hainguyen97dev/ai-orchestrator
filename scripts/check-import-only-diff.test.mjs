@@ -102,3 +102,19 @@ test('a moved path followed by an HTML tag pairs', () => {
     diff('docs/x.md', ['-P[internal/service/project<br/>CRUD]', '+P[internal/identity/project<br/>CRUD]']),
   ), []);
 });
+
+test('a fully moved parent directory is inferred from its moved children', () => {
+  const r = rename('backend/internal/adapters/tracker/github/a.go', 'backend/internal/task/tracker/github/a.go');
+  const gone = (dir) => dir === 'internal/adapters/tracker';
+  assert.deepEqual([...dirRenames(r, { gone })], [
+    ['internal/adapters/tracker/github', 'internal/task/tracker/github'],
+    ['internal/adapters/tracker', 'internal/task/tracker'],
+  ]);
+  assert.deepEqual(checkDiff(r + diff('docs/x.md', ['-see internal/adapters/tracker.', '+see internal/task/tracker.']), { isGenerated, gone }), []);
+});
+
+test('a parent that still exists is not inferred', () => {
+  const r = rename('backend/internal/observe/artifacts/a.go', 'backend/internal/artifact/observe/artifacts/a.go');
+  assert.deepEqual([...dirRenames(r, { gone: () => false })], [['internal/observe/artifacts', 'internal/artifact/observe/artifacts']]);
+  assert.equal(checkDiff(r + diff('docs/x.md', ['-see internal/observe.', '+see internal/artifact/observe.']), { isGenerated, gone: () => false }).length, 2);
+});
