@@ -52,9 +52,18 @@ export function useStayAwake(enabled = true) {
 					}
 				}
 			};
-			const ensureDesktop = async (lidClosed = false) => {
+			// exact: the caller chose the lid mode, so a live session in the other
+			// mode is replaced (new lease first, then the old one ends) rather than
+			// kept. A plain "on" keeps whatever session already holds wake.
+			const ensureDesktop = async (lidClosed = false, exact = false) => {
 				if (currentState()?.paused) await awake.actAsync({ kind: "resume" });
-				if (currentState()?.sessions?.some((session) => !session.endedAt)) return;
+				const live = currentState()?.sessions?.filter((session) => !session.endedAt) ?? [];
+				const stale = exact ? live.filter((session) => !!session.lidClosed !== lidClosed) : [];
+				if (live.length > 0 && stale.length === 0) return;
+				if (stale.length > 0 && stale.length < live.length) {
+					for (const session of stale) await awake.actAsync({ kind: "end", id: session.id });
+					return;
+				}
 				try {
 					await start(lidClosed);
 				} catch (error) {
@@ -64,18 +73,19 @@ export function useStayAwake(enabled = true) {
 					await awake.actAsync({ kind: "resume" });
 					await start(lidClosed);
 				}
+				for (const session of stale) await awake.actAsync({ kind: "end", id: session.id });
 			};
 			if (!change.on) {
 				await awake.actAsync({ kind: "stop" });
 			} else if (change.lidClosed === true) {
 				try {
-					await ensureDesktop(true);
+					await ensureDesktop(true, true);
 				} catch (error) {
 					if (!change.idleFallback) throw error;
 					await ensureDesktop(false);
 				}
 			} else {
-				await ensureDesktop(false);
+				await ensureDesktop(false, change.lidClosed === false);
 			}
 		},
 	});
