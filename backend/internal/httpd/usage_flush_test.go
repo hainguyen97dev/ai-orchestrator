@@ -46,10 +46,4 @@ func TestUsageFlushIsLoopbackControlOnly(t *testing.T) {
 	if called != 1 {
 		t.Fatalf("flush calls = %d, want 1", called)
 	}
-	lan := lanControlBlock(router)
-	w := httptest.NewRecorder()
-	lan.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "http://127.0.0.1:3000/internal/telemetry/usage-flush", nil))
-	if w.Code != http.StatusNotFound || called != 1 {
-		t.Fatalf("LAN status=%d calls=%d", w.Code, called)
-	}
 }

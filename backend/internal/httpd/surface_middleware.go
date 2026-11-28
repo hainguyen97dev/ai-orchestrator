@@ -20,14 +20,9 @@ func requestSurfaceMiddleware(allowedOrigins []string) func(http.Handler) http.H
 	}
 }
 
-// requestSurface classifies from transport facts. A phone authenticates on the
-// LAN listener (directly or through a managed tunnel) and sets its install-id
-// header on every request; the desktop renderer presents an exact renderer
-// origin; everything else on loopback is a native client such as the CLI.
+// requestSurface classifies desktop renderer traffic and native CLI callers. The
+// mobile surface value remains in telemetry schemas for historical data.
 func requestSurface(r *http.Request, allowedOrigins map[string]struct{}) domain.RequestSurface {
-	if authenticatedLANBearer(r) || r.Header.Get(InstallIDHeader) != "" {
-		return domain.RequestSurfaceMobile
-	}
 	if _, ok := allowedOrigins[r.Header.Get("Origin")]; ok {
 		return domain.RequestSurfaceDesktop
 	}

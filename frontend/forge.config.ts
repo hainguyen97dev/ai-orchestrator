@@ -104,7 +104,7 @@ export function extraResourcesForPlatform(platform: NodeJS.Platform): string[] {
 		"browser-extension",
 		"agent-browser",
 		"resources/acp-runtime",
-		...(platform === "darwin" ? ["update-helper", "wake-helper", "dictation-helper", "cloudflared", "assets/mac/en.lproj"] : []),
+		...(platform === "darwin" ? ["update-helper", "wake-helper", "dictation-helper", "assets/mac/en.lproj"] : []),
 		// macOS 26+ Liquid Glass app icon (CFBundleIconName below), precompiled
 		// from assets/brand/AO.icon by scripts/generate-brand-assets.swift.
 		...(platform === "darwin" ? ["assets/Assets.car"] : []),
@@ -307,11 +307,6 @@ const config: ForgeConfig = {
 					if (!existsSync(path.join(resourcesPath, "wake-helper", "ao-wake"))) throw new Error(`packaged macOS wake helper missing from ${resourcesPath}`);
 					if (!existsSync(path.join(resourcesPath, "Assets.car"))) throw new Error(`packaged macOS app icon catalog missing from ${resourcesPath}`);
 					if (!existsSync(path.join(resourcesPath, "dictation-helper", "Orchestrator.app", "Contents", "MacOS", "Orchestrator"))) throw new Error(`packaged macOS dictation helper missing from ${resourcesPath}`);
-					// Run it: remote access depends on this signed copy starting, not just existing.
-					const cloudflared = path.join(resourcesPath, "cloudflared", "cloudflared");
-					if (!existsSync(cloudflared)) throw new Error(`packaged cloudflared missing from ${cloudflared}`);
-					const cloudflaredVersion = spawnSync(cloudflared, ["--version"], { encoding: "utf8", timeout: 10_000 });
-					if (cloudflaredVersion.status !== 0) throw new Error(`packaged cloudflared failed to run at ${cloudflared}: ${cloudflaredVersion.error?.message || cloudflaredVersion.stderr}`);
 				}
 				const binary = path.join(resourcesPath, "tmux", "bin", "tmux");
 				if (!existsSync(binary)) throw new Error(`packaged tmux missing from ${binary}`);

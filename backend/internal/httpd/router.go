@@ -56,7 +56,6 @@ type ControlDeps struct {
 // REST routes, never long-lived terminal streams or health probes.
 func NewRouterWithControl(cfg config.Config, log *slog.Logger, termMgr *terminal.Manager, deps APIDeps, control ControlDeps) chi.Router {
 	log = loggerOrDefault(log)
-	deps = normalizeAPIDeps(deps, log)
 	r := chi.NewRouter()
 	api := newAPIWithLogger(cfg, deps, log)
 
@@ -68,7 +67,6 @@ func NewRouterWithControl(cfg config.Config, log *slog.Logger, termMgr *terminal
 	// renderer-only boundary, even for authenticated LAN callers, and so do
 	// mobile controls. Check before CORS can answer a preflight.
 	r.Use(rendererOriginMiddleware(cfg.AllowedOrigins))
-	r.Use(mobileControlOriginMiddleware(cfg.AllowedOrigins))
 	r.Use(corsMiddleware(cfg.AllowedOrigins))
 	r.Use(requestSurfaceMiddleware(cfg.AllowedOrigins))
 	r.Use(previewOriginMiddleware(api.sessions))
@@ -85,10 +83,8 @@ func NewRouterWithControl(cfg config.Config, log *slog.Logger, termMgr *terminal
 	mountTelemetry(r, cfg, deps.Telemetry)
 	mountUsageFlush(r, deps.UsageFlush)
 	mountTelemetryIdentity(r, deps.TelemetryIdentity)
-	mountMobile(r, deps.Mobile)
 	mountBrowserLive(r, deps.BrowserLive)
 	mountAwake(r, &controllers.AwakeController{Svc: deps.Awake})
-	mountMobileDevices(r, &controllers.MobileDevicesController{Registry: deps.DeviceRoster, Presence: deps.DeviceLive, Access: deps.DeviceAccess})
 	api.Register(r)
 
 	return r
@@ -181,57 +177,6 @@ func mountControl(r chi.Router, deps ControlDeps) {
 		// deadline under the race detector.
 		time.AfterFunc(10*time.Millisecond, deps.RequestShutdown)
 	})
-}
-
-// mountMobile registers the Connect Mobile control routes: status, enable,
-// disable, and regenerate. These toggle the LAN bridge that lets a phone reach
-// the daemon. They must be reachable from the desktop renderer — a browser
-// context that always sends an Origin header — so they are NOT gated by
-// localControlRequest (which rejects any Origin-bearing request and is meant for
-// the CLI). The "phone must never toggle its own access" invariant is enforced
-// on the LAN listener instead, by lanControlBlock, which 404s /api/v1/mobile on
-// the 0.0.0.0 socket the phone reaches — a transport-based check that cannot be
-// spoofed with a forged Host header. On the loopback listener these routes are
-// protected by mobileControlOriginMiddleware: exact renderer origins or native
-// requests without browser metadata, independent of general preview CORS.
-func mountMobile(r chi.Router, c *controllers.MobileController) {
-	if c == nil {
-		return
-	}
-	r.Get("/api/v1/mobile/status", c.Status)
-	r.Post("/api/v1/mobile/enable", c.Enable)
-	r.Post("/api/v1/mobile/enable-lan-only", c.EnableLANOnly)
-	r.Post("/api/v1/mobile/enable-tunnel-only", c.EnableTunnelOnly)
-	r.Post("/api/v1/mobile/remote-access", c.StartRemoteAccess)
-	r.Post("/api/v1/mobile/disable", c.Disable)
-	r.Post("/api/v1/mobile/regenerate", c.Regenerate)
-	r.Post("/api/v1/mobile/secure-pairing", c.SecurePairing)
-	r.Post("/api/v1/mobile/keep-awake", c.KeepAwake)
-	r.Post("/api/v1/remote-host/account-token", c.IssueAccountToken)
-	r.Post("/api/v1/remote-host/devices", c.PairDevice)
-	r.Post("/api/v1/mobile/pairing-code", c.NewPairingCode)
-	r.Post("/api/v1/mobile/require-device-credentials", c.RequireDeviceCredentials)
-	r.Post("/api/v1/mobile/browser-control", c.BrowserRemoteAccess)
-}
-
-// mountMobileDevices registers the desktop-only mobile device roster. These sit
-// under /api/v1/mobile deliberately: lanControlBlock already 404s that prefix on
-// the LAN socket, so the "a phone must not manage the roster" invariant is
-// enforced by the transport rather than by a spoofable header.
-//
-// The routes are mounted unconditionally, even when c.Registry is nil (a
-// corrupt ~/.ao/data/mobile/push-devices.json failed to load): each handler
-// answers 503 DEVICE_REGISTRY_UNAVAILABLE in that case, so the desktop can tell
-// "the registry failed to load" apart from "this route doesn't exist / talking
-// to an old daemon" (a 404 would be ambiguous with both). Only a nil controller
-// pointer — meaning the roster surface was never wired into APIDeps at all —
-// skips mounting, matching mountMobile's convention for an absent controller.
-func mountMobileDevices(r chi.Router, c *controllers.MobileDevicesController) {
-	if c == nil {
-		return
-	}
-	r.Get("/api/v1/mobile/devices", c.List)
-	r.Delete("/api/v1/mobile/devices/{id}", c.Remove)
 }
 
 type cliInvokedRequest struct {

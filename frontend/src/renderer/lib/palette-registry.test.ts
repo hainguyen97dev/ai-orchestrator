@@ -50,10 +50,8 @@ describe("palette registry", () => {
 		const regular = buildSettingsCommands(t, { developerMode: false, diagnostics: false }).map((item) => item.id);
 		const developer = buildSettingsCommands(t, { developerMode: true, diagnostics: true }).map((item) => item.id);
 		expect(regular).toContain("setting:harness");
-		expect(regular).toContain("setting:remote-hosts");
 		expect(regular).not.toContain("setting:diagnostics");
 		expect(developer).toContain("setting:harness");
-		expect(developer).toContain("setting:remote-hosts");
 		expect(developer).toContain("setting:diagnostics");
 	});
 

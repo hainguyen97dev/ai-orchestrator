@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -21,7 +20,6 @@ import (
 	"github.com/coder/websocket/wsjson"
 
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/config"
-	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/mobilebridge"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/sharedkernel/ports"
 	"github.com/hainguyen97dev/ai-orchestrator/backend/internal/terminal"
 )
@@ -68,11 +66,8 @@ func TestMuxRejectsUntrustedExistingHandleAttachment(t *testing.T) {
 }
 
 func TestMuxAuthorizedSharedAttachment(t *testing.T) {
-	for _, tc := range []struct {
-		name, origin string
-		mobile       bool
-	}{
-		{"desktop", "app://renderer", false}, {"development", "http://localhost:5173", false}, {"native", "", false}, {"paired mobile", "http://localhost", true},
+	for _, tc := range []struct{ name, origin string }{
+		{"desktop", "app://renderer"}, {"development", "http://localhost:5173"}, {"native", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			source := &muxOriginSource{}
@@ -82,25 +77,11 @@ func TestMuxAuthorizedSharedAttachment(t *testing.T) {
 			srv := httptest.NewServer(router)
 			defer srv.Close()
 			endpoint := srv.URL
-			var lan *LANManager
-			if tc.mobile {
-				lan = NewMobileLAN(router, "mux-host", 0, discardLogger(), nil)
-				lan.SetPasswordHash(mobilebridge.HashPassword("paired-password"))
-				port, err := lan.StartLoopback(0)
-				if err != nil {
-					t.Fatal(err)
-				}
-				defer lan.Stop(context.Background())
-				endpoint = "http://127.0.0.1:" + strconv.Itoa(port)
-			}
 			var viewers []*websocket.Conn
 			for i := 0; i < 3; i++ {
 				headers := http.Header{}
 				if tc.origin != "" {
 					headers.Set("Origin", tc.origin)
-				}
-				if tc.mobile {
-					headers.Set("Authorization", "Bearer paired-password")
 				}
 				ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 				c, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(endpoint, "http")+"/mux", &websocket.DialOptions{HTTPHeader: headers})
@@ -133,13 +114,7 @@ func TestMuxAuthorizedSharedAttachment(t *testing.T) {
 			if source.attached.Load() != 3 {
 				t.Fatalf("attachments=%d", source.attached.Load())
 			}
-			if lan != nil {
-				lan.SetPasswordHash(mobilebridge.HashPassword("rotated-password"))
-				_, resp, err := websocket.Dial(context.Background(), "ws"+strings.TrimPrefix(endpoint, "http")+"/mux", &websocket.DialOptions{HTTPHeader: http.Header{"Origin": {"http://localhost"}, "Authorization": {"Bearer paired-password"}}})
-				if err == nil || resp == nil || resp.StatusCode != http.StatusUnauthorized {
-					t.Fatalf("retired password: response=%v err=%v", resp, err)
-				}
-			}
+
 		})
 	}
 }

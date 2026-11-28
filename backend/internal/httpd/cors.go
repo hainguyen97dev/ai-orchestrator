@@ -80,7 +80,7 @@ func rendererOriginMiddleware(allowedOrigins []string) func(http.Handler) http.H
 			origin := r.Header.Get("Origin")
 			if area := rendererOnlyArea(r.URL.Path); origin != "" && area != "" {
 				w.Header().Add("Vary", "Origin")
-				if _, ok := allowed[origin]; !ok && !mobileAgentAccountsRequest(r, area) {
+				if _, ok := allowed[origin]; !ok {
 					envelope.WriteAPIError(w, r, http.StatusForbidden, "forbidden", "ORIGIN_FORBIDDEN",
 						"Origin is not allowed to access "+area, nil)
 					return
@@ -89,12 +89,6 @@ func rendererOriginMiddleware(allowedOrigins []string) func(http.Handler) http.H
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-const agentAccountsArea = "agent accounts"
-
-func mobileAgentAccountsRequest(r *http.Request, area string) bool {
-	return area == agentAccountsArea && r.Header.Get("Origin") == "http://localhost" && authenticatedLANBearer(r)
 }
 
 func exactAllowedOrigins(origins []string) map[string]struct{} {
@@ -129,7 +123,7 @@ func rendererOnlyArea(path string) string {
 			"/api/v1/agents/codex/accounts",
 			"/api/v1/agents/codex/account-switches",
 		}},
-		{agentAccountsArea, []string{"/api/v1/agents/accounts"}},
+		{"agent accounts", []string{"/api/v1/agents/accounts"}},
 		{"agent credential management", []string{
 			"/api/v1/agents/codex/auth/operations",
 			"/api/v1/agents/claude-code/auth/operations",
@@ -160,18 +154,10 @@ func browserRequestAllowed(r *http.Request, allowed map[string]struct{}) bool {
 		return false
 	}
 	origin := r.Header.Get("Origin")
-	if previewCookie, _ := r.Context().Value(lanPreviewCookieContextKey{}).(bool); previewCookie && isPreviewFileRequest(r) {
-		return true
-	}
 	if origin == "" {
-		return r.Header.Get("Sec-Fetch-Site") == "" || isPreviewHost(r.Host) || isPreviewFileRequest(r) || isRenderDocumentRequest(r) || authenticatedLANBearer(r)
+		return r.Header.Get("Sec-Fetch-Site") == "" || isPreviewHost(r.Host) || isPreviewFileRequest(r) || isRenderDocumentRequest(r)
 	}
 	if _, ok := allowed[origin]; ok {
-		return true
-	}
-	// React Native pins this Origin. It is not trusted on the primary
-	// listener, even if someone supplies an Authorization header there.
-	if origin == "http://localhost" && authenticatedLANBearer(r) {
 		return true
 	}
 	// A preview may use its own files, never the API or another preview.

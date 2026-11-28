@@ -30,15 +30,12 @@ export function createAwakeTrayMonitor(options: {
 				if (!response.ok) throw new Error("Stay Awake status unavailable");
 				return response.json();
 			};
-			const states = await Promise.allSettled([
-				read("awake").then((state: components["schemas"]["AwakeState"]) => { publishAwake(state, base); return state.active; }),
-				read("mobile/status").then((state: components["schemas"]["MobileStatusResponse"]) => state.keepAwake?.active),
-			]);
+			const state = await read("awake") as components["schemas"]["AwakeState"];
+			publishAwake(state, base);
+			if (!disposed && base === options.baseURL()) options.setState(typeof state.active === "boolean" ? state.active : null);
+		} catch {
 			// A failed probe is not evidence that an existing wake hold ended.
-			const active = states.some((state) => state.status === "fulfilled" && state.value === true)
-				? true
-				: states.every((state) => state.status === "fulfilled" && state.value === false) ? false : null;
-			if (!disposed && base === options.baseURL()) options.setState(active);
+			if (!disposed && base === options.baseURL()) options.setState(null);
 		} finally {
 			inFlight = false;
 		}
