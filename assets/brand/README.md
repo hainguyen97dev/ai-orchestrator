@@ -35,15 +35,6 @@ when the bundle changes, tracked by `Assets.car.sha256`.
 | `frontend/src/renderer/assets/ao-qr-logo.png` | Centre of the Connect Mobile QR code. |
 | `frontend/src/browser-extension/icons/icon-*.png` | AO Browser Bridge extension. |
 | `docs/assets/readme/logo.png` | Repository README header (192 px for a 96 pt slot). |
-| `packages/mobile/assets/AO.icon` | iOS icon (Expo builds it from the bundle). |
-| `packages/mobile/assets/icon.png` | Expo fallback icon: full-bleed square, no rounding, no alpha. |
-| `packages/mobile/assets/android-icon-{background,foreground,monochrome}.png` | Android adaptive icon. The foreground and monochrome layers are scaled so Ruto stays inside the 66 dp safe zone. |
-| `packages/mobile/assets/notification-icon.png` | Android notification icon (white silhouette). |
-| `packages/mobile/assets/splash-icon.png`, `favicon.png` | Splash screen and web favicon. |
-| `packages/mobile/assets/mascot.png` | Onboarding, chat empty state and connection lamp: the flat artwork, like `ao-mascot.svg`, so it reads on light themes. |
-
-To see the iOS icon in every appearance, as a device draws it, run
-`packages/mobile/scripts/preview-icon.sh`.
 
 Glass renders that need no tile (Android foreground, splash)
 come from rendering the bundle on a black and a white tile and solving for
@@ -59,5 +50,3 @@ outputs above:
 - The X and GitHub organization avatars
   ([`assets/social/ruto-twitter-avatar.png`](../social/ruto-twitter-avatar.png)
   is a separate, hand-made upload asset).
-- App Store and Google Play listing icons and screenshots, which come from the
-  next mobile build.

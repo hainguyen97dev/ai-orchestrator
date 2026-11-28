@@ -38,7 +38,6 @@ Need the product/run overview first? Start with [README.md](README.md),
 Two onboarding notes matter on current `main`:
 
 - On fresh Linux setups, prefer `cd frontend && npm run package` unless you have also installed distro packaging tools such as `rpm`/`rpmbuild` for `npm run make`.
-- Mobile companion app docs are still being filled in. Do not assume `packages/mobile/README.md` is a complete headless setup guide on this branch.
 
 ### Bugs and features
 
